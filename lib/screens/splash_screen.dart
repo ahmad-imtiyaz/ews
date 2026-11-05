@@ -159,6 +159,7 @@ class _SplashScreenState extends State<SplashScreen>
                             textAlign: TextAlign.center,
                             style: textTheme.headlineLarge?.copyWith(
                               color: Colors.white,
+                              fontSize: 30,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -169,6 +170,7 @@ class _SplashScreenState extends State<SplashScreen>
                             textAlign: TextAlign.center,
                             style: textTheme.bodyLarge?.copyWith(
                               color: Colors.white,
+                              fontSize: 16,
                             ),
                           ),
                         ],

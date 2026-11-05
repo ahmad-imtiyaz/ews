@@ -11,9 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   // Pakai font asli supaya ukuran teks di tes sama dengan di ponsel.
   setUpAll(() async {
-    final loader = FontLoader('AtkinsonHyperlegible');
-    for (final weight in ['Regular', 'Bold']) {
-      final bytes = File('assets/fonts/AtkinsonHyperlegible-$weight.ttf')
+    final loader = FontLoader(appFontFamily);
+    for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+      final bytes = File('assets/fonts/PlusJakartaSans-$weight.ttf')
           .readAsBytes();
       loader.addFont(bytes.then(ByteData.sublistView));
     }
@@ -51,7 +51,8 @@ void main() {
 
       expect(find.text('Pemantauan longsor desa'), findsNothing);
       expect(find.text('Buat laporan'), findsOneWidget);
-      expect(find.text('Waspada'), findsOneWidget);
+      expect(find.byType(Dialog), findsNothing);
+      expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
     });
 
     testWidgets('ketuk layar melewati animasi', (tester) async {
@@ -73,7 +74,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Awas'), findsOneWidget);
+      expect(find.text('EWS-01 berubah menjadi Awas'), findsOneWidget);
     });
 
     testWidgets('animasi dimatikan di HP membuat splash singkat', (
@@ -143,7 +144,7 @@ void main() {
       await tester.tap(find.text('Coba lagi'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Waspada'), findsOneWidget);
+      expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
       expect(find.text('Coba lagi'), findsNothing);
     });
 
@@ -190,6 +191,55 @@ void main() {
       expect(find.text('Buat laporan'), findsOneWidget);
     });
 
+    testWidgets('mode peta bisa diganti dan sumbernya ikut berubah', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(home(waspadaData));
+      await tester.pump();
+
+      expect(find.text('© OpenStreetMap'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Pilih mode peta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Satelit'));
+      await tester.pumpAndSettle();
+      expect(find.text('Citra © Esri'), findsOneWidget);
+      expect(find.text('Medan'), findsNothing);
+
+      await tester.tap(find.byTooltip('Pilih mode peta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Medan'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('OpenTopoMap'), findsOneWidget);
+    });
+
+    testWidgets('perubahan status masuk riwayat lonceng tanpa pop up', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(home(normalData));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Notifikasi'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Belum ada notifikasi'), findsOneWidget);
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Data contoh'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Awas'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Dialog), findsNothing);
+      expect(find.text('1'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Notifikasi'));
+      await tester.pumpAndSettle();
+      expect(find.text('Contoh: Awas'), findsOneWidget);
+    });
+
     testWidgets('Data contoh bisa mengganti keadaan', (tester) async {
       usePhoneSize(tester);
       await tester.pumpWidget(home(waspadaData));
@@ -199,7 +249,6 @@ void main() {
       await tester.tap(find.text('Normal, catatan kosong'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Normal'), findsOneWidget);
       expect(find.textContaining('Belum ada catatan hari ini'), findsOneWidget);
     });
 

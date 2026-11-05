@@ -138,7 +138,7 @@ class SensorMarkerButton extends StatelessWidget {
       semanticLabel: '${sensor.id}, ${sensor.status.label}. Buka detail.',
       label: sensor.id,
       onTap: onTap,
-      icon: StatusShape(status: sensor.status),
+      icon: StatusShape(status: sensor.status, size: 28),
     );
   }
 }
@@ -160,14 +160,14 @@ class ReportMarkerButton extends StatelessWidget {
       label: 'Laporan',
       onTap: onTap,
       icon: Container(
-        width: 32,
-        height: 32,
+        width: 28,
+        height: 28,
         decoration: BoxDecoration(
           color: AppColors.ink,
           border: Border.all(color: Colors.white, width: 2),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(6),
         ),
-        child: const Icon(Icons.description, color: Colors.white, size: 20),
+        child: const Icon(Icons.description, color: Colors.white, size: 16),
       ),
     );
   }
@@ -206,15 +206,15 @@ class _MarkerButton extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.ink,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   label,
                   textScaler: TextScaler.noScaling,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

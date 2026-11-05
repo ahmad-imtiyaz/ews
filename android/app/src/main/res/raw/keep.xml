@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dipakai lewat nama dari Dart, jadi harus dijaga supaya tidak dibuang saat rilis. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/ews_waspada,@raw/ews_awas,@drawable/ic_notification" />

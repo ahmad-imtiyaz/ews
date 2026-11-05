@@ -55,11 +55,14 @@ class ReportPoint {
   final String time;
 }
 
+enum LogKind { status, report, noData, verified }
+
 class LogEntry {
-  const LogEntry(this.time, this.text);
+  const LogEntry(this.time, this.text, this.kind);
 
   final String time;
   final String text;
+  final LogKind kind;
 }
 
 class MonitoringData {
@@ -86,11 +89,18 @@ class MonitoringData {
   final bool loadFailed;
 }
 
-const mapCenter = LatLng(-7.1727, 109.5807);
-
 const _ews01Position = LatLng(-7.1697, 109.5757);
 const _ews02Position = LatLng(-7.1761, 109.5841);
 const _ews03Position = LatLng(-7.1680, 109.5867);
+const _reportPosition = LatLng(-7.1765, 109.5721);
+
+/// Titik yang harus terlihat saat peta pertama dibuka.
+const mapFocusPoints = [
+  _ews01Position,
+  _ews02Position,
+  _ews03Position,
+  _reportPosition,
+];
 
 const sampleReadings = [
   SensorReading('Kelembapan tanah', '78 %'),
@@ -132,15 +142,23 @@ const waspadaData = MonitoringData(
     ReportPoint(
       title: 'Laporan retakan',
       place: 'Dusun A',
-      position: LatLng(-7.1765, 109.5721),
+      position: _reportPosition,
       time: '10.39',
     ),
   ],
   log: [
-    LogEntry('10.42', 'EWS-01 berubah menjadi Waspada'),
-    LogEntry('10.39', 'Laporan retakan masuk, menunggu verifikasi'),
-    LogEntry('10.35', 'EWS-02 tidak mengirim data'),
-    LogEntry('10.20', 'Petugas memverifikasi laporan di Dusun A'),
+    LogEntry('10.42', 'EWS-01 berubah menjadi Waspada', LogKind.status),
+    LogEntry(
+      '10.39',
+      'Laporan retakan masuk, menunggu verifikasi',
+      LogKind.report,
+    ),
+    LogEntry('10.35', 'EWS-02 tidak mengirim data', LogKind.noData),
+    LogEntry(
+      '10.20',
+      'Petugas memverifikasi laporan di Dusun A',
+      LogKind.verified,
+    ),
   ],
 );
 
@@ -205,8 +223,8 @@ const awasData = MonitoringData(
     ),
   ],
   log: [
-    LogEntry('10.42', 'EWS-01 berubah menjadi Awas'),
-    LogEntry('10.41', 'EWS-02 berubah menjadi Waspada'),
+    LogEntry('10.42', 'EWS-01 berubah menjadi Awas', LogKind.status),
+    LogEntry('10.41', 'EWS-02 berubah menjadi Waspada', LogKind.status),
   ],
 );
 
@@ -238,7 +256,9 @@ const noDataData = MonitoringData(
       lastData: '07.15',
     ),
   ],
-  log: [LogEntry('07.15', 'Semua titik berhenti mengirim data')],
+  log: [
+    LogEntry('07.15', 'Semua titik berhenti mengirim data', LogKind.noData),
+  ],
 );
 
 const failedData = MonitoringData(

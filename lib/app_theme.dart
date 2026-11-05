@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 
 import 'data/sample_data.dart';
 
-const appFontFamily = 'AtkinsonHyperlegible';
+const appFontFamily = 'PlusJakartaSans';
 
 abstract final class AppColors {
   static const ink = Color(0xFF111111);
-  static const inkSoft = Color(0xFF444444);
-  static const outline = Color(0xFF767676);
-  static const divider = Color(0xFFD4D4D4);
+  static const inkSoft = Color(0xFF555555);
+  static const border = Color(0xFFD4D4D4);
+  static const divider = Color(0xFFE6E6E6);
+  static const page = Color(0xFFEFEFEF);
+  static const panel = Color(0xFFF7F7F7);
+  static const iconTile = Color(0xFFF1F1F1);
   static const mapBackground = Color(0xFFE8E8E8);
   static const stale = Color(0xFF595959);
 
@@ -30,10 +33,6 @@ extension MonitoringStatusColors on MonitoringStatus {
 }
 
 ThemeData buildAppTheme() {
-  const shape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.circular(8)),
-  );
-
   return ThemeData(
     colorScheme: const ColorScheme.light(
       primary: AppColors.ink,
@@ -42,43 +41,47 @@ ThemeData buildAppTheme() {
       onSecondary: Colors.white,
       surface: Colors.white,
       onSurface: AppColors.ink,
-      outline: AppColors.outline,
+      outline: AppColors.border,
       error: AppColors.awas,
     ),
-    scaffoldBackgroundColor: Colors.white,
+    scaffoldBackgroundColor: AppColors.page,
     fontFamily: appFontFamily,
     textTheme: const TextTheme(
-      headlineLarge: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),
-      headlineSmall: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
-      titleLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-      titleMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-      bodyLarge: TextStyle(fontSize: 18, height: 1.35),
-      bodyMedium: TextStyle(fontSize: 18, height: 1.35),
-      labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+      headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+      headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+      titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+      titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      bodyLarge: TextStyle(fontSize: 14, height: 1.35),
+      bodyMedium: TextStyle(fontSize: 12, height: 1.35),
+      labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size(64, 56),
-        shape: shape,
+        minimumSize: const Size(64, 48),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+        ),
         textStyle: const TextStyle(
           fontFamily: appFontFamily,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
         ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size(48, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        minimumSize: const Size(44, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         foregroundColor: AppColors.ink,
         backgroundColor: Colors.white,
-        side: const BorderSide(color: AppColors.ink, width: 1.5),
-        shape: shape,
+        side: const BorderSide(color: AppColors.border),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
         textStyle: const TextStyle(
           fontFamily: appFontFamily,
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
       ),
     ),
@@ -88,10 +91,10 @@ ThemeData buildAppTheme() {
       space: 1,
     ),
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.panel,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
     ),
   );
