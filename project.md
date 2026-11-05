@@ -97,6 +97,8 @@ Fokus tahap awal adalah alur EWS longsor, bukan aplikasi pengaduan desa serba gu
 
 ### 6.1 Peta sebagai halaman utama
 
+**Status: disetujui pengguna, sudah dibuat dengan data contoh.** Aplikasi dibuka dengan animasi splash sekitar 3 detik (tanah retak, sirene, warga melapor), bisa dilewati dengan ketukan, dilewati otomatis saat status Awas, lalu masuk ke Peta tanpa login. Animasinya dibuat oleh `tool/generate_splash.py`. Gaya visualnya hitam putih, warna hanya untuk status, dan huruf serta tombol dibuat besar untuk orang tua. Arah ini menggantikan gaya kertas dan nila di `stitch-prompt.md`.
+
 Susunan utama:
 1. Ringkasan kondisi dan waktu pembaruan.
 2. Peta yang menampilkan titik sensor serta lokasi laporan dengan ikon berbeda.

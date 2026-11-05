@@ -1,0 +1,260 @@
+import 'package:latlong2/latlong.dart';
+
+// Semua isi berkas ini data simulasi. Pusat peta memakai posisi Desa Lumeneng
+// dari OpenStreetMap. Posisi titik hanya contoh, bukan lokasi perangkat.
+
+enum MonitoringStatus {
+  normal('Normal'),
+  waspada('Waspada'),
+  awas('Awas'),
+  noData('Tidak ada data');
+
+  const MonitoringStatus(this.label);
+
+  final String label;
+}
+
+class SensorReading {
+  const SensorReading(this.name, this.value);
+
+  final String name;
+  final String value;
+}
+
+class SensorPoint {
+  const SensorPoint({
+    required this.id,
+    required this.place,
+    required this.position,
+    required this.status,
+    required this.lastData,
+    this.readings = sampleReadings,
+  });
+
+  final String id;
+  final String place;
+  final LatLng position;
+  final MonitoringStatus status;
+  final String lastData;
+  final List<SensorReading> readings;
+
+  bool get isStale => status == MonitoringStatus.noData;
+}
+
+class ReportPoint {
+  const ReportPoint({
+    required this.title,
+    required this.place,
+    required this.position,
+    required this.time,
+  });
+
+  final String title;
+  final String place;
+  final LatLng position;
+  final String time;
+}
+
+class LogEntry {
+  const LogEntry(this.time, this.text);
+
+  final String time;
+  final String text;
+}
+
+class MonitoringData {
+  const MonitoringData({
+    required this.name,
+    required this.status,
+    required this.title,
+    required this.summary,
+    this.updated,
+    this.sensors = const [],
+    this.reports = const [],
+    this.log = const [],
+    this.loadFailed = false,
+  });
+
+  final String name;
+  final MonitoringStatus status;
+  final String title;
+  final String summary;
+  final String? updated;
+  final List<SensorPoint> sensors;
+  final List<ReportPoint> reports;
+  final List<LogEntry> log;
+  final bool loadFailed;
+}
+
+const mapCenter = LatLng(-7.1727, 109.5807);
+
+const _ews01Position = LatLng(-7.1697, 109.5757);
+const _ews02Position = LatLng(-7.1761, 109.5841);
+const _ews03Position = LatLng(-7.1680, 109.5867);
+
+const sampleReadings = [
+  SensorReading('Kelembapan tanah', '78 %'),
+  SensorReading('Kelembapan udara', '91 %'),
+  SensorReading('pH tanah', '5,8'),
+  SensorReading('Sensor utama', 'Jenis sensor belum ditentukan'),
+];
+
+const waspadaData = MonitoringData(
+  name: 'Waspada',
+  status: MonitoringStatus.waspada,
+  title: 'Waspada',
+  summary: '1 titik perlu diperhatikan. 1 titik tidak mengirim data.',
+  updated: 'Diperbarui 10.42',
+  sensors: [
+    SensorPoint(
+      id: 'EWS-01',
+      place: 'Dusun A',
+      position: _ews01Position,
+      status: MonitoringStatus.waspada,
+      lastData: '10.42',
+    ),
+    SensorPoint(
+      id: 'EWS-02',
+      place: 'Dusun B',
+      position: _ews02Position,
+      status: MonitoringStatus.noData,
+      lastData: '07.15',
+    ),
+    SensorPoint(
+      id: 'EWS-03',
+      place: 'Dusun A',
+      position: _ews03Position,
+      status: MonitoringStatus.normal,
+      lastData: '10.40',
+    ),
+  ],
+  reports: [
+    ReportPoint(
+      title: 'Laporan retakan',
+      place: 'Dusun A',
+      position: LatLng(-7.1765, 109.5721),
+      time: '10.39',
+    ),
+  ],
+  log: [
+    LogEntry('10.42', 'EWS-01 berubah menjadi Waspada'),
+    LogEntry('10.39', 'Laporan retakan masuk, menunggu verifikasi'),
+    LogEntry('10.35', 'EWS-02 tidak mengirim data'),
+    LogEntry('10.20', 'Petugas memverifikasi laporan di Dusun A'),
+  ],
+);
+
+const normalData = MonitoringData(
+  name: 'Normal, catatan kosong',
+  status: MonitoringStatus.normal,
+  title: 'Normal',
+  summary: '3 titik mengirim data terbaru.',
+  updated: 'Diperbarui 10.42',
+  sensors: [
+    SensorPoint(
+      id: 'EWS-01',
+      place: 'Dusun A',
+      position: _ews01Position,
+      status: MonitoringStatus.normal,
+      lastData: '10.42',
+    ),
+    SensorPoint(
+      id: 'EWS-02',
+      place: 'Dusun B',
+      position: _ews02Position,
+      status: MonitoringStatus.normal,
+      lastData: '10.41',
+    ),
+    SensorPoint(
+      id: 'EWS-03',
+      place: 'Dusun A',
+      position: _ews03Position,
+      status: MonitoringStatus.normal,
+      lastData: '10.40',
+    ),
+  ],
+);
+
+const awasData = MonitoringData(
+  name: 'Awas',
+  status: MonitoringStatus.awas,
+  title: 'Awas',
+  summary: 'EWS-01 berstatus Awas. Ikuti arahan petugas desa.',
+  updated: 'Diperbarui 10.42',
+  sensors: [
+    SensorPoint(
+      id: 'EWS-01',
+      place: 'Dusun A',
+      position: _ews01Position,
+      status: MonitoringStatus.awas,
+      lastData: '10.42',
+    ),
+    SensorPoint(
+      id: 'EWS-02',
+      place: 'Dusun B',
+      position: _ews02Position,
+      status: MonitoringStatus.waspada,
+      lastData: '10.41',
+    ),
+    SensorPoint(
+      id: 'EWS-03',
+      place: 'Dusun A',
+      position: _ews03Position,
+      status: MonitoringStatus.normal,
+      lastData: '10.40',
+    ),
+  ],
+  log: [
+    LogEntry('10.42', 'EWS-01 berubah menjadi Awas'),
+    LogEntry('10.41', 'EWS-02 berubah menjadi Waspada'),
+  ],
+);
+
+const noDataData = MonitoringData(
+  name: 'Tidak ada data baru',
+  status: MonitoringStatus.noData,
+  title: 'Tidak ada data baru',
+  summary: 'Kondisi sekarang belum diketahui. Data terakhir 07.15.',
+  sensors: [
+    SensorPoint(
+      id: 'EWS-01',
+      place: 'Dusun A',
+      position: _ews01Position,
+      status: MonitoringStatus.noData,
+      lastData: '07.15',
+    ),
+    SensorPoint(
+      id: 'EWS-02',
+      place: 'Dusun B',
+      position: _ews02Position,
+      status: MonitoringStatus.noData,
+      lastData: '07.15',
+    ),
+    SensorPoint(
+      id: 'EWS-03',
+      place: 'Dusun A',
+      position: _ews03Position,
+      status: MonitoringStatus.noData,
+      lastData: '07.15',
+    ),
+  ],
+  log: [LogEntry('07.15', 'Semua titik berhenti mengirim data')],
+);
+
+const failedData = MonitoringData(
+  name: 'Gagal memuat data',
+  status: MonitoringStatus.noData,
+  title: 'Belum bisa memuat',
+  summary: 'Kondisi sekarang belum diketahui. Periksa sinyal, lalu coba lagi.',
+  loadFailed: true,
+);
+
+const sampleScenarios = [
+  waspadaData,
+  normalData,
+  awasData,
+  noDataData,
+  failedData,
+];
+
+Future<MonitoringData> loadMonitoring() async => waspadaData;
