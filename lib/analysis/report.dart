@@ -141,6 +141,8 @@ String buildReportMessage(
     if (text != null)
       'Dugaan dari teks: ${text.category == null ? 'belum dikenali' : '${text.category!.label}${text.isConfident ? '' : ' (belum yakin)'}'}, '
           'urgensi ${text.urgency.label.toLowerCase()}',
+    if (text != null && text.unknownWords.isNotEmpty)
+      'Kata belum ada di kamus: ${text.unknownWords.join(', ')}',
     if (report.hasPhoto)
       'Foto: ${report.photos.length} terlampir'
           '${photosCombined ? ' dalam satu gambar bernomor' : ''}'

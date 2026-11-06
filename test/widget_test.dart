@@ -280,7 +280,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Lapor tanda longsor'), findsOneWidget);
 
-      await tester.tap(find.text('Beranda'));
+      await tester.tap(find.byTooltip('Beranda'));
       await tester.pumpAndSettle();
       expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
     });

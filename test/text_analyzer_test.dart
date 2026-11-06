@@ -10,6 +10,7 @@ void main() {
   setUpAll(() {
     analyzer = TextAnalyzer.fromCsv(
       dictionaryCsv: File(dictionaryAsset).readAsStringSync(),
+      generalDictionaryCsv: File(generalDictionaryAsset).readAsStringSync(),
       examplesCsv: File(examplesAsset).readAsStringSync(),
       placesCsv: File(placesAsset).readAsStringSync(),
     );
@@ -83,5 +84,32 @@ void main() {
       analyzer.analyze('lapor ke BPBD, tanah retak').standardized,
       'Lapor ke BPBD, tanah retak.',
     );
+  });
+
+  test('kosakata ngapak sehari-hari ikut dibakukan', () {
+    expect(
+      analyzer.analyze('nyong kencot, durung mangan ket esuk').standardized,
+      'Saya lapar, belum makan sejak pagi.',
+    );
+  });
+
+  test('imbuhan Jawa dilepas bila kata dasarnya ada di kamus', () {
+    expect(analyzer.analyze('omahku').standardized, 'Rumahku.');
+    expect(analyzer.analyze('digawa').standardized, 'Dibawa.');
+    expect(analyzer.analyze('kegawa banyu').standardized, 'Terbawa air.');
+    expect(analyzer.analyze('ana bengkahan').standardized, 'Ada retakan.');
+  });
+
+  test('kata Indonesia yang mirip kata Jawa berimbuhan tidak diubah', () {
+    expect(
+      analyzer.analyze('kalian punya alasan').standardized,
+      'Kalian punya alasan.',
+    );
+    expect(analyzer.analyze('aku malas').standardized, 'Saya malas.');
+  });
+
+  test('kata di luar kamus dicatat, nama orang tidak', () {
+    final result = analyzer.analyze('lemahe bengkah, Pak Darto njlebles');
+    expect(result.unknownWords, ['njlebles']);
   });
 }

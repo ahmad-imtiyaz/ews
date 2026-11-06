@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'sign_category.dart';
 
 const dictionaryAsset = 'assets/nlp/kamus_lumeneng.csv';
+const generalDictionaryAsset = 'assets/nlp/kamus_ngapak_umum.csv';
 const examplesAsset = 'assets/nlp/contoh_laporan.csv';
 const placesAsset = 'assets/nlp/nama_tempat.csv';
 
@@ -89,6 +90,19 @@ const _placeStarters = {
   'seberang',
   'sisi',
 };
+
+/// Akhiran Jawa, yang panjang dicoba lebih dulu. -e/-ne ditangani terpisah.
+const _javaSuffixes = ['kna', 'ake', 'na', 'an', 'ku', 'mu', 'i'];
+
+/// Awalan nasal dan huruf awal kata dasar yang mungkin luluh:
+/// nyapu <- sapu, ngombe <- ombe, mbukak <- bukak, nulis <- tulis.
+const _nasalPrefixes = [
+  ('ng', ['', 'k']),
+  ('ny', ['s', 'c']),
+  ('m', ['', 'p', 'w']),
+  ('n', ['', 't']),
+];
+final _derivedStandard = RegExp(r'^(me|ber|ter|di)');
 
 const _placeStoppers = {
   'retak',
@@ -194,6 +208,7 @@ class TextAnalysis {
     required this.place,
     required this.urgency,
     required this.urgencyMarkers,
+    this.unknownWords = const [],
   });
 
   final String original;
@@ -209,6 +224,10 @@ class TextAnalysis {
   final String? place;
   final Urgency urgency;
   final List<String> urgencyMarkers;
+
+  /// Kata yang tidak ada di kamus maupun data latih, untuk ditambahkan ke
+  /// kamus. Bisa juga kata Indonesia yang belum dipakai di contoh laporan.
+  final List<String> unknownWords;
 
   MapEntry<SignCategory, double>? get _top => probabilities.isEmpty
       ? null
@@ -235,11 +254,15 @@ class TextAnalyzer {
   factory TextAnalyzer.fromCsv({
     required String dictionaryCsv,
     required String examplesCsv,
+    String generalDictionaryCsv = '',
     String placesCsv = '',
   }) {
+    // Kamus tanda longsor dimuat terakhir supaya artinya yang dipakai.
     final dictionary = <String, String>{};
-    for (final (local, standard) in _csvRows(dictionaryCsv)) {
-      dictionary[local.toLowerCase()] = standard;
+    for (final csv in [generalDictionaryCsv, dictionaryCsv]) {
+      for (final (local, standard) in _csvRows(csv)) {
+        dictionary[local.toLowerCase()] = standard;
+      }
     }
     final standardWords = {
       for (final value in dictionary.values)
@@ -271,6 +294,7 @@ class TextAnalyzer {
     final assets = bundle ?? rootBundle;
     return TextAnalyzer.fromCsv(
       dictionaryCsv: await assets.loadString(dictionaryAsset),
+      generalDictionaryCsv: await assets.loadString(generalDictionaryAsset),
       examplesCsv: await assets.loadString(examplesAsset),
       placesCsv: await assets.loadString(placesAsset),
     );
@@ -314,7 +338,29 @@ class TextAnalyzer {
       place: _place(words),
       urgency: urgency,
       urgencyMarkers: markers,
+      unknownWords: _unknownWords(tokens),
     );
+  }
+
+  List<String> _unknownWords(List<NlpToken> tokens) {
+    final unknown = <String>{};
+    for (final (index, token) in tokens.indexed) {
+      if (token.isPunctuation || token.changed) continue;
+      final word = token.original.toLowerCase();
+      // Kapital yang dibiarkan di tengah kalimat berarti nama atau singkatan.
+      final sentenceStart = index == 0 || tokens[index - 1].isPunctuation;
+      if (token.normalized != word && !sentenceStart) continue;
+      if (word.length < 3 || word.contains(RegExp(r'\d'))) continue;
+      if (_dictionary.containsKey(word) ||
+          _standardWords.contains(word) ||
+          _stopwords.contains(word) ||
+          _negators.contains(word) ||
+          _model.knows(_stem(word))) {
+        continue;
+      }
+      unknown.add(word);
+    }
+    return unknown.toList();
   }
 
   List<String> _tokenize(String text) =>
@@ -365,7 +411,57 @@ class TextAnalyzer {
           _dictionary[root] ?? (_standardWords.contains(root) ? root : null);
       if (standard != null && standard.isNotEmpty) return '${standard}nya';
     }
-    return _fixCase(original, folded, shouting);
+    return _fromAffixes(folded) ?? _fixCase(original, folded, shouting);
+  }
+
+  /// Kata dasar minimal 4 huruf agar "ana" tidak ditemukan di "diana".
+  String? _root(String root) {
+    if (root.length < 4) return null;
+    final standard = _dictionary[root];
+    return standard == null || standard.isEmpty ? null : standard;
+  }
+
+  String? _withoutSuffix(String word) {
+    final direct = _root(word);
+    if (direct != null) return direct;
+    for (final suffix in _javaSuffixes) {
+      if (!word.endsWith(suffix)) continue;
+      final standard = _root(word.substring(0, word.length - suffix.length));
+      if (standard == null) continue;
+      // bengkahan -> retakan, omahku -> rumahku; -na/-i cukup kata dasarnya.
+      final keepsSuffix = const {'an', 'ku', 'mu'}.contains(suffix);
+      return keepsSuffix && !standard.contains(' ')
+          ? '$standard$suffix'
+          : standard;
+    }
+    return null;
+  }
+
+  /// Kata berimbuhan Jawa yang kata dasarnya ada di kamus:
+  /// digawa -> dibawa, kegawa -> terbawa, nggawakna -> bawa.
+  String? _fromAffixes(String word) {
+    if (_standardWords.contains(word)) return null;
+    final suffixed = _withoutSuffix(word);
+    if (suffixed != null) return suffixed;
+
+    for (final (prefix, standardPrefix) in const [('di', 'di'), ('ke', 'ter')]) {
+      if (!word.startsWith(prefix)) continue;
+      final standard = _withoutSuffix(word.substring(prefix.length));
+      if (standard == null) continue;
+      final isBase =
+          !standard.contains(' ') && !_derivedStandard.hasMatch(standard);
+      return isBase ? '$standardPrefix$standard' : standard;
+    }
+
+    for (final (prefix, initials) in _nasalPrefixes) {
+      if (!word.startsWith(prefix)) continue;
+      final rest = word.substring(prefix.length);
+      for (final initial in initials) {
+        final standard = _withoutSuffix('$initial$rest');
+        if (standard != null) return standard;
+      }
+    }
+    return null;
   }
 
   /// Kata di luar kamus: huruf acak seperti "tIkUnGaN" dijadikan kecil.
@@ -497,6 +593,8 @@ class _NaiveBayes {
   final _vocabulary = <String>{};
 
   int get documents => _documents.values.fold(0, (a, b) => a + b);
+
+  bool knows(String word) => _vocabulary.contains(word);
 
   void add(SignCategory category, List<String> features) {
     _documents.update(category, (n) => n + 1, ifAbsent: () => 1);

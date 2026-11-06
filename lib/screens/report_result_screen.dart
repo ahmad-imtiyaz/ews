@@ -307,6 +307,11 @@ class _NlpCard extends StatelessWidget {
                     '${token.normalized.isEmpty ? '(dibuang/digabung)' : token.normalized}',
             ].join('\n'),
           ),
+        if (text.unknownWords.isNotEmpty)
+          InfoRow(
+            label: 'Belum ada di kamus',
+            value: text.unknownWords.join(', '),
+          ),
         Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(

@@ -260,8 +260,21 @@ class _ReportScreenState extends State<ReportScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
-            Text('Lapor tanda longsor', style: textTheme.titleLarge),
-            const SizedBox(height: 4),
+            // Tinggi sama dengan baris atas Beranda supaya tidak loncat
+            // saat pindah menu.
+            SizedBox(
+              height: 48,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('EWS Lumeneng', style: textTheme.titleLarge),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Lapor tanda longsor',
+              style: textTheme.titleLarge?.copyWith(fontSize: 22),
+            ),
+            const SizedBox(height: 6),
             Text(
               'Tulis dengan bahasa sehari-hari. Bahasa Jawa juga bisa, nanti '
               'dibakukan ke bahasa Indonesia.',
