@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../analysis/photo_collage.dart';
 import '../analysis/report.dart';
 import '../analysis/text_analyzer.dart';
 import '../app_theme.dart';
@@ -33,6 +34,10 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
   );
   bool _sharing = false;
   bool _shared = false;
+  bool _textCopied = false;
+
+  /// Dibuat sekali saat pertama dikirim, dipakai lagi untuk "Kirim lagi".
+  String? _collagePath;
 
   @override
   void dispose() {
@@ -43,12 +48,27 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
   Future<void> _share() async {
     setState(() => _sharing = true);
     final report = widget.report;
-    final message = buildReportMessage(report, _standardized.text);
+    var paths = [for (final photo in report.photos) photo.path];
 
-    final paths = [for (final photo in report.photos) photo.path];
-    // Untuk banyak foto WhatsApp kadang tidak memasang teksnya sebagai
-    // keterangan, jadi teks juga disalin agar bisa ditempel.
+    // WhatsApp memasang teks di setiap foto, jadi 3 foto menjadi 3 laporan.
+    // Foto digabung menjadi satu gambar agar laporan tetap satu pesan.
     if (paths.length > 1) {
+      try {
+        _collagePath ??= await buildCollage(paths);
+      } catch (_) {
+        _collagePath = null;
+      }
+      if (_collagePath != null) paths = [_collagePath!];
+    }
+    final message = buildReportMessage(
+      report,
+      _standardized.text,
+      photosCombined: paths.length == 1 && report.photos.length > 1,
+    );
+
+    // Bila penggabungan gagal, teks juga disalin agar bisa ditempel.
+    _textCopied = paths.length > 1;
+    if (_textCopied) {
       await Clipboard.setData(ClipboardData(text: message));
     }
     final opened = await WhatsAppSender.send(text: message, imagePaths: paths);
@@ -150,7 +170,7 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
             ),
             const SizedBox(height: 20),
             if (_shared) ...[
-              _SharedNotice(textCopied: report.photos.length > 1),
+              _SharedNotice(textCopied: _textCopied),
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
@@ -170,7 +190,10 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
               const SizedBox(height: 8),
               Text(
                 'Dikirim ke WhatsApp penanggung jawab '
-                '${localPhone(reportWhatsAppNumber)}.',
+                '${localPhone(reportWhatsAppNumber)}.'
+                '${report.photos.length > 1 ? ' ${report.photos.length} foto '
+                          'digabung jadi satu gambar bernomor agar laporan '
+                          'masuk dalam satu pesan.' : ''}',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
               ),

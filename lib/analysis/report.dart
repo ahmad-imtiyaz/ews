@@ -97,7 +97,12 @@ String formatReportTime(DateTime time) {
 }
 
 /// Pesan untuk penanggung jawab. [standardized] bisa sudah dikoreksi pelapor.
-String buildReportMessage(ReportAnalysis report, String standardized) {
+/// [photosCombined] berarti semua foto dikirim sebagai satu gambar bernomor.
+String buildReportMessage(
+  ReportAnalysis report,
+  String standardized, {
+  bool photosCombined = false,
+}) {
   final text = report.text;
   final location = report.location;
   final photoIssues = [
@@ -138,6 +143,7 @@ String buildReportMessage(ReportAnalysis report, String standardized) {
           'urgensi ${text.urgency.label.toLowerCase()}',
     if (report.hasPhoto)
       'Foto: ${report.photos.length} terlampir'
+          '${photosCombined ? ' dalam satu gambar bernomor' : ''}'
           '${photoIssues.isEmpty ? '' : ' (${photoIssues.join('; ')})'}',
     if (photoGuesses.isNotEmpty) 'Dugaan dari foto: ${photoGuesses.join('; ')}',
     if (report.hasPhoto && text != null) 'Pencocokan: ${report.match.label}',
