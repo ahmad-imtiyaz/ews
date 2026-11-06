@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 
 import '../data/sample_data.dart';
-import 'home_screen.dart';
+import 'main_shell.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({
@@ -103,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => HomeScreen(
+        builder: (_) => MainShell(
           initialData: loaded,
           load: widget.load,
           showMapTiles: widget.showMapTiles,

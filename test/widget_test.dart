@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:ews/analysis/text_analyzer.dart';
 import 'package:ews/app_theme.dart';
 import 'package:ews/data/sample_data.dart';
 import 'package:ews/screens/home_screen.dart';
+import 'package:ews/screens/main_shell.dart';
+import 'package:ews/screens/report_result_screen.dart';
+import 'package:ews/screens/report_screen.dart';
 import 'package:ews/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +54,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Pemantauan longsor desa'), findsNothing);
-      expect(find.text('Buat laporan'), findsOneWidget);
+      expect(find.text('Lapor'), findsOneWidget);
       expect(find.byType(Dialog), findsNothing);
       expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
     });
@@ -63,7 +67,7 @@ void main() {
       await tester.tap(find.byType(SplashScreen));
       await tester.pumpAndSettle();
 
-      expect(find.text('Buat laporan'), findsOneWidget);
+      expect(find.text('Lapor'), findsOneWidget);
     });
 
     testWidgets('status Awas langsung masuk ke Peta', (tester) async {
@@ -91,7 +95,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
 
-      expect(find.text('Buat laporan'), findsOneWidget);
+      expect(find.text('Lapor'), findsOneWidget);
     });
 
     testWidgets('memberi tahu saat data lama dimuat', (tester) async {
@@ -114,7 +118,7 @@ void main() {
 
       await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
-      expect(find.text('Buat laporan'), findsOneWidget);
+      expect(find.text('Lapor'), findsOneWidget);
     });
 
     testWidgets('gagal memuat tetap masuk ke Peta', (tester) async {
@@ -174,21 +178,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Menunggu verifikasi'), findsOneWidget);
-    });
-
-    testWidgets('Buat laporan membuka halaman sementara dan kembali', (
-      tester,
-    ) async {
-      usePhoneSize(tester);
-      await tester.pumpWidget(home(waspadaData));
-
-      await tester.tap(find.text('Buat laporan'));
-      await tester.pumpAndSettle();
-      expect(find.text('Formulir laporan sedang dibuat'), findsOneWidget);
-
-      await tester.tap(find.text('Kembali ke peta'));
-      await tester.pumpAndSettle();
-      expect(find.text('Buat laporan'), findsOneWidget);
     });
 
     testWidgets('mode peta bisa diganti dan sumbernya ikut berubah', (
@@ -266,9 +255,110 @@ void main() {
 
           expect(tester.takeException(), isNull);
           expect(find.textContaining('Aman'), findsNothing);
-          expect(find.text('Buat laporan'), findsOneWidget);
+          expect(find.text('Catatan terbaru'), findsOneWidget);
         });
       }
+    }
+  });
+
+  group('Pelaporan', () {
+    Widget shell() => app(
+      const MainShell(
+        initialData: waspadaData,
+        showMapTiles: false,
+        locateOnReport: false,
+      ),
+    );
+
+    testWidgets('menu bawah berpindah antara Beranda dan Lapor', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(shell());
+
+      await tester.tap(find.text('Lapor'));
+      await tester.pumpAndSettle();
+      expect(find.text('Lapor tanda longsor'), findsOneWidget);
+
+      await tester.tap(find.text('Beranda'));
+      await tester.pumpAndSettle();
+      expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
+    });
+
+    testWidgets('cerita bahasa Jawa dibakukan di hasil analisis', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      final analyzer = TextAnalyzer.fromCsv(
+        dictionaryCsv: File(dictionaryAsset).readAsStringSync(),
+        examplesCsv: File(examplesAsset).readAsStringSync(),
+      );
+      await tester.pumpWidget(
+        app(
+          ReportScreen(
+            locateOnStart: false,
+            loadText: () async => analyzer,
+            loadCnn: () async => null,
+          ),
+        ),
+      );
+
+      final submit = find.text('Periksa laporan');
+      await tester.enterText(
+        find.byType(TextField),
+        'lemah e bengkah neng mburi omah pak RT, saiki tambah amba',
+      );
+      await tester.pump();
+      await tester.scrollUntilVisible(
+        submit,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(ReportScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.ensureVisible(submit);
+      await tester.pumpAndSettle();
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hasil analisis'), findsOneWidget);
+      expect(
+        find.text(
+          'Tanahnya retak di belakang rumah Pak RT, sekarang makin lebar.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Retakan tanah'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Hanya keterangan teks, tanpa foto'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(ReportResultScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    for (final scale in [1.0, 1.5, 2.0]) {
+      testWidgets('formulir laporan tanpa overflow pada teks ${scale}x', (
+        tester,
+      ) async {
+        usePhoneSize(tester);
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        await tester.pumpWidget(shell());
+        await tester.tap(find.text('Lapor'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      });
     }
   });
 }

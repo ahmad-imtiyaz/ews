@@ -143,7 +143,11 @@ Detail laporan dapat memuat teks asli, hasil pembakuan, hasil NLP, kelayakan fot
 - Detail titik sensor.
 - Pemeriksaan laporan untuk petugas.
 
-Susunan navigasi, autentikasi, dan apakah tampilan petugas berada di aplikasi yang sama atau dashboard terpisah belum dipilih.
+**Status navigasi: dipilih pengguna.** Menu berpindah lewat floating bottom navigation bar dengan dua menu: **Beranda** (sensor, peta EWS, log) dan **Lapor**. Tombol "Buat laporan" di Beranda diganti menu Lapor.
+
+**Status menu Lapor: sudah dibuat (6 November 2026).** Alur: foto (kamera/galeri, maksimal 5, disarankan 3) → cerita bebas, termasuk bahasa Jawa Lumeneng → pilihan "yang terlihat" → GPS → layar hasil analisis → dikirim langsung ke chat WhatsApp penanggung jawab dengan semua foto terlampir. Nomor penerima dan batas foto diatur di `lib/config.dart` (sekarang 0812-2649-8705); bila WhatsApp tidak terpasang, aplikasi memakai menu bagikan HP. Huruf acak/caps lock dirapikan, nama tempat dikenali dari `assets/nlp/nama_tempat.csv`. Server belum ada, jadi laporan belum tersimpan di sistem. NLP berjalan di HP (`lib/analysis/text_analyzer.dart`): case folding, tokenisasi, normalisasi kamus `assets/nlp/kamus_lumeneng.csv`, stopword, stemming ringan, penyangkalan, Naive Bayes dari `assets/nlp/contoh_laporan.csv`, ekstraksi tempat, dan urgensi. Kamus dan data latih masih buatan tim, wajib diperiksa penutur setempat. Kelayakan foto (ukuran, kecerahan, ketajaman Laplacian) berjalan di HP. CNN memakai TFLite (`assets/models/cnn_longsor.tflite`, dilatih dengan `tool/train_cnn.py`); selama model belum ada, aplikasi menyatakan CNN belum dipasang.
+
+Autentikasi, dan apakah tampilan petugas berada di aplikasi yang sama atau dashboard terpisah, belum dipilih.
 
 ## 7. NLP: ruang lingkup realistis
 

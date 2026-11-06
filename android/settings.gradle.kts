@@ -25,3 +25,11 @@ plugins {
 }
 
 include(":app")
+
+// repo.maven.apache.org menolak (403) jaringan pengembang, jadi Maven Central
+// diambil dari mirror Google lebih dulu, termasuk buildscript milik plugin.
+val mavenCentralMirror = "https://maven-central.storage-download.googleapis.com/maven2/"
+gradle.beforeProject {
+    buildscript.repositories.maven { url = uri(mavenCentralMirror) }
+    repositories.maven { url = uri(mavenCentralMirror) }
+}

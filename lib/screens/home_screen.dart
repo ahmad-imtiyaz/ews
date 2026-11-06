@@ -7,7 +7,6 @@ import '../data/sample_data.dart';
 import '../services/notification_service.dart';
 import '../widgets/map_markers.dart';
 import 'notifications_screen.dart';
-import 'report_placeholder_screen.dart';
 
 const _pagePadding = 16.0;
 const _sectionGap = 16.0;
@@ -200,12 +199,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openReportForm() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ReportPlaceholderScreen()),
-    );
-  }
-
   Widget _buildHeader() {
     return _TopBar(
       unread: _unread,
@@ -291,11 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (_, constraints) =>
                               _buildFixedLayout(constraints),
                         ),
-                ),
-                const SizedBox(height: _sectionGap),
-                FilledButton(
-                  onPressed: _openReportForm,
-                  child: const Text('Buat laporan'),
                 ),
               ],
             ),

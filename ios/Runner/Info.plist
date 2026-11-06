@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Kamera dipakai untuk memotret tanda longsor yang dilaporkan.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Galeri dipakai untuk memilih foto tanda longsor yang dilaporkan.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Lokasi dipakai untuk menandai tempat laporan longsor.</string>
 </dict>
 </plist>

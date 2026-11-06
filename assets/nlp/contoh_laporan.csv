@@ -1,0 +1,64 @@
+# Data latih awal model klasifikasi teks (Naive Bayes).
+# Format: label,teks. Label: retakan, longsoran, rembesan, pohon_miring,
+# gemuruh, tidak_relevan. Teks boleh mengandung koma.
+# PERHATIAN: semua baris di bawah ini contoh buatan tim pengembang, BUKAN
+# laporan warga. Ganti dan tambah dengan laporan nyata yang labelnya sudah
+# diperiksa petugas, lalu uji ulang akurasinya.
+retakan,lemah e bengkah neng mburi omah pak RT, saiki tambah amba
+retakan,ana bengkahan dawa neng dalan cedhak kali
+retakan,tembok omah ku mlethek, retake tambah gedhe
+retakan,lemahe sigar neng kebon, ambane rong driji
+retakan,tanah retak di pinggir jalan dekat sawah
+retakan,ada retakan baru di lantai rumah, makin lebar
+retakan,jogan omah nyelah kabeh, retak dawa
+retakan,dalan aspal pecah dawa neng pereng
+retakan,tanah merekah di belakang sekolah
+retakan,retakan di tebing makin panjang sejak hujan
+longsoran,lemah ambrol neng pinggir dalan, nutup dalan
+longsoran,tebing longsor mau bengi, watu ngglundung neng dalan
+longsoran,ana longsor cilik neng pereng mburi omah
+longsoran,tanah longsor menutup jalan desa
+longsoran,lemah mrosot neng kebon, wit melu ambruk
+longsoran,pereng ugrug sithik, lemahe mudhun neng kali
+longsoran,tanah runtuh dari atas tebing ke sawah
+longsoran,dalan ambles, lemahe anjlog
+longsoran,longsor kecil di lereng dekat makam
+longsoran,tanah bergeser turun dan menimbun kebun
+rembesan,banyu metu saka pereng, buthek
+rembesan,ana banyu ngrembes neng tembok mburi
+rembesan,lemah teles terus padahal ora udan
+rembesan,muncul mata air baru di lereng
+rembesan,air keruh keluar dari retakan tanah
+rembesan,banyu ngocor saka lemah neng kebon
+rembesan,ana umbul anyar neng sandhing omah
+rembesan,lemahe dadi lendhut, banyune mili terus
+rembesan,air merembes dari dinding penahan tanah
+rembesan,tanah basah dan berlumpur di bawah tebing
+pohon_miring,wit klapa doyong neng pereng
+pohon_miring,cagak listrik dhoyong neng pinggir dalan
+pohon_miring,pohon di lereng miring semua ke bawah
+pohon_miring,wit-witan neng kebon miring kabeh
+pohon_miring,pager omah doyong lan tembok mereng
+pohon_miring,tiang listrik miring dekat jurang
+pohon_miring,pring neng pinggir kali ngglimpang
+pohon_miring,wit gedhe rubuh neng dalan
+pohon_miring,pohon tumbang dan akarnya terangkat
+pohon_miring,tiang telepon condong ke arah lereng
+gemuruh,keprungu swara gludhug saka gunung
+gemuruh,ana swara banter kaya gemuruh neng pereng
+gemuruh,krungu suara gemuruh dari atas bukit
+gemuruh,mau bengi keprungu swara grudug saka lemah
+gemuruh,terdengar suara keras dari dalam tanah
+gemuruh,suara gemuruh terus terdengar dari lereng
+gemuruh,swara watu ngglundung keprungu saka nduwur
+gemuruh,ada suara seperti batu jatuh dari tebing
+tidak_relevan,dalan neng ngarep omah rusak bolong
+tidak_relevan,lampu dalan mati wis seminggu
+tidak_relevan,sampah numpuk neng pinggir kali
+tidak_relevan,saluran air mampet di depan masjid
+tidak_relevan,jalan berlubang perlu diperbaiki
+tidak_relevan,ana wedhus ilang neng kebon
+tidak_relevan,listrik mati dari tadi pagi
+tidak_relevan,tes aplikasi
+tidak_relevan,halo selamat pagi
+tidak_relevan,jembatan kayu cat e wis luntur
