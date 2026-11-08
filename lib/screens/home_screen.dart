@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 
 import '../app_theme.dart';
 import '../data/sample_data.dart';
 import '../services/notification_service.dart';
 import '../widgets/map_markers.dart';
+import '../widgets/top_bar.dart';
 import 'notifications_screen.dart';
 
 const _pagePadding = 16.0;
@@ -199,14 +199,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return _TopBar(
-      unread: _unread,
-      onSampleTap: _showScenarioPicker,
-      onBellTap: _openNotifications,
-    );
-  }
-
   Widget _buildLog({bool scrollable = true}) {
     return _LogSection(
       data: _data,
@@ -225,29 +217,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFixedLayout(BoxConstraints constraints) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: constraints.maxHeight * 0.36),
-          child: SingleChildScrollView(child: _buildHeader()),
+  // Peta dan catatan mengisi layar tanpa menggulir halaman, karena geser
+  // ke atas atau bawah di peta dipakai untuk menggeser peta. Catatan yang
+  // panjang digulir di dalam kartunya sendiri.
+  Widget _buildFixedLayout() {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          _pagePadding,
+          8,
+          _pagePadding,
+          _pagePadding,
         ),
-        const SizedBox(height: _sectionGap),
-        Expanded(flex: 5, child: _buildMap()),
-        const SizedBox(height: _sectionGap),
-        Expanded(flex: 4, child: _buildLog()),
-      ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(flex: 5, child: _buildMap()),
+            const SizedBox(height: _sectionGap),
+            Expanded(flex: 4, child: _buildLog()),
+          ],
+        ),
+      ),
     );
   }
 
   // Teks yang diperbesar tidak muat dalam susunan tetap, jadi halaman digulir.
+  // Bagian bawah diberi ruang setinggi menu bawah agar catatan terakhir tidak
+  // tertutup.
   Widget _buildLargeTextLayout() {
     return ListView(
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.fromLTRB(
+        _pagePadding,
+        8,
+        _pagePadding,
+        MediaQuery.paddingOf(context).bottom + _pagePadding,
+      ),
       children: [
-        _buildHeader(),
-        const SizedBox(height: _sectionGap),
         SizedBox(height: 300, child: _buildMap()),
         const SizedBox(height: _sectionGap),
         _buildLog(scrollable: false),
@@ -259,96 +265,47 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: AppColors.page,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              _pagePadding,
-              12,
-              _pagePadding,
-              _pagePadding,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: isLargeText
-                      ? _buildLargeTextLayout()
-                      : LayoutBuilder(
-                          builder: (_, constraints) =>
-                              _buildFixedLayout(constraints),
-                        ),
-                ),
-              ],
+    return Scaffold(
+      appBar: TopBar(
+        title: 'EWS Lumeneng',
+        // Pada susunan tetap yang bergulir hanya kartu catatan, bukan isi
+        // yang lewat di bawah bar.
+        notificationPredicate: isLargeText
+            ? defaultScrollNotificationPredicate
+            : (_) => false,
+        actions: [
+          Semantics(
+            label: 'Data contoh. Ganti contoh keadaan.',
+            excludeSemantics: true,
+            child: OutlinedButton(
+              onPressed: _showScenarioPicker,
+              child: const Text('Data contoh'),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TopBar extends StatelessWidget {
-  const _TopBar({
-    required this.unread,
-    required this.onSampleTap,
-    required this.onBellTap,
-  });
-
-  final int unread;
-  final VoidCallback onSampleTap;
-  final VoidCallback onBellTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 12,
-      runSpacing: 8,
-      children: [
-        Text('EWS Lumeneng', style: Theme.of(context).textTheme.titleLarge),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Semantics(
-              label: 'Data contoh. Ganti contoh keadaan.',
+          const SizedBox(width: 8),
+          Tooltip(
+            message: 'Notifikasi',
+            child: Semantics(
+              label: _unread > 0
+                  ? 'Notifikasi, $_unread belum dibaca'
+                  : 'Notifikasi',
               excludeSemantics: true,
               child: OutlinedButton(
-                onPressed: onSampleTap,
-                child: const Text('Data contoh'),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Tooltip(
-              message: 'Notifikasi',
-              child: Semantics(
-                label: unread > 0
-                    ? 'Notifikasi, $unread belum dibaca'
-                    : 'Notifikasi',
-                excludeSemantics: true,
-                child: OutlinedButton(
-                  onPressed: onBellTap,
-                  style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                  child: Badge.count(
-                    count: unread,
-                    isLabelVisible: unread > 0,
-                    backgroundColor: AppColors.ink,
-                    textColor: Colors.white,
-                    child: const Icon(Icons.notifications_none, size: 22),
-                  ),
+                onPressed: _openNotifications,
+                style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                child: Badge.count(
+                  count: _unread,
+                  isLabelVisible: _unread > 0,
+                  backgroundColor: AppColors.ink,
+                  textColor: Colors.white,
+                  child: const Icon(Icons.notifications_none, size: 22),
                 ),
               ),
             ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
+      body: isLargeText ? _buildLargeTextLayout() : _buildFixedLayout(),
     );
   }
 }
@@ -694,7 +651,7 @@ class _MapFailureNotice extends StatelessWidget {
   }
 }
 
-class _LogSection extends StatelessWidget {
+class _LogSection extends StatefulWidget {
   const _LogSection({
     required this.data,
     required this.scrollable,
@@ -706,6 +663,23 @@ class _LogSection extends StatelessWidget {
   final bool scrollable;
   final bool isRetrying;
   final VoidCallback onRetry;
+
+  @override
+  State<_LogSection> createState() => _LogSectionState();
+}
+
+class _LogSectionState extends State<_LogSection> {
+  // Pengendali sendiri, bukan milik halaman, karena menu Lapor yang hidup di
+  // halaman yang sama juga punya daftar bergulir.
+  final _scroll = ScrollController();
+
+  MonitoringData get data => widget.data;
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   Widget _buildFailure(TextTheme textTheme) {
     return Padding(
@@ -721,8 +695,8 @@ class _LogSection extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           OutlinedButton(
-            onPressed: isRetrying ? null : onRetry,
-            child: Text(isRetrying ? 'Mengambil data...' : 'Coba lagi'),
+            onPressed: widget.isRetrying ? null : widget.onRetry,
+            child: Text(widget.isRetrying ? 'Mengambil data...' : 'Coba lagi'),
           ),
         ],
       ),
@@ -755,6 +729,7 @@ class _LogSection extends StatelessWidget {
             ],
           );
 
+    final scrollable = widget.scrollable;
     final card = DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -762,7 +737,15 @@ class _LogSection extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: scrollable ? SingleChildScrollView(child: body) : body,
+        // Batang gulir selalu tampil bila catatan tidak muat, supaya baris
+        // yang terpotong di bawah terbaca sebagai "masih ada lagi".
+        child: scrollable
+            ? Scrollbar(
+                controller: _scroll,
+                thumbVisibility: true,
+                child: SingleChildScrollView(controller: _scroll, child: body),
+              )
+            : body,
       ),
     );
 

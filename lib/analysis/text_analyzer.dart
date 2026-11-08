@@ -186,12 +186,16 @@ enum Urgency {
 }
 
 class NlpToken {
-  const NlpToken(this.original, this.normalized);
+  const NlpToken(this.original, this.normalized, {this.merged = false});
 
   final String original;
 
   /// Kosong bila kata dibuang (partikel) atau digabung ke kata sebelumnya.
   final String normalized;
+
+  /// Kata ini digabung ke kata sebelumnya, misalnya "lemah e" menjadi
+  /// "tanahnya". Bila [normalized] kosong dan ini `false`, katanya dibuang.
+  final bool merged;
 
   bool get isPunctuation => _punctuation.hasMatch(original);
   bool get changed => normalized.toLowerCase() != original.toLowerCase();
@@ -376,6 +380,7 @@ class TextAnalyzer {
     final shouting = letters.length >= 8 && upper.length / letters.length > 0.6;
 
     final normalized = <String>[];
+    final merged = <int>{};
     for (final (index, original) in raw.indexed) {
       final folded = original.toLowerCase();
       final previousIsWord =
@@ -387,13 +392,14 @@ class TextAnalyzer {
       if ((folded == 'e' || folded == 'ne') && previousIsWord) {
         normalized[index - 1] = '${normalized[index - 1]}nya';
         normalized.add('');
+        merged.add(index);
         continue;
       }
       normalized.add(_normalizeWord(original, folded, shouting));
     }
     return [
       for (final (index, original) in raw.indexed)
-        NlpToken(original, normalized[index]),
+        NlpToken(original, normalized[index], merged: merged.contains(index)),
     ];
   }
 
@@ -444,7 +450,10 @@ class TextAnalyzer {
     final suffixed = _withoutSuffix(word);
     if (suffixed != null) return suffixed;
 
-    for (final (prefix, standardPrefix) in const [('di', 'di'), ('ke', 'ter')]) {
+    for (final (prefix, standardPrefix) in const [
+      ('di', 'di'),
+      ('ke', 'ter'),
+    ]) {
       if (!word.startsWith(prefix)) continue;
       final standard = _withoutSuffix(word.substring(prefix.length));
       if (standard == null) continue;

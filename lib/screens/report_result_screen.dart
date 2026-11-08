@@ -9,6 +9,7 @@ import '../app_theme.dart';
 import '../config.dart';
 import '../services/whatsapp_sender.dart';
 import '../widgets/section_card.dart';
+import '../widgets/top_bar.dart';
 
 String _decimal(double value) => value.toStringAsFixed(2).replaceAll('.', ',');
 
@@ -115,91 +116,79 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
     final report = widget.report;
 
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          children: [
-            Row(
-              children: [
-                OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                  child: const Icon(Icons.chevron_left, semanticLabel: 'Ubah'),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('Hasil analisis', style: textTheme.titleLarge),
-                ),
-              ],
-            ),
+      appBar: const TopBar(title: 'Hasil analisis', backLabel: 'Ubah'),
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          MediaQuery.paddingOf(context).bottom + 24,
+        ),
+        children: [
+          _StandardizedCard(report: report, controller: _standardized),
+          const SizedBox(height: 16),
+          if (report.text != null) ...[
+            _NlpCard(text: report.text!, trainingSize: widget.trainingSize),
             const SizedBox(height: 16),
-            _StandardizedCard(report: report, controller: _standardized),
-            const SizedBox(height: 16),
-            if (report.text != null) ...[
-              _NlpCard(text: report.text!, trainingSize: widget.trainingSize),
-              const SizedBox(height: 16),
-            ],
-            _PhotoCard(report: report, cnnInstalled: widget.cnnInstalled),
-            const SizedBox(height: 16),
-            SectionCard(
-              title: 'Pencocokan teks dan foto',
-              children: [
-                Text(report.match.label, style: textTheme.bodyLarge),
-                const SizedBox(height: 4),
-                Text(
-                  'Hasil otomatis hanya membantu petugas. Yang menentukan '
-                  'tetap pemeriksaan di lapangan.',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.inkSoft,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SectionCard(
-              title: 'Lokasi dan waktu',
-              children: [
-                InfoRow(
-                  label: 'Lokasi HP',
-                  value: report.location?.coordinates ?? 'Tidak tersedia',
-                ),
-                if (report.text?.place != null)
-                  InfoRow(label: 'Tempat disebut', value: report.text!.place!),
-                InfoRow(label: 'Waktu', value: formatReportTime(report.time)),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (_shared) ...[
-              _SharedNotice(textCopied: _textCopied),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Buat laporan baru'),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: _sharing ? null : _share,
-                child: const Text('Kirim lagi'),
-              ),
-            ] else ...[
-              FilledButton.icon(
-                onPressed: _sharing ? null : _share,
-                icon: const Icon(Icons.send_outlined, size: 18),
-                label: const Text('Kirim ke petugas lewat WhatsApp'),
-              ),
-              const SizedBox(height: 8),
+          ],
+          _PhotoCard(report: report, cnnInstalled: widget.cnnInstalled),
+          const SizedBox(height: 16),
+          SectionCard(
+            title: 'Pencocokan teks dan foto',
+            children: [
+              Text(report.match.label, style: textTheme.bodyLarge),
+              const SizedBox(height: 4),
               Text(
-                'Dikirim ke WhatsApp penanggung jawab '
-                '${localPhone(reportWhatsAppNumber)}.'
-                '${report.photos.length > 1 ? ' ${report.photos.length} foto '
-                          'digabung jadi satu gambar bernomor agar laporan '
-                          'masuk dalam satu pesan.' : ''}',
-                textAlign: TextAlign.center,
+                'Hasil otomatis hanya membantu petugas. Yang menentukan '
+                'tetap pemeriksaan di lapangan.',
                 style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          SectionCard(
+            title: 'Lokasi dan waktu',
+            children: [
+              InfoRow(
+                label: 'Lokasi HP',
+                value: report.location?.coordinates ?? 'Tidak tersedia',
+              ),
+              if (report.text?.place != null)
+                InfoRow(label: 'Tempat disebut', value: report.text!.place!),
+              InfoRow(label: 'Waktu', value: formatReportTime(report.time)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          if (_shared) ...[
+            _SharedNotice(textCopied: _textCopied),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Buat laporan baru'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: _sharing ? null : _share,
+              child: const Text('Kirim lagi'),
+            ),
+          ] else ...[
+            FilledButton.icon(
+              onPressed: _sharing ? null : _share,
+              icon: const Icon(Icons.send_outlined, size: 18),
+              label: const Text('Kirim ke petugas lewat WhatsApp'),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Dikirim ke WhatsApp penanggung jawab '
+              '${localPhone(reportWhatsAppNumber)}.'
+              '${report.photos.length > 1 ? ' ${report.photos.length} foto '
+                        'digabung jadi satu gambar bernomor agar laporan '
+                        'masuk dalam satu pesan.' : ''}',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -298,24 +287,32 @@ class _NlpCard extends StatelessWidget {
               : '${text.urgency.label} (${text.urgencyMarkers.join(', ')})',
         ),
         InfoRow(label: 'Tempat disebut', value: text.place ?? '-'),
-        if (changed.isNotEmpty)
-          InfoRow(
-            label: 'Kata dibakukan',
-            value: [
-              for (final token in changed)
-                '${token.original} → '
-                    '${token.normalized.isEmpty ? '(dibuang/digabung)' : token.normalized}',
-            ].join('\n'),
-          ),
         if (text.unknownWords.isNotEmpty)
           InfoRow(
             label: 'Belum ada di kamus',
             value: text.unknownWords.join(', '),
           ),
+        // Daftar kata bisa panjang, jadi memakai lebar kartu penuh, bukan
+        // kolom nilai yang sempit.
+        if (changed.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Kata dibakukan',
+            style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [for (final token in changed) _WordChange(token)],
+          ),
+        ],
+        const Divider(height: 24),
         Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             tilePadding: EdgeInsets.zero,
+            minTileHeight: 44,
             childrenPadding: const EdgeInsets.only(bottom: 4),
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             title: Text('Lihat langkah NLP', style: textTheme.labelLarge),
@@ -351,6 +348,48 @@ class _NlpCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Satu kata asli dan bentuk bakunya, misalnya "mburi → belakang".
+class _WordChange extends StatelessWidget {
+  const _WordChange(this.token);
+
+  final NlpToken token;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodyLarge;
+    final normalized = token.normalized;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.panel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: token.original.toLowerCase()),
+              if (normalized.isEmpty)
+                TextSpan(
+                  text: token.merged ? ' (digabung)' : ' (dibuang)',
+                  style: const TextStyle(color: AppColors.inkSoft),
+                )
+              else
+                TextSpan(
+                  text: ' → $normalized',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+            ],
+          ),
+          style: style,
+        ),
+      ),
     );
   }
 }

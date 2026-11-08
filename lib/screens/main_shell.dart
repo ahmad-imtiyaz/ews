@@ -1,6 +1,7 @@
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../app_theme.dart';
 import '../data/sample_data.dart';
@@ -43,27 +44,37 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          _FadePage(
-            active: _index == 0,
-            child: HomeScreen(
-              initialData: widget.initialData,
-              load: widget.load,
-              showMapTiles: widget.showMapTiles,
-            ),
-          ),
-          if (_opened.contains(1))
-            _FadePage(
-              active: _index == 1,
-              child: ReportScreen(locateOnStart: widget.locateOnReport),
-            ),
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: AppColors.page,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
-      bottomNavigationBar: keyboardOpen
-          ? null
-          : _FloatingNavBar(index: _index, onSelected: _select),
+      child: Scaffold(
+        // Menu bawah mengambang di atas isi halaman. Tiap halaman menambah
+        // ruang setinggi menu di ujung daftarnya (MediaQuery padding bawah).
+        extendBody: true,
+        body: Stack(
+          children: [
+            _FadePage(
+              active: _index == 0,
+              child: HomeScreen(
+                initialData: widget.initialData,
+                load: widget.load,
+                showMapTiles: widget.showMapTiles,
+              ),
+            ),
+            if (_opened.contains(1))
+              _FadePage(
+                active: _index == 1,
+                child: ReportScreen(locateOnStart: widget.locateOnReport),
+              ),
+          ],
+        ),
+        bottomNavigationBar: keyboardOpen
+            ? null
+            : _FloatingNavBar(index: _index, onSelected: _select),
+      ),
     );
   }
 }
@@ -117,11 +128,17 @@ class _FadePageState extends State<_FadePage>
       offstage: hidden,
       child: TickerMode(
         enabled: !hidden,
-        child: IgnorePointer(
-          ignoring: !widget.active,
-          child: FadeTransition(
-            opacity: _curve,
-            child: SlideTransition(position: _slide, child: widget.child),
+        // Halaman tersembunyi tidak boleh memegang fokus. Tanpa ini kolom
+        // cerita di menu Lapor tetap terfokus, lalu keyboard muncul di
+        // Beranda setelah kembali dari Notifikasi.
+        child: ExcludeFocus(
+          excluding: !widget.active,
+          child: IgnorePointer(
+            ignoring: !widget.active,
+            child: FadeTransition(
+              opacity: _curve,
+              child: SlideTransition(position: _slide, child: widget.child),
+            ),
           ),
         ),
       ),
@@ -193,85 +210,101 @@ class _FloatingNavBar extends StatelessWidget {
       ),
     );
 
-    return ColoredBox(
-      color: AppColors.page,
-      child: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SizedBox(
-            height: _barHeight + _maxBump,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final highlightX = _centers(width)[index] ?? width / 2;
+    return Stack(
+      children: [
+        // Isi halaman terlihat di samping tonjolan. Dari garis atas batang ke
+        // bawah ditutup warna halaman, supaya isi tidak mengintip di celah
+        // bawah batang lalu terpotong tombol navigasi HP.
+        const Positioned.fill(
+          top: _maxBump,
+          child: ColoredBox(color: AppColors.page),
+        ),
+        _buildBar(side, onHome),
+      ],
+    );
+  }
 
-                return TweenAnimationBuilder<double>(
-                  tween: Tween(end: onHome ? 1 : 0),
-                  duration: _softDuration,
-                  curve: _softCurve,
-                  builder: (context, raise, _) {
-                    // 1: tombol menonjol di atas batang, 0: masuk ke batang.
-                    final buttonTop = lerpDouble(_maxBump + 5, 3, raise)!;
-                    final bump = lerpDouble(2, _maxBump, raise)!;
+  Widget _buildBar(Widget Function(List<_NavEntry>) side, bool onHome) {
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SizedBox(
+          height: _barHeight + _maxBump,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final highlightX = _centers(width)[index] ?? width / 2;
 
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: _BarPainter(barTop: _maxBump, bump: bump),
+              return TweenAnimationBuilder<double>(
+                tween: Tween(end: onHome ? 1 : 0),
+                duration: _softDuration,
+                curve: _softCurve,
+                builder: (context, raise, _) {
+                  // 1: tombol menonjol di atas batang, 0: masuk ke batang.
+                  final buttonTop = lerpDouble(_maxBump + 5, 3, raise)!;
+                  final bump = lerpDouble(2, _maxBump, raise)!;
+
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _BarPainter(
+                            size: Size(width, _barHeight + _maxBump),
+                            barTop: _maxBump,
+                            bump: bump,
                           ),
                         ),
-                        AnimatedPositioned(
+                      ),
+                      AnimatedPositioned(
+                        duration: _softDuration,
+                        curve: _softCurve,
+                        top: _maxBump + 5,
+                        left: highlightX - 34,
+                        child: AnimatedOpacity(
                           duration: _softDuration,
                           curve: _softCurve,
-                          top: _maxBump + 5,
-                          left: highlightX - 34,
-                          child: AnimatedOpacity(
-                            duration: _softDuration,
-                            curve: _softCurve,
-                            opacity: onHome ? 0 : 1,
-                            child: Container(
-                              width: 68,
-                              height: _barHeight - 10,
-                              decoration: BoxDecoration(
-                                color: AppColors.iconTile,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
+                          opacity: onHome ? 0 : 1,
+                          child: Container(
+                            width: 68,
+                            height: _barHeight - 10,
+                            decoration: BoxDecoration(
+                              color: AppColors.iconTile,
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                         ),
-                        Positioned.fill(
-                          top: _maxBump,
-                          child: Row(
-                            children: [
-                              side(_left),
-                              const SizedBox(width: _centerGap),
-                              side(_right),
-                            ],
+                      ),
+                      Positioned.fill(
+                        top: _maxBump,
+                        child: Row(
+                          children: [
+                            side(_left),
+                            const SizedBox(width: _centerGap),
+                            side(_right),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        top: buttonTop,
+                        left: (width - _homeSize) / 2,
+                        child: Transform.scale(
+                          scale: lerpDouble(0.86, 1, raise),
+                          child: _HomeButton(
+                            size: _homeSize,
+                            selected: onHome,
+                            elevation: lerpDouble(0, 4, raise)!,
+                            onTap: () => onSelected(_homeIndex),
                           ),
                         ),
-                        Positioned(
-                          top: buttonTop,
-                          left: (width - _homeSize) / 2,
-                          child: Transform.scale(
-                            scale: lerpDouble(0.86, 1, raise),
-                            child: _HomeButton(
-                              size: _homeSize,
-                              selected: onHome,
-                              elevation: lerpDouble(0, 4, raise)!,
-                              onTap: () => onSelected(_homeIndex),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ),
       ),
@@ -281,22 +314,28 @@ class _FloatingNavBar extends StatelessWidget {
 
 /// Batang putih dengan tonjolan di tengah untuk tombol Beranda.
 class _BarPainter extends CustomPainter {
-  const _BarPainter({required this.barTop, required this.bump});
+  const _BarPainter({
+    required this.size,
+    required this.barTop,
+    required this.bump,
+  });
+
+  /// Disimpan di sini karena [hitTest] tidak menerima ukuran.
+  final Size size;
 
   final double barTop;
 
   /// Tinggi tonjolan di atas batang.
   final double bump;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  Path get _shape {
     const radius = 20.0;
     const bumpHalf = 54.0;
     final top = barTop;
     final peak = barTop - bump;
     final cx = size.width / 2;
 
-    final path = Path()
+    return Path()
       ..moveTo(0, top + radius)
       ..quadraticBezierTo(0, top, radius, top)
       ..lineTo(cx - bumpHalf, top)
@@ -321,14 +360,34 @@ class _BarPainter extends CustomPainter {
       ..lineTo(radius, size.height)
       ..quadraticBezierTo(0, size.height, 0, size.height - radius)
       ..close();
-
-    canvas.drawShadow(path, const Color(0x40000000), 8, false);
-    canvas.drawPath(path, Paint()..color = Colors.white);
   }
 
   @override
+  void paint(Canvas canvas, Size _) {
+    final path = _shape;
+    canvas.drawShadow(path, const Color(0x40000000), 8, false);
+    canvas.drawPath(path, Paint()..color = Colors.white);
+    // Kartu putih bisa lewat di belakang batang putih. Garis tipis ini menjaga
+    // tepi batang tetap terlihat.
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = AppColors.divider
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+  }
+
+  // Di samping tonjolan isi halaman masih terlihat, jadi ketukan dan geseran
+  // di sana diteruskan ke halaman, bukan ditahan menu.
+  @override
+  bool hitTest(Offset position) => _shape.contains(position);
+
+  @override
   bool shouldRepaint(_BarPainter oldDelegate) =>
-      oldDelegate.barTop != barTop || oldDelegate.bump != bump;
+      oldDelegate.size != size ||
+      oldDelegate.barTop != barTop ||
+      oldDelegate.bump != bump;
 }
 
 class _HomeButton extends StatelessWidget {

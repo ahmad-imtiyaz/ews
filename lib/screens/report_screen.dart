@@ -11,6 +11,7 @@ import '../analysis/text_analyzer.dart';
 import '../app_theme.dart';
 import '../config.dart';
 import '../widgets/section_card.dart';
+import '../widgets/top_bar.dart';
 import 'report_result_screen.dart';
 
 const _storyHint =
@@ -191,7 +192,10 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _submit() async {
-    FocusScope.of(context).unfocus();
+    // Melepas fokus dari kolomnya, bukan dari halaman. Dengan
+    // FocusScope.of(context).unfocus() halaman masih mengingat kolom cerita,
+    // lalu keyboard muncul lagi saat kembali dari hasil analisis.
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _analyzing = true);
 
     final story = _story.text.trim();
@@ -256,108 +260,102 @@ class _ReportScreenState extends State<ReportScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          children: [
-            // Tinggi sama dengan baris atas Beranda supaya tidak loncat
-            // saat pindah menu.
-            SizedBox(
-              height: 48,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('EWS Lumeneng', style: textTheme.titleLarge),
+      appBar: const TopBar(title: 'EWS Lumeneng'),
+      body: ListView(
+        // Isi boleh lewat di belakang menu bawah, tetapi bagian akhirnya
+        // diberi ruang setinggi menu itu agar tombol terakhir bisa dicapai.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.paddingOf(context).bottom + 24,
+        ),
+        children: [
+          Text(
+            'Lapor tanda longsor',
+            style: textTheme.titleLarge?.copyWith(fontSize: 22),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Tulis dengan bahasa sehari-hari. Bahasa Jawa juga bisa, nanti '
+            'dibakukan ke bahasa Indonesia.',
+            style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: 16),
+          const _SafetyNote(),
+          const SizedBox(height: 16),
+          _PhotoSection(
+            photos: _photos,
+            preparing: _preparingPhoto,
+            onCamera: () => _pickPhotos(ImageSource.camera),
+            onGallery: () => _pickPhotos(ImageSource.gallery),
+            onRemove: _removePhoto,
+          ),
+          const SizedBox(height: 16),
+          SectionCard(
+            title: 'Ceritakan yang Anda lihat',
+            children: [
+              TextField(
+                controller: _story,
+                minLines: 4,
+                maxLines: 8,
+                textCapitalization: TextCapitalization.sentences,
+                style: textTheme.bodyLarge,
+                decoration: InputDecoration(
+                  hintText: _storyHint,
+                  hintMaxLines: 3,
+                  filled: true,
+                  fillColor: AppColors.panel,
+                  contentPadding: const EdgeInsets.all(12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Lapor tanda longsor',
-              style: textTheme.titleLarge?.copyWith(fontSize: 22),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Tulis dengan bahasa sehari-hari. Bahasa Jawa juga bisa, nanti '
-              'dibakukan ke bahasa Indonesia.',
-              style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
-            ),
-            const SizedBox(height: 16),
-            const _SafetyNote(),
-            const SizedBox(height: 16),
-            _PhotoSection(
-              photos: _photos,
-              preparing: _preparingPhoto,
-              onCamera: () => _pickPhotos(ImageSource.camera),
-              onGallery: () => _pickPhotos(ImageSource.gallery),
-              onRemove: _removePhoto,
-            ),
-            const SizedBox(height: 16),
-            SectionCard(
-              title: 'Ceritakan yang Anda lihat',
-              children: [
-                TextField(
-                  controller: _story,
-                  minLines: 4,
-                  maxLines: 8,
-                  textCapitalization: TextCapitalization.sentences,
-                  style: textTheme.bodyLarge,
-                  decoration: InputDecoration(
-                    hintText: _storyHint,
-                    hintMaxLines: 3,
-                    filled: true,
-                    fillColor: AppColors.panel,
-                    contentPadding: const EdgeInsets.all(12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sebutkan tempatnya, misalnya "mburi omah pak RT" atau '
-                  '"pinggir kali".',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.inkSoft,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SectionCard(
-              title: 'Yang terlihat',
-              children: [
-                _SignChoices(
-                  selected: _choice,
-                  onSelected: (choice) => setState(() => _choice = choice),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _LocationSection(
-              location: _location,
-              error: _locationError,
-              locating: _locating,
-              onRetry: _locate,
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _canSubmit ? _submit : null,
-              child: Text(_analyzing ? 'Menganalisis...' : 'Periksa laporan'),
-            ),
-            if (!_canSubmit && !_analyzing) ...[
               const SizedBox(height: 8),
               Text(
-                'Isi cerita atau tambahkan foto dulu.',
-                textAlign: TextAlign.center,
+                'Sebutkan tempatnya, misalnya "mburi omah pak RT" atau '
+                '"pinggir kali".',
                 style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          SectionCard(
+            title: 'Yang terlihat',
+            children: [
+              _SignChoices(
+                selected: _choice,
+                onSelected: (choice) => setState(() => _choice = choice),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _LocationSection(
+            location: _location,
+            error: _locationError,
+            locating: _locating,
+            onRetry: _locate,
+          ),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: _canSubmit ? _submit : null,
+            child: Text(_analyzing ? 'Menganalisis...' : 'Periksa laporan'),
+          ),
+          if (!_canSubmit && !_analyzing) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Isi cerita atau tambahkan foto dulu.',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

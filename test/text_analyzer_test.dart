@@ -30,6 +30,15 @@ void main() {
     expect(result.urgency, Urgency.tinggi);
   });
 
+  test('"e" yang terpisah ditandai digabung, bukan dibuang', () {
+    final tokens = analyzer.analyze('lemah e bengkah').tokens;
+
+    expect(tokens[0].normalized, 'tanahnya');
+    expect(tokens[1].normalized, isEmpty);
+    expect(tokens[1].merged, isTrue);
+    expect(tokens[2].merged, isFalse);
+  });
+
   test('akhiran -e menempel dibakukan menjadi -nya', () {
     final result = analyzer.analyze('banyune metu saka pereng');
     expect(result.standardized, 'Airnya keluar dari lereng.');
