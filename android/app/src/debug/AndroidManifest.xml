@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Server Laravel EWS saat uji coba memakai http://. Hanya untuk build
+         debug; build rilis tetap menolak http dan harus memakai https. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

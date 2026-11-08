@@ -4,21 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app_theme.dart';
+import '../data/ews_data.dart';
 import '../data/sample_data.dart';
 import 'home_screen.dart';
 import 'report_screen.dart';
+import 'sensor_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({
     super.key,
     required this.initialData,
     this.load = loadMonitoring,
+    this.loadSensors,
     this.showMapTiles = true,
     this.locateOnReport = true,
   });
 
   final MonitoringData initialData;
   final Future<MonitoringData> Function() load;
+  final Future<EwsData> Function()? loadSensors;
   final bool showMapTiles;
   final bool locateOnReport;
 
@@ -30,7 +34,8 @@ class _MainShellState extends State<MainShell> {
   int _index = 0;
 
   // Halaman Lapor baru dibuat saat pertama dibuka supaya izin lokasi tidak
-  // diminta bersamaan dengan izin notifikasi di awal.
+  // diminta bersamaan dengan izin notifikasi di awal. Halaman Sensor juga,
+  // supaya data sensor tidak diambil bila warga tidak membukanya.
   final _opened = <int>{0};
 
   void _select(int index) {
@@ -68,6 +73,14 @@ class _MainShellState extends State<MainShell> {
               _FadePage(
                 active: _index == 1,
                 child: ReportScreen(locateOnStart: widget.locateOnReport),
+              ),
+            if (_opened.contains(2))
+              _FadePage(
+                active: _index == 2,
+                child: SensorScreen(
+                  active: _index == 2,
+                  load: widget.loadSensors,
+                ),
               ),
           ],
         ),
@@ -171,7 +184,14 @@ class _FloatingNavBar extends StatelessWidget {
       label: 'Lapor',
     ),
   ];
-  static const List<_NavEntry> _right = [];
+  static const List<_NavEntry> _right = [
+    (
+      index: 2,
+      icon: Icons.sensors_outlined,
+      activeIcon: Icons.sensors_rounded,
+      label: 'Sensor',
+    ),
+  ];
 
   static const _barHeight = 58.0;
   static const _maxBump = 22.0;
