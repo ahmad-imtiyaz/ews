@@ -1,12 +1,11 @@
 import 'package:latlong2/latlong.dart';
 
-// Semua isi berkas ini data simulasi. Pusat peta memakai posisi Desa Lumeneng
-// dari OpenStreetMap. Dua alat EWS yang akan dipasang belum terhubung dan
-// lokasinya belum pasti. Titik contohnya di Kaliwisnu (paling sering longsor
-// menurut Kajian Pemetaan Bencana Desa Lumeneng 2024) dan Sikembang (di sebelah
-// satu-satunya zona sangat rawan di kajian itu), laporan di Jomparang. Posisinya
-// dibaca dari grid Peta Rawan Longsor kajian, meleset sampai ±100 m. Area pantau
-// tiap alat ada di assets/peta/area_ews.geojson.
+// Titik dan area pantau dua alat EWS dari tim lapangan (10 November 2026),
+// masih perkiraan: EWS-01 di Jomparang, EWS-02 di barat permukiman Sikembang,
+// di zona sangat rawan Kajian Pemetaan Bencana Desa Lumeneng 2024. Areanya di
+// assets/peta/area_ews.geojson. Alat belum terhubung, jadi status, catatan,
+// dan laporan di berkas ini masih data simulasi. Pusat peta memakai posisi
+// Desa Lumeneng dari OpenStreetMap.
 
 enum MonitoringStatus {
   normal('Normal'),
@@ -94,8 +93,8 @@ class MonitoringData {
   final bool loadFailed;
 }
 
-const _ews01Position = LatLng(-7.1899, 109.5911);
-const _ews02Position = LatLng(-7.1854, 109.5927);
+const _ews01Position = LatLng(-7.185390, 109.588069);
+const _ews02Position = LatLng(-7.186625, 109.591824);
 const _reportPosition = LatLng(-7.1866, 109.5893);
 
 /// Titik yang harus terlihat saat peta pertama dibuka.
@@ -117,7 +116,7 @@ const waspadaData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Kaliwisnu',
+      place: 'Jomparang',
       position: _ews01Position,
       status: MonitoringStatus.waspada,
       lastData: '10.42',
@@ -163,7 +162,7 @@ const normalData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Kaliwisnu',
+      place: 'Jomparang',
       position: _ews01Position,
       status: MonitoringStatus.normal,
       lastData: '10.42',
@@ -187,7 +186,7 @@ const awasData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Kaliwisnu',
+      place: 'Jomparang',
       position: _ews01Position,
       status: MonitoringStatus.awas,
       lastData: '10.42',
@@ -214,7 +213,7 @@ const noDataData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Kaliwisnu',
+      place: 'Jomparang',
       position: _ews01Position,
       status: MonitoringStatus.noData,
       lastData: '07.15',

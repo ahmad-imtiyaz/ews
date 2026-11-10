@@ -377,6 +377,14 @@ class _MapPanelState extends State<_MapPanel> {
   bool _showZones = false;
   bool _legendOpen = false;
 
+  /// Penanda alat bisa disembunyikan supaya area pantau yang kecil di
+  /// bawahnya terlihat utuh.
+  bool _showEwsLocations = true;
+
+  bool _mapReady = false;
+  bool _cameraTouched = false;
+  bool _fittedToAreas = false;
+
   PhoneFix? _me;
   bool _locating = false;
 
@@ -398,7 +406,35 @@ class _MapPanelState extends State<_MapPanel> {
             ),
         ];
       });
+      _fitToAreas();
     });
+  }
+
+  // Atas dan bawah menyisakan tempat menu mode dan atribusi supaya penanda di
+  // tepi tidak tertutup.
+  static const _fitPadding = EdgeInsets.fromLTRB(56, 80, 64, 64);
+
+  /// Area pantau baru terbaca setelah peta tampil, jadi peta dipaskan ulang
+  /// ke semua area dan penanda, kecuali warga sudah lebih dulu menggesernya.
+  void _fitToAreas() {
+    final map = _villageMap;
+    if (!_mapReady || map == null || _cameraTouched || _fittedToAreas) return;
+    final points = [
+      for (final sensor in widget.data.sensors) ...[
+        sensor.position,
+        ...?map.monitoringAreas[sensor.id],
+      ],
+      for (final report in widget.data.reports) report.position,
+    ];
+    if (points.isEmpty) return;
+    _fittedToAreas = true;
+    _controller.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds.fromPoints(points),
+        padding: _fitPadding,
+        maxZoom: 17,
+      ),
+    );
   }
 
   @override
@@ -408,6 +444,7 @@ class _MapPanelState extends State<_MapPanel> {
   }
 
   void _zoomBy(double delta) {
+    _cameraTouched = true;
     final camera = _controller.camera;
     _controller.move(camera.center, camera.zoom + delta);
   }
@@ -473,6 +510,7 @@ class _MapPanelState extends State<_MapPanel> {
       _me = fix ?? _me;
     });
     if (fix != null) {
+      _cameraTouched = true;
       _controller.move(
         LatLng(fix.latitude, fix.longitude),
         max(_controller.camera.zoom, 16),
@@ -523,11 +561,16 @@ class _MapPanelState extends State<_MapPanel> {
               options: MapOptions(
                 initialCameraFit: CameraFit.bounds(
                   bounds: LatLngBounds.fromPoints(mapFocusPoints),
-                  // Atas dan bawah menyisakan tempat menu mode dan atribusi
-                  // supaya penanda di tepi tidak tertutup.
-                  padding: const EdgeInsets.fromLTRB(56, 80, 64, 64),
-                  maxZoom: 15.5,
+                  padding: _fitPadding,
+                  maxZoom: 17,
                 ),
+                onMapReady: () {
+                  _mapReady = true;
+                  _fitToAreas();
+                },
+                onPositionChanged: (camera, hasGesture) {
+                  if (hasGesture) _cameraTouched = true;
+                },
                 minZoom: 11,
                 maxZoom: 18,
                 backgroundColor: AppColors.mapBackground,
@@ -603,16 +646,17 @@ class _MapPanelState extends State<_MapPanel> {
                           onTap: () => widget.onReportTap(report),
                         ),
                       ),
-                    for (final sensor in widget.data.sensors)
-                      Marker(
-                        point: sensor.position,
-                        width: 96,
-                        height: 56,
-                        child: SensorMarkerButton(
-                          sensor: sensor,
-                          onTap: () => widget.onSensorTap(sensor),
+                    if (_showEwsLocations)
+                      for (final sensor in widget.data.sensors)
+                        Marker(
+                          point: sensor.position,
+                          width: 96,
+                          height: 56,
+                          child: SensorMarkerButton(
+                            sensor: sensor,
+                            onTap: () => widget.onSensorTap(sensor),
+                          ),
                         ),
-                      ),
                     if (_me case final me?)
                       Marker(
                         point: LatLng(me.latitude, me.longitude),
@@ -632,9 +676,12 @@ class _MapPanelState extends State<_MapPanel> {
                 child: _MapModeMenu(
                   selected: _mode,
                   showZones: _showZones,
+                  showEwsLocations: _showEwsLocations,
                   onSelected: _selectMode,
                   onZonesToggled: () =>
                       setState(() => _showZones = !_showZones),
+                  onEwsLocationsToggled: () =>
+                      setState(() => _showEwsLocations = !_showEwsLocations),
                 ),
               ),
             ),
@@ -707,19 +754,24 @@ class _MapPanelState extends State<_MapPanel> {
 }
 
 const _zonesMenuItem = 'zona';
+const _ewsMenuItem = 'ews';
 
 class _MapModeMenu extends StatelessWidget {
   const _MapModeMenu({
     required this.selected,
     required this.showZones,
+    required this.showEwsLocations,
     required this.onSelected,
     required this.onZonesToggled,
+    required this.onEwsLocationsToggled,
   });
 
   final MapMode selected;
   final bool showZones;
+  final bool showEwsLocations;
   final ValueChanged<MapMode> onSelected;
   final VoidCallback onZonesToggled;
+  final VoidCallback onEwsLocationsToggled;
 
   @override
   Widget build(BuildContext context) {
@@ -737,8 +789,11 @@ class _MapModeMenu extends StatelessWidget {
     return PopupMenuButton<Object>(
       tooltip: 'Pilih mode peta',
       initialValue: selected,
-      onSelected: (value) =>
-          value is MapMode ? onSelected(value) : onZonesToggled(),
+      onSelected: (value) => switch (value) {
+        final MapMode mode => onSelected(mode),
+        _zonesMenuItem => onZonesToggled(),
+        _ => onEwsLocationsToggled(),
+      },
       position: PopupMenuPosition.under,
       color: Colors.white,
       surfaceTintColor: Colors.transparent,
@@ -761,6 +816,15 @@ class _MapModeMenu extends StatelessWidget {
           child: item(
             'Zona rawan longsor',
             checked: showZones,
+            state: 'Sedang tampil',
+          ),
+        ),
+        PopupMenuItem<Object>(
+          value: _ewsMenuItem,
+          height: 44,
+          child: item(
+            'Lokasi EWS',
+            checked: showEwsLocations,
             state: 'Sedang tampil',
           ),
         ),

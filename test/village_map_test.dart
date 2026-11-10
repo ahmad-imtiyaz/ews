@@ -54,8 +54,9 @@ void main() {
     }
   });
 
-  test('tiap alat contoh punya area pantau yang memuat titiknya', () {
-    expect(map.monitoringAreasAreSamples, isTrue);
+  test('tiap alat punya area pantau yang memuat titiknya', () {
+    // Area dari tim lapangan, bukan oval contoh lagi.
+    expect(map.monitoringAreasAreSamples, isFalse);
     for (final sensor in waspadaData.sensors) {
       final area = map.monitoringAreas[sensor.id];
       expect(area, isNotNull, reason: sensor.id);

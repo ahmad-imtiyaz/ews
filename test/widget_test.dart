@@ -237,10 +237,10 @@ void main() {
 
       // Keterangan tertutup supaya area EWS di kanan atas tidak terhalang.
       expect(find.text('Keterangan'), findsOneWidget);
-      expect(find.text('Area EWS (contoh)'), findsNothing);
+      expect(find.text('Area EWS'), findsNothing);
       await tester.tap(find.text('Keterangan'));
       await tester.pump();
-      expect(find.text('Area EWS (contoh)'), findsOneWidget);
+      expect(find.text('Area EWS'), findsOneWidget);
       expect(find.text('Zona longsor'), findsNothing);
       expect(find.textContaining('Zona: kajian'), findsNothing);
 
@@ -248,7 +248,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Zona rawan longsor'));
       await tester.pumpAndSettle();
-      expect(find.text('Area EWS (contoh)'), findsOneWidget);
+      expect(find.text('Area EWS'), findsOneWidget);
       expect(find.text('Zona longsor'), findsOneWidget);
       for (final zone in LandslideZone.values) {
         expect(find.text(zone.label), findsOneWidget);
@@ -258,6 +258,38 @@ void main() {
       await tester.tap(find.text('Keterangan'));
       await tester.pump();
       expect(find.text('Zona longsor'), findsNothing);
+    });
+
+    testWidgets('lokasi EWS bisa disembunyikan, areanya tetap tampil', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await pumpHomeWithMap(tester, waspadaData);
+      int areaCount() => [
+        for (final layer in tester.widgetList<PolygonLayer>(
+          find.byWidgetPredicate((w) => w is PolygonLayer),
+        ))
+          for (final polygon in layer.polygons)
+            if (polygon.color != null) polygon,
+      ].length;
+
+      expect(find.text('EWS-01'), findsOneWidget);
+      expect(areaCount(), 2);
+
+      await tester.tap(find.byTooltip('Pilih mode peta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lokasi EWS'));
+      await tester.pumpAndSettle();
+      expect(find.text('EWS-01'), findsNothing);
+      expect(find.text('EWS-02'), findsNothing);
+      expect(find.text('Laporan'), findsOneWidget);
+      expect(areaCount(), 2);
+
+      await tester.tap(find.byTooltip('Pilih mode peta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lokasi EWS'));
+      await tester.pumpAndSettle();
+      expect(find.text('EWS-01'), findsOneWidget);
     });
 
     testWidgets('warna area EWS mengikuti status alatnya', (tester) async {
