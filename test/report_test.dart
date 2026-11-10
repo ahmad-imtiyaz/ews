@@ -7,7 +7,7 @@ import 'package:ews/analysis/sign_category.dart';
 import 'package:ews/analysis/text_analyzer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-ReportPhoto _photo({double sharpness = 300, CnnResult? cnn}) => ReportPhoto(
+ReportPhoto _photo({double sharpness = 80, CnnResult? cnn}) => ReportPhoto(
   path: 'foto.jpg',
   bytes: Uint8List(0),
   quality: PhotoQuality(
@@ -24,7 +24,7 @@ void main() {
     final report = ReportAnalysis(
       time: DateTime(2026, 11, 6, 10, 42),
       story: 'lemah bengkah',
-      photos: [_photo(), _photo(sharpness: 10), _photo()],
+      photos: [_photo(), _photo(sharpness: 40), _photo()],
     );
 
     final message = buildReportMessage(report, 'Tanah retak.');
