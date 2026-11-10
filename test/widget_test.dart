@@ -160,13 +160,13 @@ void main() {
       await tester.tap(find.text('EWS-02'));
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-02, Dusun B'), findsOneWidget);
+      expect(find.text('EWS-02, Wanasida'), findsOneWidget);
       expect(find.text('Data terakhir 07.15'), findsOneWidget);
       expect(find.text('Data lama'), findsNWidgets(sampleReadings.length));
 
       await tester.tap(find.text('Tutup'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-02, Dusun B'), findsNothing);
+      expect(find.text('EWS-02, Wanasida'), findsNothing);
     });
 
     testWidgets('marker laporan menyatakan belum diverifikasi', (tester) async {

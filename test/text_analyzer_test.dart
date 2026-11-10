@@ -84,6 +84,18 @@ void main() {
     expect(result.urgency, Urgency.tinggi);
   });
 
+  test('nama dukuh dari kajian bencana ditulis dengan huruf besar', () {
+    final result = analyzer.analyze(
+      'tebing neng pinggir dalan kaliwisnu longsor, wit bongkok',
+    );
+
+    expect(
+      result.standardized,
+      'Tebing di pinggir jalan Kaliwisnu longsor, pohon bongkok.',
+    );
+    expect(result.place, 'pinggir jalan Kaliwisnu');
+  });
+
   test('caps lock tetap dibakukan, singkatan pendek tetap kapital', () {
     expect(
       analyzer.analyze('LEMAHE BENGKAH NENG MBURI OMAH').standardized,

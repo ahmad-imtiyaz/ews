@@ -1,7 +1,10 @@
 import 'package:latlong2/latlong.dart';
 
 // Semua isi berkas ini data simulasi. Pusat peta memakai posisi Desa Lumeneng
-// dari OpenStreetMap. Posisi titik hanya contoh, bukan lokasi perangkat.
+// dari OpenStreetMap. Titik EWS ditaruh di tiga dukuh yang paling sering
+// longsor menurut Kajian Pemetaan Bencana Desa Lumeneng 2024 (Kaliwisnu,
+// Wanasida, Sikembang), laporan di Sumingkir. Posisinya dibaca dari grid Peta
+// Rawan Longsor kajian itu, meleset sampai ±100 m, dan bukan lokasi perangkat.
 
 enum MonitoringStatus {
   normal('Normal'),
@@ -89,10 +92,10 @@ class MonitoringData {
   final bool loadFailed;
 }
 
-const _ews01Position = LatLng(-7.1697, 109.5757);
+const _ews01Position = LatLng(-7.1899, 109.5911);
 const _ews02Position = LatLng(-7.1761, 109.5841);
-const _ews03Position = LatLng(-7.1680, 109.5867);
-const _reportPosition = LatLng(-7.1765, 109.5721);
+const _ews03Position = LatLng(-7.1854, 109.5927);
+const _reportPosition = LatLng(-7.1809, 109.5857);
 
 /// Titik yang harus terlihat saat peta pertama dibuka.
 const mapFocusPoints = [
@@ -118,21 +121,21 @@ const waspadaData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Dusun A',
+      place: 'Kaliwisnu',
       position: _ews01Position,
       status: MonitoringStatus.waspada,
       lastData: '10.42',
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Dusun B',
+      place: 'Wanasida',
       position: _ews02Position,
       status: MonitoringStatus.noData,
       lastData: '07.15',
     ),
     SensorPoint(
       id: 'EWS-03',
-      place: 'Dusun A',
+      place: 'Sikembang',
       position: _ews03Position,
       status: MonitoringStatus.normal,
       lastData: '10.40',
@@ -141,7 +144,7 @@ const waspadaData = MonitoringData(
   reports: [
     ReportPoint(
       title: 'Laporan retakan',
-      place: 'Dusun A',
+      place: 'Sumingkir',
       position: _reportPosition,
       time: '10.39',
     ),
@@ -156,7 +159,7 @@ const waspadaData = MonitoringData(
     LogEntry('10.35', 'EWS-02 tidak mengirim data', LogKind.noData),
     LogEntry(
       '10.20',
-      'Petugas memverifikasi laporan di Dusun A',
+      'Petugas memverifikasi laporan di Kaliwisnu',
       LogKind.verified,
     ),
   ],
@@ -171,21 +174,21 @@ const normalData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Dusun A',
+      place: 'Kaliwisnu',
       position: _ews01Position,
       status: MonitoringStatus.normal,
       lastData: '10.42',
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Dusun B',
+      place: 'Wanasida',
       position: _ews02Position,
       status: MonitoringStatus.normal,
       lastData: '10.41',
     ),
     SensorPoint(
       id: 'EWS-03',
-      place: 'Dusun A',
+      place: 'Sikembang',
       position: _ews03Position,
       status: MonitoringStatus.normal,
       lastData: '10.40',
@@ -202,21 +205,21 @@ const awasData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Dusun A',
+      place: 'Kaliwisnu',
       position: _ews01Position,
       status: MonitoringStatus.awas,
       lastData: '10.42',
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Dusun B',
+      place: 'Wanasida',
       position: _ews02Position,
       status: MonitoringStatus.waspada,
       lastData: '10.41',
     ),
     SensorPoint(
       id: 'EWS-03',
-      place: 'Dusun A',
+      place: 'Sikembang',
       position: _ews03Position,
       status: MonitoringStatus.normal,
       lastData: '10.40',
@@ -236,21 +239,21 @@ const noDataData = MonitoringData(
   sensors: [
     SensorPoint(
       id: 'EWS-01',
-      place: 'Dusun A',
+      place: 'Kaliwisnu',
       position: _ews01Position,
       status: MonitoringStatus.noData,
       lastData: '07.15',
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Dusun B',
+      place: 'Wanasida',
       position: _ews02Position,
       status: MonitoringStatus.noData,
       lastData: '07.15',
     ),
     SensorPoint(
       id: 'EWS-03',
-      place: 'Dusun A',
+      place: 'Sikembang',
       position: _ews03Position,
       status: MonitoringStatus.noData,
       lastData: '07.15',
