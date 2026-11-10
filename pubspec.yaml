@@ -73,6 +73,7 @@ flutter:
     - assets/animations/splash.json
     - assets/nlp/
     - assets/models/
+    - assets/peta/
 
   fonts:
     - family: PlusJakartaSans

@@ -22,6 +22,9 @@ abstract final class AppColors {
   static const normal = Color(0xFF1F6B3F);
   static const waspada = Color(0xFFF2B60C);
   static const awas = Color(0xFFA91F1A);
+
+  /// Titik "lokasi Anda" di peta, biru seperti di aplikasi peta lain.
+  static const myLocation = Color(0xFF1A73E8);
 }
 
 extension MonitoringStatusColors on MonitoringStatus {

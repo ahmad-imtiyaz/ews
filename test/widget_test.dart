@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:ews/analysis/text_analyzer.dart';
 import 'package:ews/app_theme.dart';
 import 'package:ews/data/sample_data.dart';
+import 'package:ews/data/village_map.dart';
 import 'package:ews/screens/home_screen.dart';
 import 'package:ews/screens/main_shell.dart';
 import 'package:ews/screens/report_result_screen.dart';
 import 'package:ews/screens/report_screen.dart';
 import 'package:ews/screens/splash_screen.dart';
+import 'package:ews/services/phone_location.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +24,10 @@ void main() {
       loader.addFont(bytes.then(ByteData.sublistView));
     }
     await loader.load();
+    // Hasilnya disimpan untuk seluruh jalannya aplikasi. Kalau pertama kali
+    // dimuat dari initState di dalam jam palsu tes, bacaan asetnya tidak
+    // pernah selesai dan semua tes sesudahnya ikut menunggu.
+    await loadVillageMap();
   });
 
   void usePhoneSize(WidgetTester tester) {
@@ -32,14 +38,20 @@ void main() {
 
   Widget app(Widget home) => MaterialApp(theme: buildAppTheme(), home: home);
 
-  Widget home(MonitoringData data, {Future<MonitoringData> Function()? load}) =>
-      app(
-        HomeScreen(
-          initialData: data,
-          load: load ?? loadMonitoring,
-          showMapTiles: false,
-        ),
-      );
+  Widget home(
+    MonitoringData data, {
+    Future<MonitoringData> Function()? load,
+    Future<PhoneFix> Function()? locate,
+  }) => app(
+    HomeScreen(
+      initialData: data,
+      load: load ?? loadMonitoring,
+      showMapTiles: false,
+      locate:
+          locate ??
+          () async => throw const LocationUnavailable(LocationProblem.notFound),
+    ),
+  );
 
   group('Splash', () {
     const maxWait = Duration(seconds: 5);
@@ -187,13 +199,14 @@ void main() {
       await tester.pumpWidget(home(waspadaData));
       await tester.pump();
 
-      expect(find.text('© OpenStreetMap'), findsOneWidget);
+      // Peta pertama kali dibuka dengan citra satelit.
+      expect(find.textContaining('Citra © Esri'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Pilih mode peta'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Satelit'));
+      await tester.tap(find.text('Peta'));
       await tester.pumpAndSettle();
-      expect(find.text('Citra © Esri'), findsOneWidget);
+      expect(find.textContaining('© OpenStreetMap'), findsOneWidget);
       expect(find.text('Medan'), findsNothing);
 
       await tester.tap(find.byTooltip('Pilih mode peta'));
@@ -201,6 +214,66 @@ void main() {
       await tester.tap(find.text('Medan'));
       await tester.pumpAndSettle();
       expect(find.textContaining('OpenTopoMap'), findsOneWidget);
+    });
+
+    testWidgets('zona longsor tampil dengan legenda dan bisa disembunyikan', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(home(waspadaData));
+      // Peta desa sudah dimuat di setUpAll dengan jam asli, jadi then() di
+      // initState baru jalan setelah event loop asli dapat giliran.
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+
+      expect(find.text('Zona longsor'), findsOneWidget);
+      for (final zone in LandslideZone.values) {
+        expect(find.text(zone.label), findsOneWidget);
+      }
+      expect(find.textContaining('Zona: kajian'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Pilih mode peta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Zona rawan longsor'));
+      await tester.pumpAndSettle();
+      expect(find.text('Zona longsor'), findsNothing);
+      expect(find.textContaining('Zona: kajian'), findsNothing);
+    });
+
+    testWidgets('tombol lokasi menampilkan posisi HP di peta', (tester) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(
+        home(
+          waspadaData,
+          locate: () async =>
+              (latitude: -7.1800, longitude: 109.5850, accuracy: 15.0),
+        ),
+      );
+      await tester.pump();
+      expect(find.bySemanticsLabel('Lokasi Anda'), findsNothing);
+
+      await tester.tap(find.byTooltip('Ke lokasi saya'));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('Lokasi Anda'), findsOneWidget);
+    });
+
+    testWidgets('izin lokasi ditolak dijelaskan tanpa memindah peta', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(
+        home(
+          waspadaData,
+          locate: () async =>
+              throw const LocationUnavailable(LocationProblem.denied),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Ke lokasi saya'));
+      await tester.pump();
+      expect(find.textContaining('Izin lokasi ditolak'), findsOneWidget);
+      expect(find.bySemanticsLabel('Lokasi Anda'), findsNothing);
     });
 
     testWidgets('perubahan status masuk riwayat lonceng tanpa pop up', (

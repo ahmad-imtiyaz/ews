@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../analysis/photo_analyzer.dart';
@@ -10,6 +9,7 @@ import '../analysis/sign_category.dart';
 import '../analysis/text_analyzer.dart';
 import '../app_theme.dart';
 import '../config.dart';
+import '../services/phone_location.dart';
 import '../widgets/section_card.dart';
 import '../widgets/top_bar.dart';
 import 'report_result_screen.dart';
@@ -142,46 +142,22 @@ class _ReportScreenState extends State<ReportScreen> {
       _locating = true;
       _locationError = null;
     });
+    const notFound = 'Lokasi belum didapat. Coba lagi di tempat terbuka.';
     String? error;
     ReportLocation? found;
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        error = 'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.';
-      } else {
-        var permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-        }
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          error = 'Izin lokasi ditolak. Laporan tetap bisa dikirim.';
-        } else {
-          Position? position;
-          try {
-            position = await Geolocator.getCurrentPosition(
-              locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.high,
-                timeLimit: Duration(seconds: 30),
-              ),
-            );
-          } catch (_) {
-            // Di dalam rumah GPS sering belum dapat sinyal; pakai lokasi
-            // terakhir yang diketahui HP, akurasinya ikut ditampilkan.
-            position = await Geolocator.getLastKnownPosition();
-          }
-          if (position == null) {
-            error = 'Lokasi belum didapat. Coba lagi di tempat terbuka.';
-          } else {
-            found = ReportLocation(
-              position.latitude,
-              position.longitude,
-              position.accuracy,
-            );
-          }
-        }
-      }
+      final fix = await findPhoneLocation();
+      found = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
+    } on LocationUnavailable catch (e) {
+      error = switch (e.problem) {
+        LocationProblem.serviceOff =>
+          'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
+        LocationProblem.denied =>
+          'Izin lokasi ditolak. Laporan tetap bisa dikirim.',
+        LocationProblem.notFound => notFound,
+      };
     } catch (_) {
-      error = 'Lokasi belum didapat. Coba lagi di tempat terbuka.';
+      error = notFound;
     }
     if (!mounted) return;
     setState(() {
