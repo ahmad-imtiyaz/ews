@@ -372,7 +372,10 @@ class _MapPanelState extends State<_MapPanel> {
 
   VillageMap? _villageMap;
   List<Polygon> _zonePolygons = const [];
-  bool _showZones = true;
+
+  /// Zona kajian hanya rujukan; yang tampil lebih dulu area pantau alat EWS.
+  bool _showZones = false;
+  bool _legendOpen = false;
 
   PhoneFix? _me;
   bool _locating = false;
@@ -408,6 +411,49 @@ class _MapPanelState extends State<_MapPanel> {
     final camera = _controller.camera;
     _controller.move(camera.center, camera.zoom + delta);
   }
+
+  List<_LegendSection> _legendSections() {
+    final map = _villageMap;
+    if (map == null) return const [];
+    return [
+      if (map.monitoringAreas.isNotEmpty)
+        (
+          title: map.monitoringAreasAreSamples
+              ? 'Area EWS (contoh)'
+              : 'Area EWS',
+          entries: [
+            for (final status in MonitoringStatus.values)
+              (status.background, status.label),
+          ],
+        ),
+      if (_showZones && _zonePolygons.isNotEmpty)
+        (
+          title: 'Zona longsor',
+          entries: [
+            for (final zone in LandslideZone.values) (zone.color, zone.label),
+          ],
+        ),
+    ];
+  }
+
+  /// Area pantau tiap alat, warnanya ikut status alat itu.
+  List<Polygon> _monitoringPolygons(VillageMap map) => [
+    for (final sensor in widget.data.sensors)
+      if (map.monitoringAreas[sensor.id] case final area?) ...[
+        // Garis putih di bawahnya supaya hijau dan merah tua tetap terlihat
+        // di atas citra satelit yang gelap.
+        Polygon(points: area, borderColor: Colors.white, borderStrokeWidth: 5),
+        Polygon(
+          points: area,
+          color: sensor.status.background.withValues(alpha: 0.35),
+          borderColor: sensor.status.background,
+          borderStrokeWidth: 2.5,
+          pattern: sensor.isStale
+              ? StrokePattern.dashed(segments: const [10, 6])
+              : const StrokePattern.solid(),
+        ),
+      ],
+  ];
 
   Future<void> _goToMyLocation() async {
     if (_locating) return;
@@ -528,6 +574,8 @@ class _MapPanelState extends State<_MapPanel> {
                       ),
                     ],
                   ),
+                if (_villageMap case final map?)
+                  PolygonLayer(polygons: _monitoringPolygons(map)),
                 if (_me case final me?)
                   CircleLayer(
                     circles: [
@@ -590,15 +638,6 @@ class _MapPanelState extends State<_MapPanel> {
                 ),
               ),
             ),
-            if (_showZones && _zonePolygons.isNotEmpty)
-              Positioned(
-                right: 8,
-                top: 8,
-                child: MediaQuery.withClampedTextScaling(
-                  maxScaleFactor: 1.2,
-                  child: const _ZoneLegend(),
-                ),
-              ),
             Positioned(
               left: 12,
               right: 64,
@@ -639,6 +678,27 @@ class _MapPanelState extends State<_MapPanel> {
                 ],
               ),
             ),
+            // Paling akhir supaya saat dibuka menutupi tombol peta, bukan
+            // tertutup olehnya. Tertutup secara bawaan agar area EWS di
+            // kanan atas tidak terhalang.
+            if (_legendSections() case final sections when sections.isNotEmpty)
+              Positioned(
+                top: 4,
+                right: 8,
+                bottom: 4,
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: MediaQuery.withClampedTextScaling(
+                    maxScaleFactor: 1.2,
+                    child: _MapLegend(
+                      open: _legendOpen,
+                      onToggle: () =>
+                          setState(() => _legendOpen = !_legendOpen),
+                      sections: sections,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -778,56 +838,121 @@ class _MapButton extends StatelessWidget {
   }
 }
 
-class _ZoneLegend extends StatelessWidget {
-  const _ZoneLegend();
+typedef _LegendSection = ({String title, List<(Color, String)> entries});
+
+class _MapLegend extends StatelessWidget {
+  const _MapLegend({
+    required this.open,
+    required this.onToggle,
+    required this.sections,
+  });
+
+  final bool open;
+  final VoidCallback onToggle;
+  final List<_LegendSection> sections;
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     const labelStyle = TextStyle(
       fontSize: 11,
       height: 1.25,
       color: AppColors.ink,
     );
+    final decoration = BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: AppColors.border),
+    );
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 5, 9, 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Zona longsor',
-              style: labelStyle.copyWith(fontWeight: FontWeight.w600),
-            ),
-            for (final zone in LandslideZone.values)
-              Padding(
-                padding: const EdgeInsets.only(top: 3),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox.square(
-                      dimension: 10,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: zone.color,
-                          borderRadius: BorderRadius.circular(2),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Semantics(
+          button: true,
+          expanded: open,
+          label: 'Keterangan warna peta',
+          excludeSemantics: true,
+          child: InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(10),
+            // Kotak terlihat setinggi 34, tetapi area sentuhnya tetap 44.
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: DecoratedBox(
+                decoration: decoration,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Keterangan',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(zone.label, style: labelStyle),
+                      const SizedBox(width: 4),
+                      Icon(
+                        open
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (open)
+          Flexible(
+            child: DecoratedBox(
+              decoration: decoration,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(8, 5, 9, 7),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final (index, section) in sections.indexed) ...[
+                      if (index > 0) const SizedBox(height: 8),
+                      Text(
+                        section.title,
+                        style: labelStyle.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      for (final (color, label) in section.entries)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox.square(
+                                dimension: 10,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(label, style: labelStyle),
+                            ],
+                          ),
+                        ),
+                    ],
                   ],
                 ),
               ),
-          ],
-        ),
-      ),
+            ),
+          ),
+      ],
     );
   }
 }

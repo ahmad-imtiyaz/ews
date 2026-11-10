@@ -11,6 +11,7 @@ import 'package:ews/screens/report_screen.dart';
 import 'package:ews/screens/splash_screen.dart';
 import 'package:ews/services/phone_location.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -172,13 +173,13 @@ void main() {
       await tester.tap(find.text('EWS-02'));
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-02, Wanasida'), findsOneWidget);
+      expect(find.text('EWS-02, Sikembang'), findsOneWidget);
       expect(find.text('Data terakhir 07.15'), findsOneWidget);
       expect(find.text('Data lama'), findsNWidgets(sampleReadings.length));
 
       await tester.tap(find.text('Tutup'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-02, Wanasida'), findsNothing);
+      expect(find.text('EWS-02, Sikembang'), findsNothing);
     });
 
     testWidgets('marker laporan menyatakan belum diverifikasi', (tester) async {
@@ -216,28 +217,69 @@ void main() {
       expect(find.textContaining('OpenTopoMap'), findsOneWidget);
     });
 
-    testWidgets('zona longsor tampil dengan legenda dan bisa disembunyikan', (
+    // Peta desa sudah dimuat di setUpAll dengan jam asli, jadi then() di
+    // initState baru jalan setelah event loop asli dapat giliran.
+    Future<void> pumpHomeWithMap(
+      WidgetTester tester,
+      MonitoringData data,
+    ) async {
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(home(data));
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+    }
+
+    testWidgets('area EWS tampil lebih dulu, zona longsor bisa dinyalakan', (
       tester,
     ) async {
       usePhoneSize(tester);
-      await tester.pumpWidget(home(waspadaData));
-      // Peta desa sudah dimuat di setUpAll dengan jam asli, jadi then() di
-      // initState baru jalan setelah event loop asli dapat giliran.
-      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-      await tester.pump();
+      await pumpHomeWithMap(tester, waspadaData);
 
+      // Keterangan tertutup supaya area EWS di kanan atas tidak terhalang.
+      expect(find.text('Keterangan'), findsOneWidget);
+      expect(find.text('Area EWS (contoh)'), findsNothing);
+      await tester.tap(find.text('Keterangan'));
+      await tester.pump();
+      expect(find.text('Area EWS (contoh)'), findsOneWidget);
+      expect(find.text('Zona longsor'), findsNothing);
+      expect(find.textContaining('Zona: kajian'), findsNothing);
+
+      await tester.tap(find.byTooltip('Pilih mode peta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Zona rawan longsor'));
+      await tester.pumpAndSettle();
+      expect(find.text('Area EWS (contoh)'), findsOneWidget);
       expect(find.text('Zona longsor'), findsOneWidget);
       for (final zone in LandslideZone.values) {
         expect(find.text(zone.label), findsOneWidget);
       }
       expect(find.textContaining('Zona: kajian'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Pilih mode peta'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Zona rawan longsor'));
-      await tester.pumpAndSettle();
+      await tester.tap(find.text('Keterangan'));
+      await tester.pump();
       expect(find.text('Zona longsor'), findsNothing);
-      expect(find.textContaining('Zona: kajian'), findsNothing);
+    });
+
+    testWidgets('warna area EWS mengikuti status alatnya', (tester) async {
+      usePhoneSize(tester);
+      // Garis tepi area berwarna status; poligon tanpa isi hanya garis putih
+      // di bawahnya.
+      List<Color> areaColors() => [
+        for (final layer in tester.widgetList<PolygonLayer>(
+          find.byWidgetPredicate((w) => w is PolygonLayer),
+        ))
+          for (final polygon in layer.polygons)
+            if (polygon.color != null) polygon.borderColor,
+      ];
+
+      await pumpHomeWithMap(tester, waspadaData);
+      expect(areaColors(), [AppColors.waspada, AppColors.stale]);
+
+      await pumpHomeWithMap(tester, awasData);
+      expect(areaColors(), [AppColors.awas, AppColors.waspada]);
+
+      await pumpHomeWithMap(tester, normalData);
+      expect(areaColors(), [AppColors.normal, AppColors.normal]);
     });
 
     testWidgets('tombol lokasi menampilkan posisi HP di peta', (tester) async {

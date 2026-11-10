@@ -1,10 +1,12 @@
 import 'package:latlong2/latlong.dart';
 
 // Semua isi berkas ini data simulasi. Pusat peta memakai posisi Desa Lumeneng
-// dari OpenStreetMap. Titik EWS ditaruh di tiga dukuh yang paling sering
-// longsor menurut Kajian Pemetaan Bencana Desa Lumeneng 2024 (Kaliwisnu,
-// Wanasida, Sikembang), laporan di Sumingkir. Posisinya dibaca dari grid Peta
-// Rawan Longsor kajian itu, meleset sampai ±100 m, dan bukan lokasi perangkat.
+// dari OpenStreetMap. Dua alat EWS yang akan dipasang belum terhubung dan
+// lokasinya belum pasti. Titik contohnya di Kaliwisnu (paling sering longsor
+// menurut Kajian Pemetaan Bencana Desa Lumeneng 2024) dan Sikembang (di sebelah
+// satu-satunya zona sangat rawan di kajian itu), laporan di Jomparang. Posisinya
+// dibaca dari grid Peta Rawan Longsor kajian, meleset sampai ±100 m. Area pantau
+// tiap alat ada di assets/peta/area_ews.geojson.
 
 enum MonitoringStatus {
   normal('Normal'),
@@ -93,17 +95,11 @@ class MonitoringData {
 }
 
 const _ews01Position = LatLng(-7.1899, 109.5911);
-const _ews02Position = LatLng(-7.1761, 109.5841);
-const _ews03Position = LatLng(-7.1854, 109.5927);
-const _reportPosition = LatLng(-7.1809, 109.5857);
+const _ews02Position = LatLng(-7.1854, 109.5927);
+const _reportPosition = LatLng(-7.1866, 109.5893);
 
 /// Titik yang harus terlihat saat peta pertama dibuka.
-const mapFocusPoints = [
-  _ews01Position,
-  _ews02Position,
-  _ews03Position,
-  _reportPosition,
-];
+const mapFocusPoints = [_ews01Position, _ews02Position, _reportPosition];
 
 const sampleReadings = [
   SensorReading('Kelembapan tanah', '78 %'),
@@ -128,23 +124,16 @@ const waspadaData = MonitoringData(
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Wanasida',
+      place: 'Sikembang',
       position: _ews02Position,
       status: MonitoringStatus.noData,
       lastData: '07.15',
-    ),
-    SensorPoint(
-      id: 'EWS-03',
-      place: 'Sikembang',
-      position: _ews03Position,
-      status: MonitoringStatus.normal,
-      lastData: '10.40',
     ),
   ],
   reports: [
     ReportPoint(
       title: 'Laporan retakan',
-      place: 'Sumingkir',
+      place: 'Jomparang',
       position: _reportPosition,
       time: '10.39',
     ),
@@ -169,7 +158,7 @@ const normalData = MonitoringData(
   name: 'Normal, catatan kosong',
   status: MonitoringStatus.normal,
   title: 'Normal',
-  summary: '3 titik mengirim data terbaru.',
+  summary: '2 titik mengirim data terbaru.',
   updated: 'Diperbarui 10.42',
   sensors: [
     SensorPoint(
@@ -181,17 +170,10 @@ const normalData = MonitoringData(
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Wanasida',
+      place: 'Sikembang',
       position: _ews02Position,
       status: MonitoringStatus.normal,
       lastData: '10.41',
-    ),
-    SensorPoint(
-      id: 'EWS-03',
-      place: 'Sikembang',
-      position: _ews03Position,
-      status: MonitoringStatus.normal,
-      lastData: '10.40',
     ),
   ],
 );
@@ -212,17 +194,10 @@ const awasData = MonitoringData(
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Wanasida',
+      place: 'Sikembang',
       position: _ews02Position,
       status: MonitoringStatus.waspada,
       lastData: '10.41',
-    ),
-    SensorPoint(
-      id: 'EWS-03',
-      place: 'Sikembang',
-      position: _ews03Position,
-      status: MonitoringStatus.normal,
-      lastData: '10.40',
     ),
   ],
   log: [
@@ -246,15 +221,8 @@ const noDataData = MonitoringData(
     ),
     SensorPoint(
       id: 'EWS-02',
-      place: 'Wanasida',
-      position: _ews02Position,
-      status: MonitoringStatus.noData,
-      lastData: '07.15',
-    ),
-    SensorPoint(
-      id: 'EWS-03',
       place: 'Sikembang',
-      position: _ews03Position,
+      position: _ews02Position,
       status: MonitoringStatus.noData,
       lastData: '07.15',
     ),

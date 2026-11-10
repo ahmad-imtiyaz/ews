@@ -28,6 +28,7 @@ void main() {
     map = VillageMap.fromGeoJson(
       boundary: File(villageBoundaryAsset).readAsStringSync(),
       zones: File(landslideZonesAsset).readAsStringSync(),
+      monitoringAreas: File(monitoringAreasAsset).readAsStringSync(),
     );
   });
 
@@ -50,6 +51,15 @@ void main() {
   test('titik contoh EWS dan laporan ada di dalam desa', () {
     for (final p in mapFocusPoints) {
       expect(_inside(p, map.boundary), isTrue, reason: '$p');
+    }
+  });
+
+  test('tiap alat contoh punya area pantau yang memuat titiknya', () {
+    expect(map.monitoringAreasAreSamples, isTrue);
+    for (final sensor in waspadaData.sensors) {
+      final area = map.monitoringAreas[sensor.id];
+      expect(area, isNotNull, reason: sensor.id);
+      expect(_inside(sensor.position, area!), isTrue, reason: sensor.id);
     }
   });
 }

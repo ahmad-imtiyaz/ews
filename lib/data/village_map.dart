@@ -10,6 +10,11 @@ import 'package:latlong2/latlong.dart';
 const villageBoundaryAsset = 'assets/peta/batas_desa.geojson';
 const landslideZonesAsset = 'assets/peta/zona_longsor.geojson';
 
+/// Area pantau tiap alat EWS, satu Polygon per alat dengan properti `id`
+/// sama dengan id alat. Selama masih berisi `"contoh": true` di tingkat atas,
+/// legenda menandainya sebagai contoh.
+const monitoringAreasAsset = 'assets/peta/area_ews.geojson';
+
 /// Kelas di legenda Peta Rawan Longsor kajian, urut dari yang paling aman.
 enum LandslideZone {
   aman('aman', 'Aman', Color(0xFF5FC0E8)),
@@ -37,7 +42,12 @@ class ZoneArea {
 }
 
 class VillageMap {
-  const VillageMap({required this.boundary, required this.zones});
+  const VillageMap({
+    required this.boundary,
+    required this.zones,
+    this.monitoringAreas = const {},
+    this.monitoringAreasAreSamples = false,
+  });
 
   final List<LatLng> boundary;
 
@@ -45,9 +55,14 @@ class VillageMap {
   /// zona yang lebih rawan tergambar paling atas.
   final List<ZoneArea> zones;
 
+  /// Kuncinya id alat, mis. `EWS-01`.
+  final Map<String, List<LatLng>> monitoringAreas;
+  final bool monitoringAreasAreSamples;
+
   factory VillageMap.fromGeoJson({
     required String boundary,
     required String zones,
+    String? monitoringAreas,
   }) {
     final boundaryGeometry =
         ((jsonDecode(boundary) as Map)['features'] as List).first['geometry']
@@ -61,9 +76,20 @@ class VillageMap {
       }
     }
     areas.sort((a, b) => a.zone.index.compareTo(b.zone.index));
+
+    final monitoring = monitoringAreas == null
+        ? const <String, dynamic>{}
+        : jsonDecode(monitoringAreas) as Map<String, dynamic>;
     return VillageMap(
       boundary: _polygons(boundaryGeometry).first.first,
       zones: areas,
+      monitoringAreas: {
+        for (final feature in monitoring['features'] as List? ?? const [])
+          (feature['properties'] as Map)['id'] as String: _polygons(
+            feature['geometry'] as Map,
+          ).first.first,
+      },
+      monitoringAreasAreSamples: monitoring['contoh'] == true,
     );
   }
 }
@@ -101,6 +127,7 @@ Future<VillageMap> loadVillageMap([AssetBundle? bundle]) {
     return VillageMap.fromGeoJson(
       boundary: await read(villageBoundaryAsset),
       zones: await read(landslideZonesAsset),
+      monitoringAreas: await read(monitoringAreasAsset),
     );
   }();
 }
