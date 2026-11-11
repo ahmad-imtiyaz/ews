@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -52,9 +53,10 @@ enum MapMode {
   final bool grayscale;
 }
 
-// Tombol di peta ditekan sambil menunggu, jadi tidak selama di Lapor.
-Future<PhoneFix> _locateForMap() =>
-    findPhoneLocation(timeLimit: const Duration(seconds: 10));
+// Titiknya sudah tampil dari posisi pertama, jadi boleh menunggu GPS lebih
+// lama daripada di Lapor.
+Stream<PhoneFix> _locateForMap() =>
+    watchPhoneLocation(timeLimit: const Duration(seconds: 45));
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -68,7 +70,7 @@ class HomeScreen extends StatefulWidget {
   final MonitoringData initialData;
   final Future<MonitoringData> Function() load;
   final bool showMapTiles;
-  final Future<PhoneFix> Function() locate;
+  final Stream<PhoneFix> Function() locate;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -333,7 +335,7 @@ class _MapPanel extends StatefulWidget {
 
   final MonitoringData data;
   final bool showTiles;
-  final Future<PhoneFix> Function() locate;
+  final Stream<PhoneFix> Function() locate;
   final ValueChanged<SensorPoint> onSensorTap;
   final ValueChanged<ReportPoint> onReportTap;
 
@@ -386,7 +388,11 @@ class _MapPanelState extends State<_MapPanel> {
   bool _fittedToAreas = false;
 
   PhoneFix? _me;
+  StreamSubscription<PhoneFix>? _locationUpdates;
   bool _locating = false;
+
+  /// Peta ikut pindah ke posisi yang makin tajam sampai warga menggesernya.
+  bool _followMe = false;
 
   @override
   void initState() {
@@ -439,6 +445,7 @@ class _MapPanelState extends State<_MapPanel> {
 
   @override
   void dispose() {
+    _locationUpdates?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -492,39 +499,43 @@ class _MapPanelState extends State<_MapPanel> {
       ],
   ];
 
-  Future<void> _goToMyLocation() async {
+  void _goToMyLocation() {
     if (_locating) return;
     setState(() => _locating = true);
-    PhoneFix? fix;
-    var problem = LocationProblem.notFound;
-    try {
-      fix = await widget.locate();
-    } on LocationUnavailable catch (e) {
-      problem = e.problem;
-    } catch (_) {
-      problem = LocationProblem.notFound;
-    }
-    if (!mounted) return;
-    setState(() {
-      _locating = false;
-      _me = fix ?? _me;
-    });
-    if (fix != null) {
-      _cameraTouched = true;
-      _controller.move(
-        LatLng(fix.latitude, fix.longitude),
-        max(_controller.camera.zoom, 16),
-      );
-      return;
-    }
-    final message = switch (problem) {
-      LocationProblem.serviceOff =>
-        'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
-      LocationProblem.denied =>
-        'Izin lokasi ditolak, jadi posisi Anda tidak bisa ditampilkan.',
-      LocationProblem.notFound =>
-        'Lokasi belum didapat. Coba lagi di tempat terbuka.',
-    };
+    _followMe = true;
+    PhoneFix? latest;
+    _locationUpdates = widget.locate().listen(
+      (fix) {
+        latest = fix;
+        setState(() => _me = fix);
+        if (!_followMe) return;
+        _cameraTouched = true;
+        _controller.move(
+          LatLng(fix.latitude, fix.longitude),
+          max(_controller.camera.zoom, 16),
+        );
+      },
+      onError: (Object e) => _showMessage(switch (e) {
+        LocationUnavailable(problem: LocationProblem.serviceOff) =>
+          'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
+        LocationUnavailable(problem: LocationProblem.denied) =>
+          'Izin lokasi ditolak, jadi posisi Anda tidak bisa ditampilkan.',
+        _ => 'Lokasi belum didapat. Coba lagi di tempat terbuka.',
+      }),
+      onDone: () {
+        setState(() => _locating = false);
+        if (latest case final fix? when fix.accuracy > gpsAccuracy) {
+          _showMessage(
+            'Titik Anda masih perkiraan, bisa meleset sampai '
+            '±${fix.accuracy.round()} m. GPS belum dapat sinyal, coba lagi '
+            'di tempat terbuka.',
+          );
+        }
+      },
+    );
+  }
+
+  void _showMessage(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
@@ -569,7 +580,9 @@ class _MapPanelState extends State<_MapPanel> {
                   _fitToAreas();
                 },
                 onPositionChanged: (camera, hasGesture) {
-                  if (hasGesture) _cameraTouched = true;
+                  if (!hasGesture) return;
+                  _cameraTouched = true;
+                  _followMe = false;
                 },
                 minZoom: 11,
                 maxZoom: 18,

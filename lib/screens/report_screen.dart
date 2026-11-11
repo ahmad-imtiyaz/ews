@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -58,7 +59,11 @@ class _ReportScreenState extends State<ReportScreen> {
 
   ReportLocation? _location;
   String? _locationError;
+  StreamSubscription<PhoneFix>? _locationUpdates;
   bool _locating = false;
+
+  /// Sudah ada posisi dari pencarian ini, tapi GPS belum masuk.
+  bool _sharpening = false;
 
   bool _analyzing = false;
 
@@ -78,6 +83,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   void dispose() {
+    _locationUpdates?.cancel();
     _story.dispose();
     _cnn.then((cnn) => cnn?.close());
     super.dispose();
@@ -137,34 +143,32 @@ class _ReportScreenState extends State<ReportScreen> {
     setState(() => _photos.removeAt(index));
   }
 
-  Future<void> _locate() async {
+  void _locate() {
+    _locationUpdates?.cancel();
     setState(() {
       _locating = true;
+      _sharpening = false;
       _locationError = null;
     });
-    const notFound = 'Lokasi belum didapat. Coba lagi di tempat terbuka.';
-    String? error;
-    ReportLocation? found;
-    try {
-      final fix = await findPhoneLocation();
-      found = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
-    } on LocationUnavailable catch (e) {
-      error = switch (e.problem) {
-        LocationProblem.serviceOff =>
-          'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
-        LocationProblem.denied =>
-          'Izin lokasi ditolak. Laporan tetap bisa dikirim.',
-        LocationProblem.notFound => notFound,
-      };
-    } catch (_) {
-      error = notFound;
-    }
-    if (!mounted) return;
-    setState(() {
-      _locating = false;
-      _location = found ?? _location;
-      _locationError = found == null ? error : null;
-    });
+    _locationUpdates = watchPhoneLocation().listen(
+      (fix) => setState(() {
+        _location = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
+        _sharpening = true;
+      }),
+      onError: (Object e) => setState(() {
+        _locationError = switch (e) {
+          LocationUnavailable(problem: LocationProblem.serviceOff) =>
+            'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
+          LocationUnavailable(problem: LocationProblem.denied) =>
+            'Izin lokasi ditolak. Laporan tetap bisa dikirim.',
+          _ => 'Lokasi belum didapat. Coba lagi di tempat terbuka.',
+        };
+      }),
+      onDone: () => setState(() {
+        _locating = false;
+        _sharpening = false;
+      }),
+    );
   }
 
   Future<void> _submit() async {
@@ -315,7 +319,8 @@ class _ReportScreenState extends State<ReportScreen> {
           _LocationSection(
             location: _location,
             error: _locationError,
-            locating: _locating,
+            locating: _locating && !_sharpening,
+            sharpening: _sharpening,
             onRetry: _locate,
           ),
           const SizedBox(height: 20),
@@ -637,12 +642,14 @@ class _LocationSection extends StatelessWidget {
     required this.location,
     required this.error,
     required this.locating,
+    required this.sharpening,
     required this.onRetry,
   });
 
   final ReportLocation? location;
   final String? error;
   final bool locating;
+  final bool sharpening;
   final VoidCallback onRetry;
 
   @override
@@ -670,7 +677,9 @@ class _LocationSection extends StatelessWidget {
                   Text(status, style: textTheme.bodyLarge),
                   if (found != null && !locating)
                     Text(
-                      'Akurasi ±${found.accuracy.round()} m',
+                      sharpening
+                          ? 'Akurasi ±${found.accuracy.round()} m, menunggu GPS...'
+                          : 'Akurasi ±${found.accuracy.round()} m',
                       style: textTheme.bodyMedium?.copyWith(
                         color: AppColors.inkSoft,
                       ),
@@ -680,7 +689,7 @@ class _LocationSection extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             OutlinedButton(
-              onPressed: locating ? null : onRetry,
+              onPressed: locating || sharpening ? null : onRetry,
               child: Text(found == null ? 'Ambil' : 'Perbarui'),
             ),
           ],

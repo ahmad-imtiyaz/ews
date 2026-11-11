@@ -42,7 +42,7 @@ void main() {
   Widget home(
     MonitoringData data, {
     Future<MonitoringData> Function()? load,
-    Future<PhoneFix> Function()? locate,
+    Stream<PhoneFix> Function()? locate,
   }) => app(
     HomeScreen(
       initialData: data,
@@ -50,7 +50,8 @@ void main() {
       showMapTiles: false,
       locate:
           locate ??
-          () async => throw const LocationUnavailable(LocationProblem.notFound),
+          () =>
+              Stream.error(const LocationUnavailable(LocationProblem.notFound)),
     ),
   );
 
@@ -319,8 +320,11 @@ void main() {
       await tester.pumpWidget(
         home(
           waspadaData,
-          locate: () async =>
-              (latitude: -7.1800, longitude: 109.5850, accuracy: 15.0),
+          locate: () => Stream.value((
+            latitude: -7.1800,
+            longitude: 109.5850,
+            accuracy: 15.0,
+          )),
         ),
       );
       await tester.pump();
@@ -331,6 +335,27 @@ void main() {
       expect(find.bySemanticsLabel('Lokasi Anda'), findsOneWidget);
     });
 
+    testWidgets('lokasi yang belum dari GPS disebut masih perkiraan', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(
+        home(
+          waspadaData,
+          locate: () => Stream.fromIterable([
+            (latitude: -7.1732, longitude: 109.5816, accuracy: 88.0),
+            (latitude: -7.1735, longitude: 109.5812, accuracy: 35.0),
+          ]),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Ke lokasi saya'));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('Lokasi Anda'), findsOneWidget);
+      expect(find.textContaining('meleset sampai ±35 m'), findsOneWidget);
+    });
+
     testWidgets('izin lokasi ditolak dijelaskan tanpa memindah peta', (
       tester,
     ) async {
@@ -338,8 +363,8 @@ void main() {
       await tester.pumpWidget(
         home(
           waspadaData,
-          locate: () async =>
-              throw const LocationUnavailable(LocationProblem.denied),
+          locate: () =>
+              Stream.error(const LocationUnavailable(LocationProblem.denied)),
         ),
       );
       await tester.pump();
