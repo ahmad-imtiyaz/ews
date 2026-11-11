@@ -8,11 +8,11 @@ import 'package:latlong2/latlong.dart';
 import '../app_theme.dart';
 import '../data/sample_data.dart';
 import '../data/village_map.dart';
-import '../services/notification_service.dart';
+import '../services/notification_inbox.dart';
 import '../services/phone_location.dart';
 import '../widgets/map_markers.dart';
+import '../widgets/notification_bell.dart';
 import '../widgets/top_bar.dart';
-import 'notifications_screen.dart';
 
 const _pagePadding = 16.0;
 const _sectionGap = 16.0;
@@ -62,12 +62,17 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.initialData,
+    required this.inbox,
     this.load = loadMonitoring,
     this.showMapTiles = true,
     this.locate = _locateForMap,
   });
 
   final MonitoringData initialData;
+
+  /// Dipegang MainShell karena loncengnya ada di semua menu. Beranda yang
+  /// menyalakan notifikasi dan mengisinya, karena status ada di sini.
+  final NotificationInbox inbox;
   final Future<MonitoringData> Function() load;
   final bool showMapTiles;
   final Stream<PhoneFix> Function() locate;
@@ -77,12 +82,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _notificationService = NotificationService();
-  final _notifications = <NotificationEntry>[];
-
   late MonitoringData _data = widget.initialData;
   bool _isRetrying = false;
-  int _unread = 0;
 
   @override
   void initState() {
@@ -91,9 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _startNotifications() async {
-    await _notificationService.initialize();
-    await _notificationService.requestPermission();
-    await _notificationService.startPush(onMessage: _recordPush);
+    final service = widget.inbox.service;
+    await service.initialize();
+    await service.requestPermission();
+    await service.startPush(onMessage: _recordPush);
     if (!mounted) return;
     // Membuka aplikasi tidak perlu membunyikan HP, cukup tercatat di lonceng.
     _announce(_data, notifyPhone: false);
@@ -101,23 +103,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _recordPush(MonitoringStatus status, String title, String body) {
     if (!mounted) return;
-    setState(() {
-      _notifications.add(
-        NotificationEntry(
-          status: status,
-          title: title,
-          body: body,
-          time: _timeNow,
-        ),
-      );
-      _unread++;
-    });
-  }
-
-  @override
-  void dispose() {
-    _notificationService.dispose();
-    super.dispose();
+    widget.inbox.add(
+      NotificationEntry(
+        status: status,
+        title: title,
+        body: body,
+        time: _timeNow,
+      ),
+    );
   }
 
   String get _timeNow {
@@ -137,36 +130,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Data simulasi tidak boleh terbaca sebagai peringatan nyata.
     final title = 'Contoh: ${data.title}';
-    setState(() {
-      _notifications.add(
-        NotificationEntry(
-          status: data.status,
-          title: title,
-          body: data.summary,
-          time: _timeNow,
-        ),
-      );
-      _unread++;
-    });
+    widget.inbox.add(
+      NotificationEntry(
+        status: data.status,
+        title: title,
+        body: data.summary,
+        time: _timeNow,
+      ),
+    );
     if (notifyPhone) {
-      _notificationService.showStatusAlert(
+      widget.inbox.service.showStatusAlert(
         status: data.status,
         title: title,
         body: data.summary,
       );
     }
-  }
-
-  void _openNotifications() {
-    setState(() => _unread = 0);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => NotificationsScreen(
-          entries: _notifications,
-          service: _notificationService,
-        ),
-      ),
-    );
   }
 
   Future<void> _retryLoad() async {
@@ -297,26 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Tooltip(
-            message: 'Notifikasi',
-            child: Semantics(
-              label: _unread > 0
-                  ? 'Notifikasi, $_unread belum dibaca'
-                  : 'Notifikasi',
-              excludeSemantics: true,
-              child: OutlinedButton(
-                onPressed: _openNotifications,
-                style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                child: Badge.count(
-                  count: _unread,
-                  isLabelVisible: _unread > 0,
-                  backgroundColor: AppColors.ink,
-                  textColor: Colors.white,
-                  child: const Icon(Icons.notifications_none, size: 22),
-                ),
-              ),
-            ),
-          ),
+          NotificationBell(inbox: widget.inbox),
         ],
       ),
       body: isLargeText ? _buildLargeTextLayout() : _buildFixedLayout(),

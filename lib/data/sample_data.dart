@@ -107,6 +107,8 @@ const sampleReadings = [
   SensorReading('Sensor utama', 'Jenis sensor belum ditentukan'),
 ];
 
+// EWS-02 dipasang lebih dulu, jadi alat itu yang berubah status di contoh.
+// EWS-01 menyusul.
 const waspadaData = MonitoringData(
   name: 'Waspada',
   status: MonitoringStatus.waspada,
@@ -118,15 +120,15 @@ const waspadaData = MonitoringData(
       id: 'EWS-01',
       place: 'Jomparang',
       position: _ews01Position,
-      status: MonitoringStatus.waspada,
-      lastData: '10.42',
+      status: MonitoringStatus.noData,
+      lastData: '07.15',
     ),
     SensorPoint(
       id: 'EWS-02',
       place: 'Sikembang',
       position: _ews02Position,
-      status: MonitoringStatus.noData,
-      lastData: '07.15',
+      status: MonitoringStatus.waspada,
+      lastData: '10.42',
     ),
   ],
   reports: [
@@ -138,13 +140,13 @@ const waspadaData = MonitoringData(
     ),
   ],
   log: [
-    LogEntry('10.42', 'EWS-01 berubah menjadi Waspada', LogKind.status),
+    LogEntry('10.42', 'EWS-02 berubah menjadi Waspada', LogKind.status),
     LogEntry(
       '10.39',
       'Laporan retakan masuk, menunggu verifikasi',
       LogKind.report,
     ),
-    LogEntry('10.35', 'EWS-02 tidak mengirim data', LogKind.noData),
+    LogEntry('10.35', 'EWS-01 tidak mengirim data', LogKind.noData),
     LogEntry(
       '10.20',
       'Petugas memverifikasi laporan di Kaliwisnu',
@@ -181,27 +183,27 @@ const awasData = MonitoringData(
   name: 'Awas',
   status: MonitoringStatus.awas,
   title: 'Awas',
-  summary: 'EWS-01 berstatus Awas. Ikuti arahan petugas desa.',
+  summary: 'EWS-02 berstatus Awas. Ikuti arahan petugas desa.',
   updated: 'Diperbarui 10.42',
   sensors: [
     SensorPoint(
       id: 'EWS-01',
       place: 'Jomparang',
       position: _ews01Position,
-      status: MonitoringStatus.awas,
-      lastData: '10.42',
+      status: MonitoringStatus.waspada,
+      lastData: '10.41',
     ),
     SensorPoint(
       id: 'EWS-02',
       place: 'Sikembang',
       position: _ews02Position,
-      status: MonitoringStatus.waspada,
-      lastData: '10.41',
+      status: MonitoringStatus.awas,
+      lastData: '10.42',
     ),
   ],
   log: [
-    LogEntry('10.42', 'EWS-01 berubah menjadi Awas', LogKind.status),
-    LogEntry('10.41', 'EWS-02 berubah menjadi Waspada', LogKind.status),
+    LogEntry('10.42', 'EWS-02 berubah menjadi Awas', LogKind.status),
+    LogEntry('10.41', 'EWS-01 berubah menjadi Waspada', LogKind.status),
   ],
 );
 

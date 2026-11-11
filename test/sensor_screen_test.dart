@@ -9,7 +9,7 @@ import 'package:ews/data/ews_sample.dart';
 import 'package:ews/data/sample_data.dart';
 import 'package:ews/screens/main_shell.dart';
 import 'package:ews/screens/sensor_screen.dart';
-import 'package:ews/widgets/map_markers.dart';
+import 'package:ews/widgets/status_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -79,10 +79,10 @@ void main() {
     );
     expect(
       tester
-          .widget<StatusShape>(
+          .widget<StatusIcon>(
             find.descendant(
               of: lewatBatas.first,
-              matching: find.byType(StatusShape),
+              matching: find.byType(StatusIcon),
             ),
           )
           .status,
@@ -204,7 +204,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Beranda'));
     await tester.pumpAndSettle();
-    expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
+    expect(find.text('EWS-02 berubah menjadi Waspada'), findsOneWidget);
     await unmount(tester);
   });
 

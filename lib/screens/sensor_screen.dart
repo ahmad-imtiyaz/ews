@@ -8,7 +8,9 @@ import '../data/ews_data.dart';
 import '../data/ews_sample.dart';
 import '../data/sample_data.dart';
 import '../services/ews_api.dart';
-import '../widgets/map_markers.dart';
+import '../services/notification_inbox.dart';
+import '../widgets/notification_bell.dart';
+import '../widgets/status_icon.dart';
 import '../widgets/top_bar.dart';
 
 const _pagePadding = 16.0;
@@ -61,7 +63,7 @@ String _clock(DateTime time) => [
 ].map((part) => part.toString().padLeft(2, '0')).join('.');
 
 class SensorScreen extends StatefulWidget {
-  const SensorScreen({super.key, this.active = true, this.load});
+  const SensorScreen({super.key, this.active = true, this.load, this.inbox});
 
   /// Data diambil berkala hanya selama menu ini yang sedang dibuka.
   final bool active;
@@ -69,6 +71,9 @@ class SensorScreen extends StatefulWidget {
   /// Diisi di tes. Bila kosong, data diambil dari [ewsBaseUrl], atau dari
   /// data contoh selama alamat itu belum diisi.
   final Future<EwsData> Function()? load;
+
+  /// Lonceng di bar atas. Kosong di tes yang membuka halaman ini sendiri.
+  final NotificationInbox? inbox;
 
   @override
   State<SensorScreen> createState() => _SensorScreenState();
@@ -150,7 +155,12 @@ class _SensorScreenState extends State<SensorScreen> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      appBar: const TopBar(title: 'Pantau sensor'),
+      appBar: TopBar(
+        title: 'Pantau sensor',
+        actions: [
+          if (widget.inbox case final inbox?) NotificationBell(inbox: inbox),
+        ],
+      ),
       body: data == null
           ? Padding(
               padding: EdgeInsets.only(bottom: bottomInset),
@@ -385,7 +395,7 @@ class _SummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                StatusShape(status: status, size: 40),
+                StatusIcon(status: status, size: 40),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -541,7 +551,7 @@ class _AreaStatus extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        StatusShape(status: area.statusKind, size: 20),
+        StatusIcon(status: area.statusKind, size: 22),
         const SizedBox(width: 6),
         Text(
           area.status ?? 'Belum ada data',
@@ -657,7 +667,7 @@ class _LevelLine extends StatelessWidget {
     return Row(
       children: [
         if (shape != null) ...[
-          StatusShape(status: shape, size: 18),
+          StatusIcon(status: shape, size: 20),
           const SizedBox(width: 6),
         ],
         Flexible(
@@ -731,7 +741,7 @@ class _StatusLogRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StatusShape(status: entry.statusKind, size: 24),
+          StatusIcon(status: entry.statusKind, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

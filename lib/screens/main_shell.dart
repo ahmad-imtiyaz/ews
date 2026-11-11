@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../app_theme.dart';
 import '../data/ews_data.dart';
 import '../data/sample_data.dart';
+import '../services/notification_inbox.dart';
 import 'home_screen.dart';
 import 'report_screen.dart';
 import 'sensor_screen.dart';
@@ -32,6 +33,7 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
+  final _inbox = NotificationInbox();
 
   // Halaman Lapor baru dibuat saat pertama dibuka supaya izin lokasi tidak
   // diminta bersamaan dengan izin notifikasi di awal. Halaman Sensor juga,
@@ -43,6 +45,12 @@ class _MainShellState extends State<MainShell> {
       _index = index;
       _opened.add(index);
     });
+  }
+
+  @override
+  void dispose() {
+    _inbox.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,6 +73,7 @@ class _MainShellState extends State<MainShell> {
               active: _index == 0,
               child: HomeScreen(
                 initialData: widget.initialData,
+                inbox: _inbox,
                 load: widget.load,
                 showMapTiles: widget.showMapTiles,
               ),
@@ -72,7 +81,10 @@ class _MainShellState extends State<MainShell> {
             if (_opened.contains(1))
               _FadePage(
                 active: _index == 1,
-                child: ReportScreen(locateOnStart: widget.locateOnReport),
+                child: ReportScreen(
+                  locateOnStart: widget.locateOnReport,
+                  inbox: _inbox,
+                ),
               ),
             if (_opened.contains(2))
               _FadePage(
@@ -80,6 +92,7 @@ class _MainShellState extends State<MainShell> {
                 child: SensorScreen(
                   active: _index == 2,
                   load: widget.loadSensors,
+                  inbox: _inbox,
                 ),
               ),
           ],

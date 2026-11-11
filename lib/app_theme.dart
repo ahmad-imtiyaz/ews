@@ -23,6 +23,10 @@ abstract final class AppColors {
   static const waspada = Color(0xFFF2B60C);
   static const awas = Color(0xFFA91F1A);
 
+  /// Kuning [waspada] di atas putih kontrasnya cuma 1,8:1, jadi ikon garis di
+  /// kartu putih memakai kuning tua ini (4,4:1).
+  static const waspadaOnWhite = Color(0xFFA86B00);
+
   /// Titik "lokasi Anda" di peta, biru seperti di aplikasi peta lain.
   static const myLocation = Color(0xFF1A73E8);
 }

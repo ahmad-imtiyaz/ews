@@ -9,6 +9,7 @@ import 'package:ews/screens/main_shell.dart';
 import 'package:ews/screens/report_result_screen.dart';
 import 'package:ews/screens/report_screen.dart';
 import 'package:ews/screens/splash_screen.dart';
+import 'package:ews/services/notification_inbox.dart';
 import 'package:ews/services/phone_location.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -46,6 +47,7 @@ void main() {
   }) => app(
     HomeScreen(
       initialData: data,
+      inbox: NotificationInbox(),
       load: load ?? loadMonitoring,
       showMapTiles: false,
       locate:
@@ -70,7 +72,7 @@ void main() {
       expect(find.text('Pemantauan longsor desa'), findsNothing);
       expect(find.text('Lapor'), findsOneWidget);
       expect(find.byType(Dialog), findsNothing);
-      expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
+      expect(find.text('EWS-02 berubah menjadi Waspada'), findsOneWidget);
     });
 
     testWidgets('ketuk layar melewati animasi', (tester) async {
@@ -92,7 +94,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-01 berubah menjadi Awas'), findsOneWidget);
+      expect(find.text('EWS-02 berubah menjadi Awas'), findsOneWidget);
     });
 
     testWidgets('animasi dimatikan di HP membuat splash singkat', (
@@ -162,7 +164,7 @@ void main() {
       await tester.tap(find.text('Coba lagi'));
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
+      expect(find.text('EWS-02 berubah menjadi Waspada'), findsOneWidget);
       expect(find.text('Coba lagi'), findsNothing);
     });
 
@@ -171,16 +173,16 @@ void main() {
       await tester.pumpWidget(home(waspadaData));
       await tester.pump();
 
-      await tester.tap(find.text('EWS-02'));
+      await tester.tap(find.text('EWS-01'));
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-02, Sikembang'), findsOneWidget);
+      expect(find.text('EWS-01, Jomparang'), findsOneWidget);
       expect(find.text('Data terakhir 07.15'), findsOneWidget);
       expect(find.text('Data lama'), findsNWidgets(sampleReadings.length));
 
       await tester.tap(find.text('Tutup'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-02, Sikembang'), findsNothing);
+      expect(find.text('EWS-01, Jomparang'), findsNothing);
     });
 
     testWidgets('marker laporan menyatakan belum diverifikasi', (tester) async {
@@ -306,10 +308,10 @@ void main() {
       ];
 
       await pumpHomeWithMap(tester, waspadaData);
-      expect(areaColors(), [AppColors.waspada, AppColors.stale]);
+      expect(areaColors(), [AppColors.stale, AppColors.waspada]);
 
       await pumpHomeWithMap(tester, awasData);
-      expect(areaColors(), [AppColors.awas, AppColors.waspada]);
+      expect(areaColors(), [AppColors.waspada, AppColors.awas]);
 
       await pumpHomeWithMap(tester, normalData);
       expect(areaColors(), [AppColors.normal, AppColors.normal]);
@@ -461,7 +463,34 @@ void main() {
 
       await tester.tap(find.byTooltip('Beranda'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-01 berubah menjadi Waspada'), findsOneWidget);
+      expect(find.text('EWS-02 berubah menjadi Waspada'), findsOneWidget);
+    });
+
+    testWidgets('lonceng ada di semua menu dengan hitungan yang sama', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      await tester.pumpWidget(shell());
+      await tester.pumpAndSettle();
+      // Status contoh Waspada tercatat di lonceng saat aplikasi dibuka.
+      final unread = find.bySemanticsLabel('Notifikasi, 1 belum dibaca');
+      expect(unread, findsOneWidget);
+
+      await tester.tap(find.text('Lapor'));
+      await tester.pumpAndSettle();
+      expect(unread, findsOneWidget);
+
+      await tester.tap(find.text('Sensor'));
+      await tester.pumpAndSettle();
+      expect(unread, findsOneWidget);
+
+      await tester.tap(find.byTooltip('Notifikasi'));
+      await tester.pumpAndSettle();
+      expect(find.text('Notifikasi'), findsWidgets);
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      expect(unread, findsNothing);
+      expect(find.bySemanticsLabel('Notifikasi'), findsOneWidget);
     });
 
     testWidgets('cerita bahasa Jawa dibakukan di hasil analisis', (

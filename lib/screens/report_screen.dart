@@ -10,7 +10,9 @@ import '../analysis/sign_category.dart';
 import '../analysis/text_analyzer.dart';
 import '../app_theme.dart';
 import '../config.dart';
+import '../services/notification_inbox.dart';
 import '../services/phone_location.dart';
+import '../widgets/notification_bell.dart';
 import '../widgets/section_card.dart';
 import '../widgets/top_bar.dart';
 import 'report_result_screen.dart';
@@ -35,12 +37,16 @@ class ReportScreen extends StatefulWidget {
     this.locateOnStart = true,
     this.loadText = TextAnalyzer.load,
     this.loadCnn = CnnClassifier.load,
+    this.inbox,
   });
 
   /// Dimatikan di tes karena GPS tidak tersedia.
   final bool locateOnStart;
   final Future<TextAnalyzer> Function() loadText;
   final Future<CnnClassifier?> Function() loadCnn;
+
+  /// Lonceng di bar atas. Kosong di tes yang membuka halaman ini sendiri.
+  final NotificationInbox? inbox;
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -240,7 +246,12 @@ class _ReportScreenState extends State<ReportScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: const TopBar(title: 'EWS Lumeneng'),
+      appBar: TopBar(
+        title: 'EWS Lumeneng',
+        actions: [
+          if (widget.inbox case final inbox?) NotificationBell(inbox: inbox),
+        ],
+      ),
       body: ListView(
         // Isi boleh lewat di belakang menu bawah, tetapi bagian akhirnya
         // diberi ruang setinggi menu itu agar tombol terakhir bisa dicapai.

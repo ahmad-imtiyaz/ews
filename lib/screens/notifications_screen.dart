@@ -1,24 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
-import '../data/sample_data.dart';
+import '../services/notification_inbox.dart';
 import '../services/notification_service.dart';
 import '../widgets/map_markers.dart';
 import '../widgets/top_bar.dart';
-
-class NotificationEntry {
-  const NotificationEntry({
-    required this.status,
-    required this.title,
-    required this.body,
-    required this.time,
-  });
-
-  final MonitoringStatus status;
-  final String title;
-  final String body;
-  final String time;
-}
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({
