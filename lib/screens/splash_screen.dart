@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 
 import '../data/monitoring.dart';
 import '../services/ews_feed.dart';
+import '../widgets/brand_logo.dart';
 import 'main_shell.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -145,19 +146,12 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          const BrandLogo(height: 80, onDark: true),
+                          // Selalu memakan tempat supaya logo tidak naik saat
+                          // tulisan ini muncul.
+                          const SizedBox(height: 8),
                           Text(
-                            'EWS Lumeneng',
-                            textAlign: TextAlign.center,
-                            style: textTheme.headlineLarge?.copyWith(
-                              color: Colors.white,
-                              fontSize: 30,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _waitingForData
-                                ? 'Mengambil data terbaru'
-                                : 'Pemantauan longsor desa',
+                            _waitingForData ? 'Mengambil data terbaru' : '',
                             textAlign: TextAlign.center,
                             style: textTheme.bodyLarge?.copyWith(
                               color: Colors.white,

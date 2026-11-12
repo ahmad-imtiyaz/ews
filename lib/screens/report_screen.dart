@@ -247,7 +247,6 @@ class _ReportScreenState extends State<ReportScreen> {
 
     return Scaffold(
       appBar: TopBar(
-        title: 'EWS Lumeneng',
         actions: [
           if (widget.inbox case final inbox?) NotificationBell(inbox: inbox),
         ],

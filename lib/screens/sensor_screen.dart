@@ -43,7 +43,6 @@ class SensorScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: TopBar(
-        title: 'Pantau sensor',
         actions: [
           if (inbox case final inbox?) NotificationBell(inbox: inbox),
         ],

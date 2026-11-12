@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
+import 'brand_logo.dart';
 
 /// Bar atas yang tetap di tempat saat halaman digulir.
+///
+/// Tanpa [title], bar menampilkan logo. Dipakai di menu utama supaya logo
+/// selalu ada di menu mana pun.
 ///
 /// Isi [backLabel] untuk halaman yang dibuka dari halaman lain: tombol kembali
 /// muncul di kiri judul, dan teks ini yang dibacakan pembaca layar.
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   const TopBar({
     super.key,
-    required this.title,
+    this.title,
     this.backLabel,
     this.actions = const [],
     this.notificationPredicate = defaultScrollNotificationPredicate,
   });
 
-  final String title;
+  final String? title;
   final String? backLabel;
   final List<Widget> actions;
 
@@ -31,6 +35,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final backLabel = this.backLabel;
+    final title = this.title;
 
     // Tinggi bar tetap, jadi teks yang sangat diperbesar dibatasi seperti
     // pada menu bawah agar tidak terpotong.
@@ -59,7 +64,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
         title: FittedBox(
           fit: BoxFit.scaleDown,
           alignment: AlignmentDirectional.centerStart,
-          child: Text(title),
+          child: title == null ? const BrandLogo(height: 40) : Text(title),
         ),
         actions: actions,
         actionsPadding: const EdgeInsetsDirectional.only(end: 16),

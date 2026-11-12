@@ -259,7 +259,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: TopBar(
-        title: 'EWS Lumeneng',
         // Pada susunan tetap yang bergulir hanya kartu catatan, bukan isi
         // yang lewat di bawah bar.
         notificationPredicate: isLargeText

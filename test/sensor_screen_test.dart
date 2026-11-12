@@ -8,6 +8,7 @@ import 'package:ews/data/monitoring.dart';
 import 'package:ews/screens/main_shell.dart';
 import 'package:ews/screens/sensor_screen.dart';
 import 'package:ews/services/ews_feed.dart';
+import 'package:ews/widgets/brand_logo.dart';
 import 'package:ews/widgets/status_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,7 +63,7 @@ void main() {
     final feed = await feedOf(() async => sample);
     await tester.pumpWidget(app(SensorScreen(feed: feed)));
 
-    expect(find.text('Pantau sensor'), findsOneWidget);
+    expect(find.byType(BrandLogo), findsOneWidget);
     expect(find.textContaining('terakhir dicek'), findsOneWidget);
     expect(find.text('Penyebab: Kelembapan tanah 55%'), findsOneWidget);
     // Wilayah 1 di server adalah EWS-02.
@@ -200,7 +201,7 @@ void main() {
 
       await tester.tap(find.text('Sensor'));
       await tester.pumpAndSettle();
-      expect(find.text('Pantau sensor'), findsOneWidget);
+      expect(find.textContaining('terakhir dicek'), findsOneWidget);
       expect(find.text('55%'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Beranda'));

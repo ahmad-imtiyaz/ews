@@ -14,6 +14,7 @@ import 'package:ews/screens/splash_screen.dart';
 import 'package:ews/services/ews_feed.dart';
 import 'package:ews/services/notification_inbox.dart';
 import 'package:ews/services/phone_location.dart';
+import 'package:ews/widgets/brand_logo.dart';
 import 'package:ews/widgets/status_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -112,12 +113,12 @@ void main() {
       usePhoneSize(tester);
       await tester.pumpWidget(splash(() async => live));
 
-      expect(find.text('Pemantauan longsor desa'), findsOneWidget);
+      expect(find.byType(SplashScreen), findsOneWidget);
 
       await tester.pump(maxWait);
       await tester.pumpAndSettle();
 
-      expect(find.text('Pemantauan longsor desa'), findsNothing);
+      expect(find.byType(SplashScreen), findsNothing);
       expect(find.text('Lapor'), findsOneWidget);
       expect(find.byType(Dialog), findsNothing);
       expect(find.text('EWS-02 berubah menjadi Awas'), findsOneWidget);
@@ -668,7 +669,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Lapor tanda longsor').hitTestable(), findsNothing);
-      final title = tester.getRect(find.text('EWS Lumeneng'));
+      final title = tester.getRect(find.byType(BrandLogo));
       expect(title.top, greaterThanOrEqualTo(0));
       expect(title.bottom, lessThanOrEqualTo(64));
       // Bayangan tipis muncul karena isi halaman lewat di bawah bar.
