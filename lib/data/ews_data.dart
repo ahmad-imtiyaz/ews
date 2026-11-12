@@ -1,4 +1,4 @@
-import 'sample_data.dart';
+import 'monitoring.dart';
 
 // Bentuk data dari `GET /api/ews/data` di server Laravel EWS. Lihat
 // ews_flutter.md untuk arti tiap field.
@@ -84,6 +84,7 @@ class EwsArea {
     required this.time,
     required this.offline,
     required this.sensors,
+    this.unknownCondition = false,
   });
 
   final int id;
@@ -96,6 +97,10 @@ class EwsArea {
 
   /// Alat tidak mengirim selama 15 menit atau lebih.
   final bool offline;
+
+  /// Server menganggap kondisi lereng sekarang tidak diketahui, mis. alat
+  /// berhenti mengirim saat Waspada.
+  final bool unknownCondition;
   final List<EwsSensor> sensors;
 
   MonitoringStatus get statusKind => statusFromServer(status);
@@ -107,6 +112,7 @@ class EwsArea {
     trigger: json['pemicu'] as String?,
     time: json['waktu'] as String?,
     offline: json['offline'] as bool? ?? false,
+    unknownCondition: json['kondisi_tak_diketahui'] as bool? ?? false,
     // Urutan kunci dari server sama dengan urutan kartu di web.
     sensors: [
       for (final MapEntry(:key, :value)
@@ -172,14 +178,15 @@ class EwsData {
     required this.areas,
     required this.log,
     required this.thresholds,
-    this.sample = false,
+    this.offlineNotices = const [],
   });
-
-  /// Dibuat aplikasi, bukan dari alat. Layar wajib menandainya.
-  final bool sample;
 
   final EwsSummary summary;
   final List<EwsArea> areas;
+
+  /// Kalimat dari server untuk tiap alat yang berhenti mengirim, mis. "Alat
+  /// di Titik Area 2 berhenti mengirim data ... jangan anggap sudah aman."
+  final List<String> offlineNotices;
 
   /// 10 perubahan status terakhir, terbaru di atas.
   final List<EwsLogEntry> log;
@@ -192,6 +199,11 @@ class EwsData {
     areas: [
       for (final area in json['wilayah'] as List? ?? const [])
         EwsArea.fromJson(area as Map<String, dynamic>),
+    ],
+    offlineNotices: [
+      for (final item in json['offline'] as List? ?? const [])
+        if ((item as Map)['teks'] case final String text when text.isNotEmpty)
+          text,
     ],
     log: [
       for (final entry in json['log'] as List? ?? const [])
@@ -210,3 +222,38 @@ String formatNumber(double value) => value
     .toStringAsFixed(2)
     .replaceFirst(RegExp(r'\.?0+$'), '')
     .replaceAll('.', ',');
+
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mei',
+  'Jun',
+  'Jul',
+  'Agu',
+  'Sep',
+  'Okt',
+  'Nov',
+  'Des',
+];
+
+/// "06-11-2026 18:44" dari server jadi "18.44" bila hari ini, selain itu
+/// "6 Nov, 18.44".
+String shortTime(String raw, {DateTime? now}) {
+  final match = RegExp(
+    r'^(\d{1,2})-(\d{1,2})-(\d{4}) (\d{1,2}):(\d{2})',
+  ).firstMatch(raw);
+  if (match == null) return raw;
+  final day = int.parse(match[1]!);
+  final month = int.parse(match[2]!);
+  final year = int.parse(match[3]!);
+  if (month < 1 || month > 12) return raw;
+
+  final clock = '${match[4]!.padLeft(2, '0')}.${match[5]}';
+  final today = now ?? DateTime.now();
+  if (day == today.day && month == today.month && year == today.year) {
+    return clock;
+  }
+  return '$day ${_months[month - 1]}, $clock';
+}

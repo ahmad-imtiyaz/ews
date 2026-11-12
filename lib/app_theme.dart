@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'data/sample_data.dart';
+import 'data/monitoring.dart';
 
 const appFontFamily = 'PlusJakartaSans';
 

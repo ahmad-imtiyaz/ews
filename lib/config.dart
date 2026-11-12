@@ -7,14 +7,19 @@ const reportWhatsAppNumber = '081226498705';
 /// memberatkan sinyal desa saat dikirim lewat WhatsApp.
 const maxReportPhotos = 5;
 
-/// Alamat server Laravel EWS, tanpa garis miring di akhir. Selama kosong,
-/// menu Sensor memakai data contoh (lib/data/ews_sample.dart) yang ditandai
-/// jelas di layar. Produksi wajib https. Bisa diisi di sini, atau saat build
-/// tanpa mengubah kode:
-/// `flutter run --dart-define=EWS_BASE_URL=https://alamat-server`.
-/// Untuk server di laptop, jalankan `php artisan serve --host=0.0.0.0` lalu
-/// pakai IP laptop, mis. `http://192.168.1.17:8000`.
-const ewsBaseUrl = String.fromEnvironment('EWS_BASE_URL');
+/// Alamat server Laravel EWS, tanpa garis miring di akhir. Endpoint
+/// `/api/ews/data` publik, jadi aplikasi tidak memegang kunci apa pun. Untuk
+/// mencoba server lain tanpa mengubah kode:
+/// `flutter run --dart-define=EWS_BASE_URL=http://192.168.1.17:8000`.
+const ewsBaseUrl = String.fromEnvironment(
+  'EWS_BASE_URL',
+  defaultValue: 'https://desalumeneng.id',
+);
+
+/// Wilayah bersensor di server (`wilayah[].id`) dan alat di peta yang
+/// diwakilinya. Server menamainya "Titik Area 2", di aplikasi EWS-02. EWS-01
+/// belum mengirim data, jadi belum ada di sini dan tampil "Tidak ada data".
+const ewsDeviceOfArea = {1: 'EWS-02'};
 
 /// Data di server berubah paling cepat tiap ±8 detik, jadi mengambil lebih
 /// sering hanya menghabiskan kuota.

@@ -49,3 +49,148 @@ const ewsSampleJson = '''
   }
 }
 ''';
+
+/// Balasan asli desalumeneng.id, 13 November 2026 (diambil 02.17 WIB). Satu
+/// wilayah bersensor (Titik Area 2 = EWS-02) yang berhenti mengirim saat
+/// Waspada, dan EWS-01 di "titik" tanpa sensor.
+const ewsLiveJson = r'''
+{
+  "utama": {
+    "status": "Waspada",
+    "warna": "kuning",
+    "lokasi": "Titik Area 2",
+    "pemicu": "Kemiringan 9,9°",
+    "waktu": "12-11-2026 20:33",
+    "saran": "Tanah mulai jenuh air, hujan deras, atau lereng mulai bergerak. Hindari lereng dan siapkan jalur evakuasi."
+  },
+  "wilayah": [
+    {
+      "id": 1,
+      "nama": "Titik Area 2",
+      "poligon": [
+        [
+          -7.186448,
+          109.591973
+        ],
+        [
+          -7.186262,
+          109.591157
+        ],
+        [
+          -7.18783,
+          109.591357
+        ],
+        [
+          -7.187723,
+          109.591529
+        ]
+      ],
+      "lintang": -7.186625,
+      "bujur": 109.591824,
+      "status": "Waspada",
+      "warna": "kuning",
+      "pemicu": "Kemiringan 9,9°",
+      "waktu": "12-11-2026 20:33",
+      "offline": true,
+      "kondisi_tak_diketahui": true,
+      "sensor": {
+        "kelembapan_tanah": {
+          "nama": "Kelembapan tanah",
+          "ikon": "tanah",
+          "nilai": 0,
+          "teks": "0%",
+          "level": 0,
+          "kata": "Normal",
+          "warna": "hijau"
+        },
+        "intensitas_hujan": {
+          "nama": "Intensitas hujan",
+          "ikon": "hujan",
+          "nilai": 0,
+          "teks": "0%",
+          "level": 0,
+          "kata": "Normal",
+          "warna": "hijau"
+        },
+        "kemiringan": {
+          "nama": "Kemiringan",
+          "ikon": "miring",
+          "nilai": 9.9,
+          "teks": "9,9°",
+          "level": 1,
+          "kata": "Waspada",
+          "warna": "kuning"
+        },
+        "kelembapan_udara": {
+          "nama": "Kelembapan udara",
+          "ikon": "udara",
+          "nilai": 97.9,
+          "teks": "97,9%",
+          "level": null,
+          "kata": "Hanya informasi",
+          "warna": "kosong"
+        }
+      }
+    }
+  ],
+  "titik": [
+    {
+      "id": 1,
+      "nama": "Titik Area 1",
+      "jenis": "alarm",
+      "jenis_teks": "EWS alarm",
+      "lintang": -7.18539,
+      "bujur": 109.588069,
+      "poligon": [
+        [
+          -7.185772,
+          109.588701
+        ],
+        [
+          -7.18506,
+          109.58775
+        ],
+        [
+          -7.185356,
+          109.587502
+        ],
+        [
+          -7.186111,
+          109.588447
+        ]
+      ]
+    }
+  ],
+  "offline": [
+    {
+      "nama": "Titik Area 2",
+      "waktu": "12-11-2026 20:33",
+      "saat_waspada": true,
+      "teks": "Alat di Titik Area 2 berhenti mengirim data (terakhir 12-11-2026 20:33 WIB) saat kondisi Waspada. Kondisi lereng sekarang tidak diketahui, jadi jangan anggap sudah aman. Hindari lereng."
+    }
+  ],
+  "log": [
+    {
+      "waktu": "12-11-2026 19:38",
+      "wilayah": "Titik Area 2",
+      "status": "Awas",
+      "warna": "merah",
+      "keterangan": "Kabel EWS putus, Kemiringan 9,9°"
+    }
+  ],
+  "ambang": {
+    "kelembapan_tanah": {
+      "waspada": 50,
+      "validasi": 80
+    },
+    "intensitas_hujan": {
+      "waspada": 40,
+      "validasi": 70
+    },
+    "kemiringan": {
+      "waspada": 5,
+      "validasi": 15
+    }
+  }
+}
+''';

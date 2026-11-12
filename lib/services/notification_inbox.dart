@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../data/sample_data.dart';
+import '../data/monitoring.dart';
 import 'notification_service.dart';
 
 class NotificationEntry {

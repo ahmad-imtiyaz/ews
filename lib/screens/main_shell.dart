@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app_theme.dart';
-import '../data/ews_data.dart';
-import '../data/sample_data.dart';
+import '../services/ews_feed.dart';
 import '../services/notification_inbox.dart';
 import 'home_screen.dart';
 import 'report_screen.dart';
@@ -14,16 +13,13 @@ import 'sensor_screen.dart';
 class MainShell extends StatefulWidget {
   const MainShell({
     super.key,
-    required this.initialData,
-    this.load = loadMonitoring,
-    this.loadSensors,
+    required this.feed,
     this.showMapTiles = true,
     this.locateOnReport = true,
   });
 
-  final MonitoringData initialData;
-  final Future<MonitoringData> Function() load;
-  final Future<EwsData> Function()? loadSensors;
+  /// Dipegang dan ditutup di sini.
+  final EwsFeed feed;
   final bool showMapTiles;
   final bool locateOnReport;
 
@@ -34,10 +30,10 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
   final _inbox = NotificationInbox();
+  late final AppLifecycleListener _lifecycle;
 
   // Halaman Lapor baru dibuat saat pertama dibuka supaya izin lokasi tidak
-  // diminta bersamaan dengan izin notifikasi di awal. Halaman Sensor juga,
-  // supaya data sensor tidak diambil bila warga tidak membukanya.
+  // diminta bersamaan dengan izin notifikasi di awal.
   final _opened = <int>{0};
 
   void _select(int index) {
@@ -48,7 +44,23 @@ class _MainShellState extends State<MainShell> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onStateChange: (_) => _syncPolling());
+    _syncPolling();
+  }
+
+  // Beranda, Sensor, dan lonceng memakai data yang sama, jadi data diambil
+  // selama aplikasi terbuka di menu mana pun.
+  void _syncPolling() {
+    final state = WidgetsBinding.instance.lifecycleState;
+    widget.feed.polling = state == null || state == AppLifecycleState.resumed;
+  }
+
+  @override
   void dispose() {
+    _lifecycle.dispose();
+    widget.feed.dispose();
     _inbox.dispose();
     super.dispose();
   }
@@ -72,9 +84,8 @@ class _MainShellState extends State<MainShell> {
             _FadePage(
               active: _index == 0,
               child: HomeScreen(
-                initialData: widget.initialData,
+                feed: widget.feed,
                 inbox: _inbox,
-                load: widget.load,
                 showMapTiles: widget.showMapTiles,
               ),
             ),
@@ -89,11 +100,7 @@ class _MainShellState extends State<MainShell> {
             if (_opened.contains(2))
               _FadePage(
                 active: _index == 2,
-                child: SensorScreen(
-                  active: _index == 2,
-                  load: widget.loadSensors,
-                  inbox: _inbox,
-                ),
+                child: SensorScreen(feed: widget.feed, inbox: _inbox),
               ),
           ],
         ),

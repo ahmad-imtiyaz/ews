@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:ews/data/sample_data.dart';
+import 'package:ews/data/monitoring.dart';
 import 'package:ews/data/village_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
@@ -48,19 +48,19 @@ void main() {
     }
   });
 
-  test('titik contoh EWS dan laporan ada di dalam desa', () {
-    for (final p in mapFocusPoints) {
-      expect(_inside(p, map.boundary), isTrue, reason: '$p');
+  test('titik alat EWS ada di dalam desa', () {
+    for (final device in ewsDevices) {
+      expect(_inside(device.position, map.boundary), isTrue, reason: device.id);
     }
   });
 
   test('tiap alat punya area pantau yang memuat titiknya', () {
     // Area dari tim lapangan, bukan oval contoh lagi.
     expect(map.monitoringAreasAreSamples, isFalse);
-    for (final sensor in waspadaData.sensors) {
-      final area = map.monitoringAreas[sensor.id];
-      expect(area, isNotNull, reason: sensor.id);
-      expect(_inside(sensor.position, area!), isTrue, reason: sensor.id);
+    for (final device in ewsDevices) {
+      final area = map.monitoringAreas[device.id];
+      expect(area, isNotNull, reason: device.id);
+      expect(_inside(device.position, area!), isTrue, reason: device.id);
     }
   });
 }

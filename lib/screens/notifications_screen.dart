@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../services/notification_inbox.dart';
 import '../services/notification_service.dart';
-import '../widgets/map_markers.dart';
+import '../widgets/status_icon.dart';
 import '../widgets/top_bar.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -64,7 +64,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 16),
           ],
           Text(
-            'Isi di sini masih contoh dan tersimpan sampai aplikasi ditutup.',
+            'Riwayat ini tersimpan sampai aplikasi ditutup.',
             style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: 12),
@@ -156,7 +156,7 @@ class _NotificationRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StatusShape(status: entry.status, size: 28),
+          StatusIcon(status: entry.status, size: 28),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

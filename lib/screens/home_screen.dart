@@ -6,12 +6,15 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../app_theme.dart';
-import '../data/sample_data.dart';
+import '../data/ews_data.dart';
+import '../data/monitoring.dart';
 import '../data/village_map.dart';
+import '../services/ews_feed.dart';
 import '../services/notification_inbox.dart';
 import '../services/phone_location.dart';
 import '../widgets/map_markers.dart';
 import '../widgets/notification_bell.dart';
+import '../widgets/status_icon.dart';
 import '../widgets/top_bar.dart';
 
 const _pagePadding = 16.0;
@@ -61,19 +64,17 @@ Stream<PhoneFix> _locateForMap() =>
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
-    required this.initialData,
+    required this.feed,
     required this.inbox,
-    this.load = loadMonitoring,
     this.showMapTiles = true,
     this.locate = _locateForMap,
   });
 
-  final MonitoringData initialData;
+  final EwsFeed feed;
 
   /// Dipegang MainShell karena loncengnya ada di semua menu. Beranda yang
   /// menyalakan notifikasi dan mengisinya, karena status ada di sini.
   final NotificationInbox inbox;
-  final Future<MonitoringData> Function() load;
   final bool showMapTiles;
   final Stream<PhoneFix> Function() locate;
 
@@ -82,13 +83,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late MonitoringData _data = widget.initialData;
+  late MonitoringData _data = _fromFeed();
   bool _isRetrying = false;
+  bool _notificationsReady = false;
+
+  MonitoringData _fromFeed() =>
+      monitoringFrom(widget.feed.data, refreshFailed: widget.feed.failed);
 
   @override
   void initState() {
     super.initState();
+    widget.feed.addListener(_onFeedChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _startNotifications());
+  }
+
+  @override
+  void dispose() {
+    widget.feed.removeListener(_onFeedChanged);
+    super.dispose();
   }
 
   Future<void> _startNotifications() async {
@@ -97,8 +109,22 @@ class _HomeScreenState extends State<HomeScreen> {
     await service.requestPermission();
     await service.startPush(onMessage: _recordPush);
     if (!mounted) return;
+    _notificationsReady = true;
     // Membuka aplikasi tidak perlu membunyikan HP, cukup tercatat di lonceng.
-    _announce(_data, notifyPhone: false);
+    _announce(_data, isChange: false);
+  }
+
+  void _onFeedChanged() {
+    final previous = _data;
+    final next = _fromFeed();
+    setState(() => _data = next);
+    if (!_notificationsReady || next.loadFailed) return;
+    if (previous.loadFailed) {
+      // Data pertama setelah gagal memuat, sama seperti aplikasi baru dibuka.
+      _announce(next, isChange: false);
+    } else if (next.status != previous.status) {
+      _announce(next, isChange: true);
+    }
   }
 
   void _recordPush(MonitoringStatus status, String title, String body) {
@@ -120,28 +146,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return '$hour.$minute';
   }
 
-  // Status Normal tidak perlu mengganggu warga, dan kegagalan memuat sudah
-  // tampil di bagian catatan.
-  bool _needsAttention(MonitoringData data) =>
-      !data.loadFailed && data.status != MonitoringStatus.normal;
+  /// Normal saat aplikasi dibuka tidak perlu dicatat. Kembali Normal dicatat
+  /// di lonceng tanpa membunyikan HP.
+  void _announce(MonitoringData data, {required bool isChange}) {
+    if (data.loadFailed) return;
+    final isNormal = data.status == MonitoringStatus.normal;
+    if (isNormal && !isChange) return;
 
-  void _announce(MonitoringData data, {required bool notifyPhone}) {
-    if (!_needsAttention(data)) return;
-
-    // Data simulasi tidak boleh terbaca sebagai peringatan nyata.
-    final title = 'Contoh: ${data.title}';
     widget.inbox.add(
       NotificationEntry(
         status: data.status,
-        title: title,
+        title: data.title,
         body: data.summary,
         time: _timeNow,
       ),
     );
-    if (notifyPhone) {
+    if (isChange && !isNormal) {
       widget.inbox.service.showStatusAlert(
         status: data.status,
-        title: title,
+        title: data.title,
         body: data.summary,
       );
     }
@@ -149,36 +172,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _retryLoad() async {
     setState(() => _isRetrying = true);
-    MonitoringData? loaded;
-    try {
-      loaded = await widget.load();
-    } catch (_) {
-      loaded = null;
-    }
+    await widget.feed.refresh();
     if (!mounted) return;
-    setState(() {
-      _isRetrying = false;
-      _data = loaded ?? _data;
-    });
-    if (loaded == null) {
+    setState(() => _isRetrying = false);
+    if (widget.feed.data == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Masih belum bisa memuat data.')),
       );
-    } else {
-      _announce(loaded, notifyPhone: true);
     }
-  }
-
-  Future<void> _showScenarioPicker() async {
-    final picked = await showModalBottomSheet<MonitoringData>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => _ScenarioSheet(selected: _data),
-    );
-    if (picked == null || identical(picked, _data)) return;
-    setState(() => _data = picked);
-    _announce(picked, notifyPhone: true);
   }
 
   void _showSheet(Widget sheet) {
@@ -205,7 +206,6 @@ class _HomeScreenState extends State<HomeScreen> {
       showTiles: widget.showMapTiles,
       locate: widget.locate,
       onSensorTap: (sensor) => _showSheet(_SensorSheet(sensor: sensor)),
-      onReportTap: (report) => _showSheet(_ReportSheet(report: report)),
     );
   }
 
@@ -265,18 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
         notificationPredicate: isLargeText
             ? defaultScrollNotificationPredicate
             : (_) => false,
-        actions: [
-          Semantics(
-            label: 'Data contoh. Ganti contoh keadaan.',
-            excludeSemantics: true,
-            child: OutlinedButton(
-              onPressed: _showScenarioPicker,
-              child: const Text('Data contoh'),
-            ),
-          ),
-          const SizedBox(width: 8),
-          NotificationBell(inbox: widget.inbox),
-        ],
+        actions: [NotificationBell(inbox: widget.inbox)],
       ),
       body: isLargeText ? _buildLargeTextLayout() : _buildFixedLayout(),
     );
@@ -289,14 +278,12 @@ class _MapPanel extends StatefulWidget {
     required this.showTiles,
     required this.locate,
     required this.onSensorTap,
-    required this.onReportTap,
   });
 
   final MonitoringData data;
   final bool showTiles;
   final Stream<PhoneFix> Function() locate;
   final ValueChanged<SensorPoint> onSensorTap;
-  final ValueChanged<ReportPoint> onReportTap;
 
   @override
   State<_MapPanel> createState() => _MapPanelState();
@@ -389,7 +376,6 @@ class _MapPanelState extends State<_MapPanel> {
         sensor.position,
         ...?map.monitoringAreas[sensor.id],
       ],
-      for (final report in widget.data.reports) report.position,
     ];
     if (points.isEmpty) return;
     _fittedToAreas = true;
@@ -426,7 +412,7 @@ class _MapPanelState extends State<_MapPanel> {
               : 'Area EWS',
           entries: [
             for (final status in MonitoringStatus.values)
-              (status.background, status.label),
+              (_areaColor(status), status.label),
           ],
         ),
       if (_showZones && _zonePolygons.isNotEmpty)
@@ -439,6 +425,10 @@ class _MapPanelState extends State<_MapPanel> {
     ];
   }
 
+  /// Tanpa data, area dibiarkan putih: tidak ada kondisi yang bisa diwarnai.
+  static Color _areaColor(MonitoringStatus status) =>
+      status == MonitoringStatus.noData ? Colors.white : status.background;
+
   /// Area pantau tiap alat, warnanya ikut status alat itu.
   List<Polygon> _monitoringPolygons(VillageMap map) => [
     for (final sensor in widget.data.sensors)
@@ -448,7 +438,9 @@ class _MapPanelState extends State<_MapPanel> {
         Polygon(points: area, borderColor: Colors.white, borderStrokeWidth: 5),
         Polygon(
           points: area,
-          color: sensor.status.background.withValues(alpha: 0.35),
+          color: _areaColor(sensor.status).withValues(
+            alpha: sensor.status == MonitoringStatus.noData ? 0.55 : 0.35,
+          ),
           borderColor: sensor.status.background,
           borderStrokeWidth: 2.5,
           pattern: sensor.isStale
@@ -530,7 +522,9 @@ class _MapPanelState extends State<_MapPanel> {
               mapController: _controller,
               options: MapOptions(
                 initialCameraFit: CameraFit.bounds(
-                  bounds: LatLngBounds.fromPoints(mapFocusPoints),
+                  bounds: LatLngBounds.fromPoints([
+                    for (final device in ewsDevices) device.position,
+                  ]),
                   padding: _fitPadding,
                   maxZoom: 17,
                 ),
@@ -608,16 +602,6 @@ class _MapPanelState extends State<_MapPanel> {
                   ),
                 MarkerLayer(
                   markers: [
-                    for (final report in widget.data.reports)
-                      Marker(
-                        point: report.position,
-                        width: 96,
-                        height: 56,
-                        child: ReportMarkerButton(
-                          report: report,
-                          onTap: () => widget.onReportTap(report),
-                        ),
-                      ),
                     if (_showEwsLocations)
                       for (final sensor in widget.data.sensors)
                         Marker(
@@ -973,6 +957,7 @@ class _MapLegend extends StatelessWidget {
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
                                     color: color,
+                                    border: Border.all(color: AppColors.border),
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
@@ -1130,8 +1115,8 @@ class _LogSectionState extends State<_LogSection> {
         ? Padding(
             padding: const EdgeInsets.all(14),
             child: Text(
-              'Belum ada catatan hari ini. Perubahan status dan '
-              'laporan warga akan muncul di sini.',
+              'Belum ada catatan. Perubahan status alat EWS akan muncul '
+              'di sini.',
               style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
             ),
           )
@@ -1198,13 +1183,6 @@ class _LogRow extends StatelessWidget {
 
   final LogEntry entry;
 
-  IconData get _icon => switch (entry.kind) {
-    LogKind.status => Icons.warning_amber_rounded,
-    LogKind.report => Icons.description_outlined,
-    LogKind.noData => Icons.sensors_off_outlined,
-    LogKind.verified => Icons.verified_outlined,
-  };
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -1214,34 +1192,30 @@ class _LogRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: AppColors.iconTile,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(_icon, size: 18, color: AppColors.ink),
-          ),
+          StatusIcon(status: entry.status, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  entry.text,
+                  entry.title,
                   style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     height: 1.3,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  entry.time,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.inkSoft,
+                if (entry.note.isNotEmpty)
+                  Text(entry.note, style: textTheme.bodyLarge),
+                if (entry.time.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    entry.time,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.inkSoft,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -1312,168 +1286,111 @@ class _SensorSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final status = sensor.status;
+    final area = sensor.area;
+    final time = area?.time == null ? '-' : shortTime(area!.time!);
+    final trigger = sensor.status == MonitoringStatus.normal
+        ? null
+        : area?.trigger;
 
     return _SheetFrame(
       children: [
         Text('${sensor.id}, ${sensor.place}', style: textTheme.titleLarge),
         const SizedBox(height: 12),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: status.background,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                StatusShape(status: status, size: 24),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    status.label,
-                    style: textTheme.titleMedium?.copyWith(
-                      color: status.foreground,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text('Data terakhir ${sensor.lastData}', style: textTheme.titleMedium),
-        const SizedBox(height: 2),
-        Text(
-          'Nilai contoh, bukan hasil pengukuran lapangan.',
-          style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
-        ),
-        const SizedBox(height: 12),
-        _WhiteCard(
-          children: [
-            for (final (index, reading) in sensor.readings.indexed) ...[
-              if (index > 0) const Divider(indent: 14, endIndent: 14),
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(reading.name, style: textTheme.bodyLarge),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            reading.value,
-                            textAlign: TextAlign.end,
-                            style: textTheme.labelLarge?.copyWith(
-                              color: sensor.isStale ? AppColors.stale : null,
-                            ),
-                          ),
-                          if (sensor.isStale)
-                            Text(
-                              'Data lama',
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: AppColors.stale,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _ReportSheet extends StatelessWidget {
-  const _ReportSheet({required this.report});
-
-  final ReportPoint report;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return _SheetFrame(
-      children: [
-        Text(report.title, style: textTheme.titleLarge),
-        const SizedBox(height: 4),
-        Text(
-          '${report.place}, ${report.time}',
-          style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
-        ),
-        const SizedBox(height: 12),
         _WhiteCard(
           children: [
             Padding(
               padding: const EdgeInsets.all(14),
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Menunggu verifikasi', style: textTheme.titleMedium),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Belum diperiksa petugas, jadi belum mengubah status titik.',
-                    style: textTheme.bodyLarge,
+                  StatusIcon(status: sensor.status, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          area == null
+                              ? 'Belum terhubung'
+                              : sensor.status.label,
+                          style: textTheme.titleMedium,
+                        ),
+                        if (trigger != null)
+                          Text(trigger, style: textTheme.bodyLarge),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        if (area == null)
+          Text(
+            'Alat ini belum mengirim data ke server, jadi belum ada bacaan.',
+            style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
+          )
+        else ...[
+          Text(
+            area.offline ? 'Tidak mengirim data sejak $time' : 'Bacaan $time',
+            style: textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          _WhiteCard(
+            children: [
+              for (final (index, reading) in area.sensors.indexed) ...[
+                if (index > 0) const Divider(indent: 14, endIndent: 14),
+                _ReadingRow(reading: reading, stale: area.offline),
+              ],
+            ],
+          ),
+        ],
       ],
     );
   }
 }
 
-class _ScenarioSheet extends StatelessWidget {
-  const _ScenarioSheet({required this.selected});
+class _ReadingRow extends StatelessWidget {
+  const _ReadingRow({required this.reading, required this.stale});
 
-  final MonitoringData selected;
+  final EwsSensor reading;
+  final bool stale;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return _SheetFrame(
-      children: [
-        Text('Ganti contoh keadaan', style: textTheme.titleLarge),
-        const SizedBox(height: 4),
-        Text(
-          'Hanya untuk mencoba tampilan. Ini bukan data lapangan.',
-          style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
-        ),
-        const SizedBox(height: 12),
-        _WhiteCard(
-          children: [
-            for (final (index, scenario) in sampleScenarios.indexed) ...[
-              if (index > 0) const Divider(indent: 14, endIndent: 14),
-              ListTile(
-                minTileHeight: 48,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                title: Text(scenario.name, style: textTheme.bodyLarge),
-                trailing: identical(scenario, selected)
-                    ? const Icon(
-                        Icons.check,
-                        size: 20,
-                        semanticLabel: 'Sedang dipilih',
-                      )
-                    : null,
-                onTap: () => Navigator.of(context).pop(scenario),
-              ),
-            ],
-          ],
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: Text(reading.name, style: textTheme.bodyLarge)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  reading.text,
+                  textAlign: TextAlign.end,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: stale ? AppColors.stale : null,
+                  ),
+                ),
+                Text(
+                  stale ? 'Data lama' : reading.word,
+                  textAlign: TextAlign.end,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.inkSoft,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

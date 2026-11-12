@@ -1,13 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
-import '../config.dart';
 import '../data/ews_data.dart';
-import '../data/ews_sample.dart';
-import '../data/sample_data.dart';
-import '../services/ews_api.dart';
+import '../data/monitoring.dart';
+import '../services/ews_feed.dart';
 import '../services/notification_inbox.dart';
 import '../widgets/notification_bell.dart';
 import '../widgets/status_icon.dart';
@@ -24,233 +20,126 @@ const _sensorIcons = {
   'udara': Icons.air,
 };
 
-const _months = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'Mei',
-  'Jun',
-  'Jul',
-  'Agu',
-  'Sep',
-  'Okt',
-  'Nov',
-  'Des',
-];
-
-/// "06-11-2026 18:44" dari server jadi "18.44" bila hari ini, selain itu
-/// "6 Nov, 18.44".
-String _shortTime(String raw) {
-  final match = RegExp(r'^(\d{1,2})-(\d{1,2})-(\d{4}) (\d{1,2}):(\d{2})')
-      .firstMatch(raw);
-  if (match == null) return raw;
-  final day = int.parse(match[1]!);
-  final month = int.parse(match[2]!);
-  final year = int.parse(match[3]!);
-  if (month < 1 || month > 12) return raw;
-
-  final clock = '${match[4]!.padLeft(2, '0')}.${match[5]}';
-  final now = DateTime.now();
-  if (day == now.day && month == now.month && year == now.year) return clock;
-  return '$day ${_months[month - 1]}, $clock';
-}
-
 String _clock(DateTime time) => [
   time.hour,
   time.minute,
   time.second,
 ].map((part) => part.toString().padLeft(2, '0')).join('.');
 
-class SensorScreen extends StatefulWidget {
-  const SensorScreen({super.key, this.active = true, this.load, this.inbox});
+/// Menampilkan wilayah bersensor dari server. Baru EWS-02 yang terhubung
+/// (lihat `ewsDeviceOfArea` di config.dart).
+class SensorScreen extends StatelessWidget {
+  const SensorScreen({super.key, required this.feed, this.inbox});
 
-  /// Data diambil berkala hanya selama menu ini yang sedang dibuka.
-  final bool active;
-
-  /// Diisi di tes. Bila kosong, data diambil dari [ewsBaseUrl], atau dari
-  /// data contoh selama alamat itu belum diisi.
-  final Future<EwsData> Function()? load;
+  /// Diambil berkala oleh MainShell selama aplikasi terbuka.
+  final EwsFeed feed;
 
   /// Lonceng di bar atas. Kosong di tes yang membuka halaman ini sendiri.
   final NotificationInbox? inbox;
 
   @override
-  State<SensorScreen> createState() => _SensorScreenState();
-}
-
-class _SensorScreenState extends State<SensorScreen> {
-  EwsApi? _api;
-  late final Future<EwsData> Function() _load =
-      widget.load ??
-      (ewsBaseUrl.isEmpty
-          ? EwsSampleFeed().next
-          : (_api = EwsApi(ewsBaseUrl)).fetch);
-  late final AppLifecycleListener _lifecycle;
-  Timer? _timer;
-  Future<void>? _pending;
-
-  EwsData? _data;
-  DateTime? _checkedAt;
-  bool _failed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _lifecycle = AppLifecycleListener(onStateChange: (_) => _syncPolling());
-    _syncPolling();
-  }
-
-  @override
-  void didUpdateWidget(SensorScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.active != oldWidget.active) _syncPolling();
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _lifecycle.dispose();
-    _api?.close();
-    super.dispose();
-  }
-
-  // Berhenti saat pindah menu atau aplikasi ditinggal, supaya kuota warga
-  // tidak terpakai di latar. Begitu kembali, data langsung diambil ulang.
-  void _syncPolling() {
-    final state = WidgetsBinding.instance.lifecycleState;
-    final visible =
-        widget.active && (state == null || state == AppLifecycleState.resumed);
-    if (visible == (_timer != null)) return;
-
-    _timer?.cancel();
-    _timer = null;
-    if (!visible) return;
-    _refresh();
-    _timer = Timer.periodic(ewsRefreshInterval, (_) => _refresh());
-  }
-
-  /// Sinyal desa bisa lambat, jadi permintaan baru menunggu yang masih jalan.
-  Future<void> _refresh() =>
-      _pending ??= _fetch().whenComplete(() => _pending = null);
-
-  Future<void> _fetch() async {
-    try {
-      final data = await _load();
-      if (!mounted) return;
-      setState(() {
-        _data = data;
-        _failed = false;
-        _checkedAt = DateTime.now();
-      });
-    } catch (_) {
-      // Angka terakhir tetap tampil, ditambah pemberitahuan di atasnya.
-      if (mounted) setState(() => _failed = true);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final data = _data;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
       appBar: TopBar(
         title: 'Pantau sensor',
         actions: [
-          if (widget.inbox case final inbox?) NotificationBell(inbox: inbox),
+          if (inbox case final inbox?) NotificationBell(inbox: inbox),
         ],
       ),
-      body: data == null
-          ? Padding(
+      body: ListenableBuilder(
+        listenable: feed,
+        builder: (context, _) {
+          final data = feed.data;
+          if (data == null) {
+            return Padding(
               padding: EdgeInsets.only(bottom: bottomInset),
-              child: _failed
-                  ? _FirstLoadFailed(
-                      busy: _pending != null,
-                      onRetry: () => setState(() {
-                        _refresh();
-                      }),
-                    )
+              child: feed.failed
+                  ? _FirstLoadFailed(busy: feed.busy, onRetry: feed.refresh)
                   : const _FirstLoad(),
-            )
-          : RefreshIndicator(
-              onRefresh: _refresh,
-              color: AppColors.ink,
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  _pagePadding,
-                  8,
-                  _pagePadding,
-                  bottomInset + _pagePadding,
-                ),
-                children: [
-                  if (_failed) ...[
-                    _Notice(
-                      icon: Icons.cloud_off_outlined,
-                      title: 'Belum tersambung ke server',
-                      body:
-                          'Angka di bawah dari pengecekan '
-                          '${_clock(_checkedAt!)}. Aplikasi mencoba lagi '
-                          'tiap 10 detik.',
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                  // Contoh "Aman" yang terbaca sebagai bacaan asli bisa
-                  // membuat warga lengah, jadi tandanya di paling atas.
-                  if (data.sample) ...[
-                    const _Notice(
-                      icon: Icons.info_outline,
-                      title: 'Data contoh',
-                      body:
-                          'Alat EWS belum terpasang. Angka di halaman ini '
-                          'dibuat aplikasi untuk mencoba tampilan, bukan '
-                          'bacaan sensor.',
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                  _SummaryCard(summary: data.summary, sample: data.sample),
-                  if (!_failed) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Diperbarui tiap 10 detik, terakhir dicek '
-                      '${_clock(_checkedAt!)}',
-                      style: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(color: AppColors.inkSoft),
-                    ),
-                  ],
-                  if (data.areas.isEmpty) ...[
-                    const SizedBox(height: _sectionGap),
-                    const _Notice(
-                      icon: Icons.sensors_off_outlined,
-                      title: 'Belum ada alat terdaftar',
-                      body:
-                          'Bacaan sensor muncul di sini setelah alat EWS '
-                          'dipasang dan mulai mengirim data.',
-                    ),
-                  ],
-                  for (final area in data.areas) ...[
-                    const SizedBox(height: _sectionGap),
-                    _AreaSection(
-                      area: area,
-                      thresholds: data.thresholds,
-                      showStatus: data.areas.length > 1,
-                      sample: data.sample,
-                    ),
-                  ],
-                  const SizedBox(height: _sectionGap),
-                  _StatusLog(log: data.log),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Ini alat bantu pemantauan warga, bukan peringatan resmi '
-                    'BPBD. Saat ragu, utamakan keselamatan dan ikuti arahan '
-                    'perangkat desa.',
-                    style: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: AppColors.inkSoft),
-                  ),
-                ],
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: feed.refresh,
+            color: AppColors.ink,
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                _pagePadding,
+                8,
+                _pagePadding,
+                bottomInset + _pagePadding,
               ),
+              children: _content(context, data),
             ),
+          );
+        },
+      ),
     );
+  }
+
+  List<Widget> _content(BuildContext context, EwsData data) {
+    final note = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft);
+
+    return [
+      if (feed.failed) ...[
+        _Notice(
+          icon: Icons.cloud_off_outlined,
+          title: 'Belum tersambung ke server',
+          body:
+              'Angka di bawah dari pengecekan ${_clock(feed.checkedAt!)}. '
+              'Aplikasi mencoba lagi tiap 10 detik.',
+        ),
+        const SizedBox(height: 10),
+      ],
+      // Alat yang diam saat Waspada tidak boleh terbaca sudah aman, jadi
+      // kalimat dari server ditaruh paling atas.
+      for (final text in data.offlineNotices) ...[
+        _Notice(
+          icon: Icons.sensors_off_outlined,
+          title: 'Alat tidak mengirim data',
+          body: text,
+        ),
+        const SizedBox(height: 10),
+      ],
+      _SummaryCard(data: data),
+      if (!feed.failed) ...[
+        const SizedBox(height: 8),
+        Text(
+          'Diperbarui tiap 10 detik, terakhir dicek '
+          '${_clock(feed.checkedAt!)}',
+          style: note,
+        ),
+      ],
+      if (data.areas.isEmpty) ...[
+        const SizedBox(height: _sectionGap),
+        const _Notice(
+          icon: Icons.sensors_off_outlined,
+          title: 'Belum ada alat terdaftar',
+          body:
+              'Bacaan sensor muncul di sini setelah alat EWS dipasang dan '
+              'mulai mengirim data.',
+        ),
+      ],
+      for (final area in data.areas) ...[
+        const SizedBox(height: _sectionGap),
+        _AreaSection(
+          area: area,
+          thresholds: data.thresholds,
+          showStatus: data.areas.length > 1,
+        ),
+      ],
+      const SizedBox(height: _sectionGap),
+      _StatusLog(data: data),
+      const SizedBox(height: 16),
+      Text(
+        'Ini alat bantu pemantauan warga, bukan peringatan resmi BPBD. Saat '
+        'ragu, utamakan keselamatan dan ikuti arahan perangkat desa.',
+        style: note,
+      ),
+    ];
   }
 }
 
@@ -358,23 +247,20 @@ class _Notice extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.summary, required this.sample});
+  const _SummaryCard({required this.data});
 
-  final EwsSummary summary;
-  final bool sample;
+  final EwsData data;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final summary = data.summary;
     final status = summary.statusKind;
     final location = summary.location;
     final time = summary.time;
     final place = [
-      ?location,
-      if (sample)
-        'data contoh'
-      else if (time != null)
-        'bacaan ${_shortTime(time)}',
+      if (location != null) areaLabel(data, location),
+      if (time != null) 'bacaan ${shortTime(time)}',
     ].join(', ');
     // Saat Aman, pemicunya "Semua sensor normal", sama dengan kalimat pertama
     // saran.
@@ -458,7 +344,6 @@ class _AreaSection extends StatelessWidget {
     required this.area,
     required this.thresholds,
     required this.showStatus,
-    required this.sample,
   });
 
   final EwsArea area;
@@ -466,21 +351,26 @@ class _AreaSection extends StatelessWidget {
 
   /// Dengan satu wilayah, statusnya sudah tampil di kartu besar di atas.
   final bool showStatus;
-  final bool sample;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final time = area.time == null ? '-' : _shortTime(area.time!);
+    final time = area.time == null ? '-' : shortTime(area.time!);
     final columns = MediaQuery.textScalerOf(context).scale(1) > 1.3 ? 1 : 2;
     final sensors = area.sensors;
+    final device = deviceOfArea(area);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
-            Expanded(child: Text(area.name, style: textTheme.titleLarge)),
+            Expanded(
+              child: Text(
+                device == null ? area.name : '${device.id} ${device.place}',
+                style: textTheme.titleLarge,
+              ),
+            ),
             if (showStatus) ...[
               const SizedBox(width: 8),
               _AreaStatus(area: area),
@@ -509,7 +399,7 @@ class _AreaSection extends StatelessWidget {
           )
         else
           Text(
-            sample ? 'Data contoh, bukan bacaan alat' : 'Bacaan $time',
+            'Bacaan $time',
             style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
           ),
         const SizedBox(height: 10),
@@ -684,13 +574,14 @@ class _LevelLine extends StatelessWidget {
 }
 
 class _StatusLog extends StatelessWidget {
-  const _StatusLog({required this.log});
+  const _StatusLog({required this.data});
 
-  final List<EwsLogEntry> log;
+  final EwsData data;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final log = data.log;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -717,7 +608,10 @@ class _StatusLog extends StatelessWidget {
                   children: [
                     for (final (index, entry) in log.indexed) ...[
                       if (index > 0) const Divider(indent: 48, endIndent: 14),
-                      _StatusLogRow(entry: entry),
+                      _StatusLogRow(
+                        entry: entry,
+                        place: areaLabel(data, entry.area),
+                      ),
                     ],
                   ],
                 ),
@@ -728,9 +622,10 @@ class _StatusLog extends StatelessWidget {
 }
 
 class _StatusLogRow extends StatelessWidget {
-  const _StatusLogRow({required this.entry});
+  const _StatusLogRow({required this.entry, required this.place});
 
   final EwsLogEntry entry;
+  final String place;
 
   @override
   Widget build(BuildContext context) {
@@ -748,7 +643,7 @@ class _StatusLogRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${entry.status ?? 'Tidak ada data'} · ${entry.area}',
+                  '${entry.status ?? 'Tidak ada data'} · $place',
                   style: textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -757,7 +652,7 @@ class _StatusLogRow extends StatelessWidget {
                   Text(entry.note, style: textTheme.bodyLarge),
                 const SizedBox(height: 2),
                 Text(
-                  _shortTime(entry.time),
+                  shortTime(entry.time),
                   style: textTheme.bodyMedium?.copyWith(
                     color: AppColors.inkSoft,
                   ),

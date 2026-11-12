@@ -4,17 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 
-import '../data/sample_data.dart';
+import '../data/monitoring.dart';
+import '../services/ews_feed.dart';
 import 'main_shell.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({
-    super.key,
-    this.load = loadMonitoring,
-    this.showMapTiles = true,
-  });
+  const SplashScreen({super.key, this.feed, this.showMapTiles = true});
 
-  final Future<MonitoringData> Function() load;
+  /// Diisi di tes. Bila kosong, data diambil dari server EWS. Setelah splash,
+  /// MainShell yang memegang dan menutupnya.
+  final EwsFeed? feed;
   final bool showMapTiles;
 
   @override
@@ -31,6 +30,7 @@ class _SplashScreenState extends State<SplashScreen>
   static const _startDelay = Duration(milliseconds: 600);
 
   late final AnimationController _controller = AnimationController(vsync: this);
+  late final EwsFeed _feed = widget.feed ?? EwsFeed();
   final _animationDone = Completer<void>();
 
   Timer? _waitTimer;
@@ -81,13 +81,16 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _openHome() async {
-    final data = _loadOrFail();
+    // Kegagalan memuat tidak boleh menahan warga di splash. Bila lewat batas
+    // waktu, pengambilan tetap jalan dan Beranda ikut berubah begitu selesai.
+    final data = _feed.refresh().timeout(_loadTimeout).catchError((_) {});
 
     // Saat Awas, warga langsung melihat kondisi tanpa menunggu animasi.
-    final isAwas = data.then((d) => d.status == MonitoringStatus.awas);
     unawaited(
-      isAwas.then((awas) {
-        if (awas) _finishAnimation();
+      data.then((_) {
+        if (monitoringFrom(_feed.data).status == MonitoringStatus.awas) {
+          _finishAnimation();
+        }
       }),
     );
 
@@ -99,26 +102,14 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     if (!dataReady) setState(() => _waitingForData = true);
 
-    final loaded = await data;
+    await data;
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => MainShell(
-          initialData: loaded,
-          load: widget.load,
-          showMapTiles: widget.showMapTiles,
-        ),
+        builder: (_) =>
+            MainShell(feed: _feed, showMapTiles: widget.showMapTiles),
       ),
     );
-  }
-
-  // Kegagalan memuat tidak boleh menahan warga di splash.
-  Future<MonitoringData> _loadOrFail() async {
-    try {
-      return await widget.load().timeout(_loadTimeout);
-    } catch (_) {
-      return failedData;
-    }
   }
 
   @override

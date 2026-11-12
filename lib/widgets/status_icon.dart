@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
-import '../data/sample_data.dart';
+import '../data/monitoring.dart';
 
 /// Ikon garis per status untuk kartu putih. Tiap status punya gambar sendiri
 /// (centang, segitiga, segi delapan, sensor dicoret), jadi tetap terbaca
