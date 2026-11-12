@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -22,21 +23,36 @@ class NotificationService {
 
   final _subscriptions = <StreamSubscription<RemoteMessage>>[];
 
+  // Suara channel ikut volume nada dering, bukan volume notifikasi yang di
+  // banyak HP jauh lebih kecil. Android mengunci setelan suara channel sejak
+  // pertama dibuat, jadi tiap ganti suara atau volume, id-nya harus naik.
   static const _awasChannel = AndroidNotificationChannel(
-    'ews_awas_v1',
+    'ews_awas_v3',
     'Peringatan Awas',
     description: 'Titik pantau berstatus Awas.',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('ews_awas'),
+    audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
   );
 
   static const _waspadaChannel = AndroidNotificationChannel(
-    'ews_waspada_v1',
+    'ews_waspada_v3',
     'Peringatan Waspada',
     description: 'Titik pantau perlu diperhatikan atau tidak mengirim data.',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('ews_waspada'),
+    audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
   );
+
+  /// Biru tua dari logo aplikasi, sama dengan `notification_color` di Android.
+  static const _logoBlue = Color(0xFF003163);
+
+  static const _oldChannelIds = [
+    'ews_awas_v1',
+    'ews_waspada_v1',
+    'ews_awas_v2',
+    'ews_waspada_v2',
+  ];
 
   final FlutterLocalNotificationsPlugin _plugin;
   int _nextId = 1;
@@ -62,6 +78,9 @@ class NotificationService {
       // notifikasi saat aplikasi tertutup tetap memakai suara EWS.
       await _android?.createNotificationChannel(_awasChannel);
       await _android?.createNotificationChannel(_waspadaChannel);
+      for (final id in _oldChannelIds) {
+        await _android?.deleteNotificationChannel(channelId: id);
+      }
     } catch (_) {
       // Tanpa notifikasi HP, riwayat di aplikasi tetap berjalan.
     }
@@ -152,7 +171,9 @@ class NotificationService {
             importance: channel.importance,
             priority: Priority.high,
             icon: 'ic_notification',
+            color: _logoBlue,
             sound: channel.sound,
+            audioAttributesUsage: channel.audioAttributesUsage,
             styleInformation: BigTextStyleInformation(body),
           ),
         ),
