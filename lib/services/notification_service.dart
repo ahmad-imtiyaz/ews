@@ -6,11 +6,15 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../data/monitoring.dart';
 
+/// [live] true bila kiriman datang saat aplikasi sedang dibuka. Firebase tidak
+/// menampilkannya sendiri, jadi penerima yang memutuskan perlu bunyi atau
+/// tidak. false bila warga membuka aplikasi dari notifikasi yang sudah tampil.
 typedef PushMessageCallback = void Function(
   MonitoringStatus status,
   String title,
-  String body,
-);
+  String body, {
+  required bool live,
+});
 
 /// Notifikasi bawaan HP. Saat aplikasi tertutup, Android sendiri yang menampilkan
 /// kiriman Firebase memakai channel di bawah, jadi kode ini tidak ikut berjalan.
@@ -103,38 +107,37 @@ class NotificationService {
   }
 
   Future<void> startPush({required PushMessageCallback onMessage}) async {
-    try {
-      void record(RemoteMessage message) {
-        final notification = message.notification;
-        if (notification == null) return;
-        onMessage(
-          _statusOf(message),
-          notification.title ?? 'Peringatan EWS',
-          notification.body ?? '',
-        );
-      }
-
-      // Firebase tidak menampilkan kiriman saat aplikasi sedang dibuka.
-      _subscriptions.add(
-        FirebaseMessaging.onMessage.listen((message) {
-          final notification = message.notification;
-          if (notification == null) return;
-          showStatusAlert(
-            status: _statusOf(message),
-            title: notification.title ?? 'Peringatan EWS',
-            body: notification.body ?? '',
-          );
-          record(message);
-        }),
+    void forward(RemoteMessage message, {required bool live}) {
+      final notification = message.notification;
+      if (notification == null) return;
+      onMessage(
+        statusOf(message.data, message.notification?.android?.channelId),
+        notification.title ?? 'Peringatan EWS',
+        notification.body ?? '',
+        live: live,
       );
-      _subscriptions.add(FirebaseMessaging.onMessageOpenedApp.listen(record));
+    }
 
+    try {
       final messaging = FirebaseMessaging.instance;
+      // Tidak ditunggu: tanpa sinyal langganan bisa lama menggantung, padahal
+      // peringatan dari data yang diambil aplikasi harus tetap jalan.
+      messaging.subscribeToTopic(pushTopic).catchError((Object _) {
+        // Dicoba lagi saat aplikasi dibuka berikutnya.
+      });
+
+      _subscriptions.add(
+        FirebaseMessaging.onMessage.listen((m) => forward(m, live: true)),
+      );
+      _subscriptions.add(
+        FirebaseMessaging.onMessageOpenedApp.listen(
+          (m) => forward(m, live: false),
+        ),
+      );
       final initial = await messaging.getInitialMessage();
-      if (initial != null) record(initial);
-      await messaging.subscribeToTopic(pushTopic);
+      if (initial != null) forward(initial, live: false);
     } catch (_) {
-      // Tanpa internet atau Firebase, langganan dicoba lagi saat aplikasi dibuka.
+      // Tanpa Firebase, peringatan dari data yang diambil aplikasi tetap jalan.
     }
   }
 
@@ -144,12 +147,22 @@ class NotificationService {
     }
   }
 
-  MonitoringStatus _statusOf(RemoteMessage message) {
-    final isAwas =
-        message.data['status'] == 'awas' ||
-        message.notification?.android?.channelId == _awasChannel.id;
-    return isAwas ? MonitoringStatus.awas : MonitoringStatus.waspada;
-  }
+  /// `data.status` kiriman server, lihat docs/laravel-push-notifikasi.md.
+  /// Kiriman tanpa status (mis. tes dari Firebase Console) dibaca dari
+  /// channel-nya.
+  static MonitoringStatus statusOf(
+    Map<String, dynamic> data,
+    String? channelId,
+  ) => switch (data['status']) {
+    'awas' => MonitoringStatus.awas,
+    'waspada' => MonitoringStatus.waspada,
+    'offline' => MonitoringStatus.noData,
+    'normal' => MonitoringStatus.normal,
+    _ =>
+      channelId == _awasChannel.id
+          ? MonitoringStatus.awas
+          : MonitoringStatus.waspada,
+  };
 
   Future<void> showStatusAlert({
     required MonitoringStatus status,

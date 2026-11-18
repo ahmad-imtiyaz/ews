@@ -87,6 +87,16 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isRetrying = false;
   bool _notificationsReady = false;
 
+  /// Status terakhir yang sudah diberitahukan, dari kiriman server atau dari
+  /// data yang diambil aplikasi. Keduanya biasanya melihat perubahan yang
+  /// sama dalam beberapa detik, jadi yang datang kedua tidak dicatat lagi.
+  MonitoringStatus? _announced;
+
+  /// Selama aplikasi di latar, perubahan status sudah dibunyikan Android dari
+  /// kiriman server. Data pertama setelah kembali cukup dicatat di lonceng.
+  bool _quietNextFetch = false;
+  late final AppLifecycleListener _lifecycle;
+
   MonitoringData _fromFeed() =>
       monitoringFrom(widget.feed.data, refreshFailed: widget.feed.failed);
 
@@ -94,11 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     widget.feed.addListener(_onFeedChanged);
+    _lifecycle = AppLifecycleListener(onShow: () => _quietNextFetch = true);
     WidgetsBinding.instance.addPostFrameCallback((_) => _startNotifications());
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     widget.feed.removeListener(_onFeedChanged);
     super.dispose();
   }
@@ -119,16 +131,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final next = _fromFeed();
     setState(() => _data = next);
     if (!_notificationsReady || next.loadFailed) return;
+    final ring = !_quietNextFetch;
+    _quietNextFetch = false;
     if (previous.loadFailed) {
       // Data pertama setelah gagal memuat, sama seperti aplikasi baru dibuka.
       _announce(next, isChange: false);
     } else if (next.status != previous.status) {
-      _announce(next, isChange: true);
+      _announce(next, isChange: true, ring: ring);
     }
   }
 
-  void _recordPush(MonitoringStatus status, String title, String body) {
-    if (!mounted) return;
+  void _recordPush(
+    MonitoringStatus status,
+    String title,
+    String body, {
+    required bool live,
+  }) {
+    if (!mounted || status == _announced) return;
+    _announced = status;
     widget.inbox.add(
       NotificationEntry(
         status: status,
@@ -137,6 +157,13 @@ class _HomeScreenState extends State<HomeScreen> {
         time: _timeNow,
       ),
     );
+    if (live && status != MonitoringStatus.normal) {
+      widget.inbox.service.showStatusAlert(
+        status: status,
+        title: title,
+        body: body,
+      );
+    }
   }
 
   String get _timeNow {
@@ -147,9 +174,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Normal saat aplikasi dibuka tidak perlu dicatat. Kembali Normal dicatat
-  /// di lonceng tanpa membunyikan HP.
-  void _announce(MonitoringData data, {required bool isChange}) {
-    if (data.loadFailed) return;
+  /// di lonceng tanpa membunyikan HP, begitu juga semua perubahan bila [ring]
+  /// false.
+  void _announce(
+    MonitoringData data, {
+    required bool isChange,
+    bool ring = true,
+  }) {
+    if (data.loadFailed || data.status == _announced) return;
+    _announced = data.status;
     final isNormal = data.status == MonitoringStatus.normal;
     if (isNormal && !isChange) return;
 
@@ -161,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
         time: _timeNow,
       ),
     );
-    if (isChange && !isNormal) {
+    if (isChange && ring && !isNormal) {
       widget.inbox.service.showStatusAlert(
         status: data.status,
         title: data.title,

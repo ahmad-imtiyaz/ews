@@ -13,6 +13,7 @@ import 'package:ews/screens/report_screen.dart';
 import 'package:ews/screens/splash_screen.dart';
 import 'package:ews/services/ews_feed.dart';
 import 'package:ews/services/notification_inbox.dart';
+import 'package:ews/services/notification_service.dart';
 import 'package:ews/services/phone_location.dart';
 import 'package:ews/widgets/brand_logo.dart';
 import 'package:ews/widgets/status_icon.dart';
@@ -89,10 +90,14 @@ void main() {
     return feed;
   }
 
-  Widget home(EwsFeed feed, {Stream<PhoneFix> Function()? locate}) => app(
+  Widget home(
+    EwsFeed feed, {
+    Stream<PhoneFix> Function()? locate,
+    NotificationInbox? inbox,
+  }) => app(
     HomeScreen(
       feed: feed,
-      inbox: NotificationInbox(),
+      inbox: inbox ?? NotificationInbox(),
       showMapTiles: false,
       locate:
           locate ??
@@ -489,6 +494,114 @@ void main() {
       );
     });
 
+    group('peringatan dari server dan dari data aplikasi', () {
+      late _FakeNotifications service;
+      late NotificationInbox inbox;
+      late EwsData current;
+      late EwsFeed feed;
+
+      Future<void> open(WidgetTester tester) async {
+        service = _FakeNotifications();
+        inbox = NotificationInbox(service: service);
+        current = normal;
+        feed = EwsFeed(load: () async => current);
+        addTearDown(feed.dispose);
+        await feed.refresh();
+        await tester.pumpWidget(home(feed, inbox: inbox));
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> serverSends(WidgetTester tester, {bool live = true}) async {
+        service.push!(
+          MonitoringStatus.awas,
+          'AWAS: EWS-02 Sikembang',
+          'Segera menjauh dari lereng.',
+          live: live,
+        );
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> appFetchesAwas(WidgetTester tester) async {
+        current = awas;
+        await feed.refresh();
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('kiriman server lebih dulu, data aplikasi tidak berbunyi '
+          'lagi', (tester) async {
+        usePhoneSize(tester);
+        await open(tester);
+
+        await serverSends(tester);
+        await appFetchesAwas(tester);
+
+        expect(service.alerts, [MonitoringStatus.awas]);
+        expect(inbox.entries.map((e) => e.title), ['AWAS: EWS-02 Sikembang']);
+      });
+
+      testWidgets('data aplikasi lebih dulu, kiriman server tidak berbunyi '
+          'lagi', (tester) async {
+        usePhoneSize(tester);
+        await open(tester);
+
+        await appFetchesAwas(tester);
+        await serverSends(tester);
+
+        expect(service.alerts, [MonitoringStatus.awas]);
+        expect(inbox.entries, hasLength(1));
+      });
+
+      testWidgets('notifikasi yang diketuk hanya dicatat, tidak berbunyi', (
+        tester,
+      ) async {
+        usePhoneSize(tester);
+        await open(tester);
+
+        await serverSends(tester, live: false);
+
+        expect(service.alerts, isEmpty);
+        expect(inbox.entries, hasLength(1));
+      });
+
+      testWidgets('perubahan saat aplikasi di latar tidak dibunyikan lagi', (
+        tester,
+      ) async {
+        usePhoneSize(tester);
+        await open(tester);
+
+        for (final state in [
+          AppLifecycleState.inactive,
+          AppLifecycleState.hidden,
+          AppLifecycleState.inactive,
+          AppLifecycleState.resumed,
+        ]) {
+          tester.binding.handleAppLifecycleStateChanged(state);
+        }
+        await appFetchesAwas(tester);
+
+        expect(service.alerts, isEmpty);
+        expect(inbox.entries.single.status, MonitoringStatus.awas);
+
+        // Perubahan berikutnya terlihat langsung, jadi berbunyi lagi.
+        current = areaWith('Waspada', note: 'Kemiringan 9,9°');
+        await feed.refresh();
+        await tester.pumpAndSettle();
+        expect(service.alerts, [MonitoringStatus.waspada]);
+      });
+    });
+
+    test('status kiriman server dibaca dari data.status', () {
+      MonitoringStatus of(String? status, [String? channel]) =>
+          NotificationService.statusOf({'status': ?status}, channel);
+
+      expect(of('awas'), MonitoringStatus.awas);
+      expect(of('waspada'), MonitoringStatus.waspada);
+      expect(of('offline'), MonitoringStatus.noData);
+      expect(of('normal'), MonitoringStatus.normal);
+      expect(of(null, 'ews_awas_v3'), MonitoringStatus.awas);
+      expect(of(null), MonitoringStatus.waspada);
+    });
+
     for (final (name, data) in [
       ('Balasan asli', live),
       ('Normal', normal),
@@ -717,4 +830,31 @@ void main() {
       });
     }
   });
+}
+
+/// Mencatat notifikasi HP yang dibunyikan dan memberi tes jalan untuk
+/// mengirim kiriman server.
+class _FakeNotifications extends NotificationService {
+  final alerts = <MonitoringStatus>[];
+  PushMessageCallback? push;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<void> startPush({required PushMessageCallback onMessage}) async {
+    push = onMessage;
+  }
+
+  @override
+  Future<void> showStatusAlert({
+    required MonitoringStatus status,
+    required String title,
+    required String body,
+  }) async {
+    alerts.add(status);
+  }
 }
