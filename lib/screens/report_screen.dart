@@ -473,9 +473,11 @@ class _PhotoSection extends StatelessWidget {
       for (final (index, photo) in photos.indexed)
         if (photo.prepared == null)
           'Foto ${index + 1}: tidak bisa dibaca, tetap ikut dikirim.'
-        else if (!photo.prepared!.quality.isClear)
-          'Foto ${index + 1}: '
-              '${photo.prepared!.quality.issues.join(', ').toLowerCase()}.',
+        else if (photo.prepared!.quality case final quality
+            when !quality.isClear)
+          // Saran untuk masalah yang paling menentukan saja, supaya singkat.
+          'Foto ${index + 1}: ${quality.issueText.toLowerCase()}. '
+              '${quality.issues.first.tip}',
     ];
 
     return SectionCard(

@@ -68,17 +68,23 @@ Float32List _sharpCenter(Float32List sharp, Float32List blurred) {
   return out;
 }
 
-Future<PhotoQuality> _quality(Float32List g) async {
+/// [noise] simpangan terbesar noise sensor. 4 untuk foto biasa, sekitar 22
+/// untuk foto di tempat redup.
+img.Image _image(Float32List g, {double noise = 4}) {
   final rnd = Random(2);
   final image = img.Image(width: _w, height: _h);
   for (var y = 0; y < _h; y++) {
     for (var x = 0; x < _w; x++) {
-      final noise = (rnd.nextDouble() + rnd.nextDouble() - 1) * 4;
-      final v = (g[y * _w + x] + noise).round().clamp(0, 255);
+      final n = (rnd.nextDouble() + rnd.nextDouble() - 1) * noise;
+      final v = (g[y * _w + x] + n).round().clamp(0, 255);
       image.setPixelRgb(x, y, v, v, v);
     }
   }
-  final jpeg = img.encodeJpg(image, quality: 88);
+  return image;
+}
+
+Future<PhotoQuality> _quality(Float32List g, {double noise = 4}) async {
+  final jpeg = img.encodeJpg(_image(g, noise: noise), quality: 88);
   return (await preparePhoto(Uint8List.fromList(jpeg)))!.quality;
 }
 
@@ -95,7 +101,73 @@ void main() {
   test('buram sedang (sigma 0,2% lebar) tertangkap', () async {
     final quality = await _quality(_gaussian(sharp, _w * 0.002));
     expect(quality.isBlurry, isTrue, reason: '${quality.sharpness}');
-    expect(quality.issues, contains('Kemungkinan buram'));
+    expect(quality.issues, [PhotoIssue.blurry]);
+  });
+
+  test('sedikit tidak fokus disebut agak buram', () async {
+    final quality = await _quality(_gaussian(sharp, _w * 0.0007));
+    expect(quality.issues, [PhotoIssue.slightlyBlurry], reason: '$quality');
+  });
+
+  // Seperti foto nyata yang dulu lolos: goyang berat di dalam rumah. Noise
+  // kamera membuatnya terbaca tajam di ukuran biasa.
+  test('foto goyang di tempat redup tetap disebut buram', () async {
+    final shaken = _motion(sharp, (_w * 0.03).round());
+    final quality = await _quality(
+      Float32List.fromList([for (final v in shaken) v * 0.75]),
+      noise: 22,
+    );
+    expect(quality.issues, [PhotoIssue.blurry], reason: '$quality');
+  });
+
+  test('foto tajam di tempat redup dengan noise tidak disebut buram', () async {
+    final quality = await _quality(
+      Float32List.fromList([for (final v in sharp) v * 0.75]),
+      noise: 22,
+    );
+    expect(quality.isBlurry, isFalse, reason: '$quality');
+  });
+
+  test('foto malam disebut gelap saja, bukan buram', () async {
+    final quality = await _quality(
+      Float32List.fromList([for (final v in sharp) v * 0.12]),
+    );
+    expect(quality.issues, [PhotoIssue.dark], reason: '$quality');
+  });
+
+  test('foto yang diredupkan tetap jelas', () async {
+    final quality = await _quality(
+      Float32List.fromList([for (final v in sharp) v * 0.55]),
+    );
+    expect(quality.issues, isEmpty, reason: '$quality');
+  });
+
+  test('foto terlalu terang', () async {
+    final quality = await _quality(
+      Float32List.fromList([for (final v in sharp) v * 2 + 60]),
+    );
+    expect(quality.issues, [PhotoIssue.bright], reason: '$quality');
+  });
+
+  test('foto berkabut disebut tidak jelas', () async {
+    final quality = await _quality(
+      Float32List.fromList([for (final v in sharp) v * 0.3 + 160]),
+    );
+    expect(quality.issues, [PhotoIssue.unclear], reason: '$quality');
+  });
+
+  test('lensa tertutup atau dinding polos disebut tidak jelas', () async {
+    final quality = await _quality(
+      Float32List(_w * _h)..fillRange(0, _w * _h, 90),
+    );
+    expect(quality.issues, [PhotoIssue.unclear], reason: '$quality');
+  });
+
+  test('foto kecil disebut resolusi rendah', () async {
+    final small = img.copyResize(_image(sharp), width: 400);
+    final jpeg = img.encodeJpg(small, quality: 88);
+    final quality = (await preparePhoto(Uint8List.fromList(jpeg)))!.quality;
+    expect(quality.issues, [PhotoIssue.lowResolution], reason: '$quality');
   });
 
   test('foto goyang mendatar dan miring tertangkap', () async {
@@ -109,6 +181,6 @@ void main() {
   test('foto dekat: subjek tajam, latar kabur, tidak dianggap buram', () async {
     final background = _gaussian(sharp, _w * 0.006);
     final quality = await _quality(_sharpCenter(sharp, background));
-    expect(quality.isBlurry, isFalse, reason: '${quality.sharpness}');
+    expect(quality.isBlurry, isFalse, reason: '$quality');
   });
 }

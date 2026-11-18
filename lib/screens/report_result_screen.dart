@@ -40,6 +40,10 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
   /// Dibuat sekali saat pertama dikirim, dipakai lagi untuk "Kirim lagi".
   String? _collagePath;
 
+  /// Pelapor sudah memilih "Tetap kirim", jadi "Kirim lagi" tidak bertanya
+  /// lagi.
+  bool _unclearConfirmed = false;
+
   @override
   void dispose() {
     _standardized.dispose();
@@ -47,8 +51,22 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
   }
 
   Future<void> _share() async {
-    setState(() => _sharing = true);
     final report = widget.report;
+    if (!_unclearConfirmed && report.unclearPhotos.isNotEmpty) {
+      final send = await showDialog<bool>(
+        context: context,
+        builder: (_) => _UnclearPhotosDialog(photos: report.unclearPhotos),
+      );
+      if (!mounted || send == null) return;
+      if (!send) {
+        // Kembali ke formulir. Isian dan foto tetap, warga tinggal mengganti.
+        Navigator.of(context).pop();
+        return;
+      }
+      _unclearConfirmed = true;
+    }
+
+    setState(() => _sharing = true);
     var paths = [for (final photo in report.photos) photo.path];
 
     // WhatsApp memasang teks di setiap foto, jadi 3 foto menjadi 3 laporan.
@@ -190,6 +208,90 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Muncul sebelum laporan dengan foto kurang jelas dikirim. `true` tetap
+/// kirim, `false` kembali untuk mengganti foto.
+class _UnclearPhotosDialog extends StatelessWidget {
+  const _UnclearPhotosDialog({required this.photos});
+
+  final List<({int number, ReportPhoto photo})> photos;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final soft = textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft);
+
+    return AlertDialog(
+      title: Text(
+        photos.length == 1
+            ? 'Foto ${photos.single.number} kurang jelas'
+            : '${photos.length} foto kurang jelas',
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (:number, :photo) in photos)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.memory(
+                        photo.bytes,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        cacheWidth: 168,
+                        errorBuilder: (_, _, _) => const SizedBox.square(
+                          dimension: 56,
+                          child: ColoredBox(color: AppColors.iconTile),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Foto $number: ${photo.problem}',
+                            style: textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(photo.tip, style: soft),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Text(
+              'Petugas bisa salah menilai laporan dari foto seperti ini. Ganti '
+              'foto bila tempatnya aman. Bila tetap dikirim, petugas diminta '
+              'memeriksa ulang.',
+              style: textTheme.bodyLarge,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Ganti foto'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Tetap kirim'),
+        ),
+      ],
     );
   }
 }
@@ -493,7 +595,7 @@ class _PhotoResult extends StatelessWidget {
                     ? 'Tidak bisa dibaca'
                     : quality.isClear
                     ? 'Cukup jelas'
-                    : quality.issues.join(', '),
+                    : quality.issueText,
                 style: textTheme.bodyLarge,
               ),
               if (quality != null)
