@@ -277,6 +277,62 @@ void main() {
       expect(find.textContaining('Bacaan '), findsOneWidget);
     });
 
+    testWidgets('catatan panjang diringkas, sisanya dibuka bertahap', (
+      tester,
+    ) async {
+      usePhoneSize(tester);
+      final many = EwsData.fromJson({
+        'utama': {'status': 'Aman', 'saran': ''},
+        'wilayah': [
+          {
+            'id': 1,
+            'nama': 'Titik Area 2',
+            'status': 'Aman',
+            'waktu': '12-11-2026 20:33',
+            'offline': false,
+            'sensor': <String, dynamic>{},
+          },
+        ],
+        'log': [
+          for (var i = 0; i < 40; i++)
+            {
+              'waktu': '12-11-2026 20:${(59 - i).toString().padLeft(2, '0')}',
+              'wilayah': 'Titik Area 2',
+              'status': i.isEven ? 'Awas' : 'Aman',
+              'keterangan': 'Catatan ke-${i + 1}',
+            },
+        ],
+      });
+      await tester.pumpWidget(home(await feedOf(many)));
+      await tester.pump();
+
+      expect(find.text('Catatan ke-1'), findsOneWidget);
+      expect(find.text('Catatan ke-2'), findsOneWidget);
+      expect(find.text('Catatan ke-3'), findsNothing);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text('Lihat semua (40)'));
+      await tester.pumpAndSettle();
+      expect(find.text('40 catatan, terbaru di atas.'), findsOneWidget);
+
+      // scrollUntilVisible berhenti saat tombol baru muncul di tepi layar.
+      Future<void> scrollAndTap(Finder button) async {
+        await tester.scrollUntilVisible(button, 300);
+        await tester.ensureVisible(button);
+        await tester.pumpAndSettle();
+        await tester.tap(button);
+        await tester.pump();
+      }
+
+      expect(find.text('Catatan ke-16'), findsNothing);
+      await scrollAndTap(find.text('Tampilkan 15 lagi (sisa 25)'));
+      await tester.scrollUntilVisible(find.text('Catatan ke-16'), 300);
+
+      await scrollAndTap(find.text('Tampilkan 10 lagi'));
+      await tester.scrollUntilVisible(find.text('Catatan ke-40'), 300);
+      expect(find.textContaining('Tampilkan'), findsNothing);
+    });
+
     testWidgets('mode peta bisa diganti dan sumbernya ikut berubah', (
       tester,
     ) async {

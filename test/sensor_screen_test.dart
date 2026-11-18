@@ -122,6 +122,37 @@ void main() {
     expect(find.text('Kabel EWS putus, Kemiringan 9,9°'), findsOneWidget);
   });
 
+  testWidgets('riwayat panjang hanya tiga terbaru, sisanya di Lihat semua', (
+    tester,
+  ) async {
+    usePhoneSize(tester);
+    final json = jsonDecode(ewsLiveJson) as Map<String, dynamic>;
+    json['log'] = [
+      for (var i = 0; i < 12; i++)
+        {
+          'waktu': '12-11-2026 20:${(59 - i).toString().padLeft(2, '0')}',
+          'wilayah': 'Titik Area 2',
+          'status': 'Waspada',
+          'keterangan': 'Perubahan ke-${i + 1}',
+        },
+    ];
+    final feed = await feedOf(() async => EwsData.fromJson(json));
+    await tester.pumpWidget(app(SensorScreen(feed: feed)));
+
+    final showAll = find.text('Lihat semua (12)');
+    await tester.scrollUntilVisible(showAll, 300);
+    await tester.ensureVisible(showAll);
+    await tester.pumpAndSettle();
+    expect(find.text('Perubahan ke-3'), findsOneWidget);
+    expect(find.text('Perubahan ke-4'), findsNothing);
+
+    await tester.tap(showAll);
+    await tester.pumpAndSettle();
+    expect(find.text('12 catatan, terbaru di atas.'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Perubahan ke-12'), 300);
+    expect(find.textContaining('Tampilkan'), findsNothing);
+  });
+
   testWidgets('gagal memuat lalu berhasil setelah Coba lagi', (tester) async {
     usePhoneSize(tester);
     var calls = 0;

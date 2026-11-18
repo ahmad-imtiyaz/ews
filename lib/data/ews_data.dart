@@ -188,7 +188,8 @@ class EwsData {
   /// di Titik Area 2 berhenti mengirim data ... jangan anggap sudah aman."
   final List<String> offlineNotices;
 
-  /// 10 perubahan status terakhir, terbaru di atas.
+  /// Perubahan status terakhir, terbaru di atas. Server sempat mengirim 10,
+  /// sekarang sampai 50.
   final List<EwsLogEntry> log;
 
   /// Ambang yang diatur admin. Kelembapan udara memang tidak punya ambang.

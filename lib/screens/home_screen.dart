@@ -12,6 +12,8 @@ import '../data/village_map.dart';
 import '../services/ews_feed.dart';
 import '../services/notification_inbox.dart';
 import '../services/phone_location.dart';
+import 'log_screen.dart';
+import '../widgets/log_row.dart';
 import '../widgets/map_markers.dart';
 import '../widgets/notification_bell.dart';
 import '../widgets/status_icon.dart';
@@ -19,6 +21,20 @@ import '../widgets/top_bar.dart';
 
 const _pagePadding = 16.0;
 const _sectionGap = 16.0;
+
+/// Kartu catatan di bawah peta pendek, dan judul catatan sering dua baris.
+/// Sisanya ada di halaman Lihat semua.
+const _logPreviewCount = 2;
+
+List<LogItem> _logItems(MonitoringData data) => [
+  for (final entry in data.log)
+    (
+      status: entry.status,
+      title: entry.title,
+      note: entry.note,
+      time: entry.time,
+    ),
+];
 
 enum MapMode {
   peta(
@@ -230,6 +246,15 @@ class _HomeScreenState extends State<HomeScreen> {
       scrollable: scrollable,
       isRetrying: _isRetrying,
       onRetry: _retryLoad,
+      onShowAll: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => LogScreen(
+            title: 'Catatan terbaru',
+            feed: widget.feed,
+            items: () => _logItems(_fromFeed()),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1091,12 +1116,14 @@ class _LogSection extends StatefulWidget {
     required this.scrollable,
     required this.isRetrying,
     required this.onRetry,
+    required this.onShowAll,
   });
 
   final MonitoringData data;
   final bool scrollable;
   final bool isRetrying;
   final VoidCallback onRetry;
+  final VoidCallback onShowAll;
 
   @override
   State<_LogSection> createState() => _LogSectionState();
@@ -1155,31 +1182,41 @@ class _LogSectionState extends State<_LogSection> {
         : Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final (index, entry) in data.log.indexed) ...[
-                if (index > 0) const Divider(indent: 60, endIndent: 14),
-                _LogRow(entry: entry),
-              ],
-            ],
+            children: logRows(_logItems(data).take(_logPreviewCount)),
           );
 
     final scrollable = widget.scrollable;
-    final card = DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        // Batang gulir selalu tampil bila catatan tidak muat, supaya baris
-        // yang terpotong di bawah terbaca sebagai "masih ada lagi".
-        child: scrollable
-            ? Scrollbar(
+    final hasMore = !data.loadFailed && data.log.length > _logPreviewCount;
+    final card = Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Di HP yang layarnya pendek dua catatan pun bisa tidak muat.
+          // Batang gulir selalu tampil supaya baris yang terpotong terbaca
+          // sebagai "masih ada lagi".
+          if (scrollable)
+            Flexible(
+              child: Scrollbar(
                 controller: _scroll,
                 thumbVisibility: true,
                 child: SingleChildScrollView(controller: _scroll, child: body),
-              )
-            : body,
+              ),
+            )
+          else
+            body,
+          if (hasMore) ...[
+            const Divider(height: 1),
+            LogFooterButton(
+              label: 'Lihat semua (${data.log.length})',
+              icon: Icons.chevron_right,
+              onTap: widget.onShowAll,
+            ),
+          ],
+        ],
       ),
     );
 
@@ -1206,53 +1243,6 @@ class _LogSectionState extends State<_LogSection> {
         ),
         if (scrollable) Flexible(child: card) else card,
       ],
-    );
-  }
-}
-
-class _LogRow extends StatelessWidget {
-  const _LogRow({required this.entry});
-
-  final LogEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          StatusIcon(status: entry.status, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.title,
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    height: 1.3,
-                  ),
-                ),
-                if (entry.note.isNotEmpty)
-                  Text(entry.note, style: textTheme.bodyLarge),
-                if (entry.time.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    entry.time,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: AppColors.inkSoft,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

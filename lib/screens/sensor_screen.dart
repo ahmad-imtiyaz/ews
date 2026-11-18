@@ -5,9 +5,11 @@ import '../data/ews_data.dart';
 import '../data/monitoring.dart';
 import '../services/ews_feed.dart';
 import '../services/notification_inbox.dart';
+import '../widgets/log_row.dart';
 import '../widgets/notification_bell.dart';
 import '../widgets/status_icon.dart';
 import '../widgets/top_bar.dart';
+import 'log_screen.dart';
 
 const _pagePadding = 16.0;
 const _sectionGap = 24.0;
@@ -43,9 +45,7 @@ class SensorScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: TopBar(
-        actions: [
-          if (inbox case final inbox?) NotificationBell(inbox: inbox),
-        ],
+        actions: [if (inbox case final inbox?) NotificationBell(inbox: inbox)],
       ),
       body: ListenableBuilder(
         listenable: feed,
@@ -78,9 +78,8 @@ class SensorScreen extends StatelessWidget {
   }
 
   List<Widget> _content(BuildContext context, EwsData data) {
-    final note = Theme.of(
-      context,
-    ).textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft);
+    final note = Theme.of(context).textTheme.bodyMedium
+        ?.copyWith(color: AppColors.inkSoft);
 
     return [
       if (feed.failed) ...[
@@ -131,7 +130,7 @@ class SensorScreen extends StatelessWidget {
         ),
       ],
       const SizedBox(height: _sectionGap),
-      _StatusLog(data: data),
+      _StatusLog(data: data, feed: feed),
       const SizedBox(height: 16),
       Text(
         'Ini alat bantu pemantauan warga, bukan peringatan resmi BPBD. Saat '
@@ -572,27 +571,57 @@ class _LevelLine extends StatelessWidget {
   }
 }
 
+/// Halaman ini sudah panjang oleh kartu sensor, jadi riwayatnya cukup yang
+/// terbaru. Sisanya di halaman Lihat semua.
+const _logPreviewCount = 3;
+
+List<LogItem> _logItems(EwsData data) => [
+  for (final entry in data.log)
+    (
+      status: entry.statusKind,
+      title:
+          '${entry.status ?? 'Tidak ada data'} · ${areaLabel(data, entry.area)}',
+      note: entry.note,
+      time: shortTime(entry.time),
+    ),
+];
+
 class _StatusLog extends StatelessWidget {
-  const _StatusLog({required this.data});
+  const _StatusLog({required this.data, required this.feed});
 
   final EwsData data;
+  final EwsFeed feed;
+
+  void _showAll(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LogScreen(
+          title: 'Perubahan status',
+          feed: feed,
+          items: () => switch (feed.data) {
+            final data? => _logItems(data),
+            null => const [],
+          },
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final log = data.log;
+    final items = _logItems(data);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('Perubahan status', style: textTheme.titleMedium),
         const SizedBox(height: 10),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: log.isEmpty
+        Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: items.isEmpty
               ? Padding(
                   padding: const EdgeInsets.all(14),
                   child: Text(
@@ -605,62 +634,19 @@ class _StatusLog extends StatelessWidget {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    for (final (index, entry) in log.indexed) ...[
-                      if (index > 0) const Divider(indent: 48, endIndent: 14),
-                      _StatusLogRow(
-                        entry: entry,
-                        place: areaLabel(data, entry.area),
+                    ...logRows(items.take(_logPreviewCount)),
+                    if (items.length > _logPreviewCount) ...[
+                      const Divider(height: 1),
+                      LogFooterButton(
+                        label: 'Lihat semua (${items.length})',
+                        icon: Icons.chevron_right,
+                        onTap: () => _showAll(context),
                       ),
                     ],
                   ],
                 ),
         ),
       ],
-    );
-  }
-}
-
-class _StatusLogRow extends StatelessWidget {
-  const _StatusLogRow({required this.entry, required this.place});
-
-  final EwsLogEntry entry;
-  final String place;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          StatusIcon(status: entry.statusKind, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${entry.status ?? 'Tidak ada data'} · $place',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (entry.note.isNotEmpty)
-                  Text(entry.note, style: textTheme.bodyLarge),
-                const SizedBox(height: 2),
-                Text(
-                  shortTime(entry.time),
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.inkSoft,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
