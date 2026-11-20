@@ -1,0 +1,516 @@
+@font-face { font-family: "Jakarta"; src: url("../../assets/fonts/PlusJakartaSans-Regular.ttf"); font-weight: 400; }
+@font-face { font-family: "Jakarta"; src: url("../../assets/fonts/PlusJakartaSans-Medium.ttf"); font-weight: 500; }
+@font-face { font-family: "Jakarta"; src: url("../../assets/fonts/PlusJakartaSans-SemiBold.ttf"); font-weight: 600; }
+@font-face { font-family: "Jakarta"; src: url("../../assets/fonts/PlusJakartaSans-Bold.ttf"); font-weight: 700; }
+@font-face { font-family: "MI"; src: url("MaterialIcons-Regular.otf"); }
+
+:root {
+  --navy: #0B2E5E;
+  --navy-deep: #071F42;
+  --blue: #0A6FD0;
+  --sky: #08BDF0;
+  --ink: #111111;
+  --ink-soft: #555555;
+  --line: #D9DCE1;
+  --panel: #F5F6F8;
+  --tint: #EDF2F8;
+  --normal: #1F6B3F;
+  --waspada: #F2B60C;
+  --waspada-ink: #A86B00;
+  --awas: #A91F1A;
+  --stale: #595959;
+}
+
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Jakarta", sans-serif;
+  font-size: 10pt;
+  line-height: 1.5;
+  color: var(--ink);
+  background: #8a8f98;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ---------- Halaman ---------- */
+.page {
+  width: 210mm;
+  height: 297mm;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  padding: 16mm 18mm 24mm;
+  break-after: page;
+}
+.page:last-child { break-after: auto; }
+@media screen { .page { margin: 8mm auto; box-shadow: 0 1mm 5mm rgba(0, 0, 0, .35); } }
+
+.footer {
+  position: absolute;
+  left: 18mm;
+  right: 18mm;
+  bottom: 10mm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: .25mm solid var(--line);
+  padding-top: 2.6mm;
+  font-size: 7.8pt;
+  color: var(--ink-soft);
+}
+.footer .pn {
+  min-width: 9mm;
+  height: 6mm;
+  padding: 0 2mm;
+  border-radius: 1.6mm;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+  font-size: 8.5pt;
+  line-height: 6mm;
+  text-align: center;
+}
+
+/* ---------- Teks ---------- */
+p { margin: 0 0 2.4mm; }
+b, strong { font-weight: 700; }
+.soft { color: var(--ink-soft); }
+.small { font-size: 8.6pt; line-height: 1.45; }
+.center { text-align: center; }
+
+.bab {
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--blue);
+  text-transform: uppercase;
+  margin: 0 0 1.5mm;
+}
+h1 {
+  font-size: 22pt;
+  line-height: 1.12;
+  color: var(--navy);
+  margin: 0 0 2.5mm;
+  font-weight: 700;
+}
+.lead {
+  font-size: 11pt;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 4mm;
+  max-width: 160mm;
+}
+.chapter-head {
+  border-bottom: .5mm solid var(--navy);
+  padding-bottom: 3mm;
+  margin-bottom: 5mm;
+}
+h2 {
+  font-size: 13pt;
+  line-height: 1.25;
+  margin: 5mm 0 2.4mm;
+  font-weight: 700;
+  color: var(--ink);
+}
+h2 .n { color: var(--blue); margin-right: 1.6mm; }
+h2:first-child { margin-top: 0; }
+h3 { font-size: 10.5pt; margin: 3.5mm 0 1.4mm; font-weight: 700; }
+.front-title {
+  font-size: 20pt;
+  color: var(--navy);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: .04em;
+  margin: 2mm 0 7mm;
+}
+
+ul, ol { margin: 0 0 2.4mm; padding-left: 5mm; }
+li { margin: 0 0 1.2mm; }
+ul.dots { list-style: none; padding-left: 0; }
+ul.dots > li { position: relative; padding-left: 5mm; }
+ul.dots > li::before {
+  content: "";
+  position: absolute;
+  left: .6mm;
+  top: 1.9mm;
+  width: 1.7mm;
+  height: 1.7mm;
+  border-radius: .4mm;
+  background: var(--navy);
+}
+
+/* ---------- Ikon (Material Icons, sama dengan aplikasi) ---------- */
+.mi {
+  font-family: "MI";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1.3em;
+  line-height: 1;
+  vertical-align: -.24em;
+  display: inline-block;
+}
+.c-normal { color: var(--normal); }
+.c-waspada { color: var(--waspada-ink); }
+.c-awas { color: var(--awas); }
+.c-stale { color: var(--stale); }
+.c-blue { color: var(--blue); }
+.c-navy { color: var(--navy); }
+
+/* Gambar tombol yang dipotong dari layar. */
+.btn-img { height: 7mm; vertical-align: middle; border-radius: 1.4mm; }
+.btn-img.tall { height: 9mm; }
+
+/* ---------- Bingkai HP ---------- */
+.phone {
+  position: relative;
+  width: 54mm;
+  border: 1.7mm solid #16181c;
+  border-radius: 6.4mm;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 1.2mm 3.5mm rgba(0, 0, 0, .22);
+  flex: none;
+}
+.phone img { display: block; width: 100%; }
+.phone.xxl { width: 74mm; }
+.phone.xl { width: 68mm; }
+.phone.lg { width: 62mm; }
+.phone.md { width: 54mm; }
+.phone.sm { width: 47mm; }
+.phone.xs { width: 41mm; }
+
+/* Nomor penanda di atas gambar. Posisi dalam persen dari lebar dan tinggi layar. */
+.co {
+  position: absolute;
+  width: 4.6mm;
+  height: 4.6mm;
+  margin: -2.3mm 0 0 -2.3mm;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-size: 7.4pt;
+  font-weight: 700;
+  line-height: 4.6mm;
+  text-align: center;
+  box-shadow: 0 0 0 .55mm #fff, 0 .4mm 1.2mm rgba(0, 0, 0, .45);
+  z-index: 2;
+}
+.phone.xs .co, .phone.sm .co { width: 4.2mm; height: 4.2mm; margin: -2.1mm 0 0 -2.1mm; line-height: 4.2mm; font-size: 6.8pt; }
+/* Kotak sorot di atas bagian layar. */
+.hl {
+  position: absolute;
+  border: .6mm solid var(--sky);
+  border-radius: 1.6mm;
+  z-index: 1;
+}
+
+.cap { font-size: 8.5pt; line-height: 1.4; color: var(--ink-soft); text-align: center; margin-top: 2.2mm; }
+.cap b { color: var(--ink); }
+.shot { display: flex; flex-direction: column; align-items: center; }
+
+/* Susunan */
+.row { display: flex; gap: 7mm; align-items: flex-start; }
+.row.center { justify-content: center; }
+.row.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+.mt0 { margin-top: 0 !important; }
+.mt2 { margin-top: 2mm; }
+.mt4 { margin-top: 4mm; }
+.mt6 { margin-top: 6mm; }
+.mb0 { margin-bottom: 0 !important; }
+
+/* Daftar keterangan bernomor di samping gambar. */
+ol.legend { list-style: none; padding: 0; margin: 0; counter-reset: none; }
+ol.legend > li {
+  position: relative;
+  padding: 0 0 0 7.4mm;
+  margin: 0 0 2.5mm;
+  font-size: 9.4pt;
+  line-height: 1.45;
+}
+ol.legend > li .num {
+  position: absolute;
+  left: 0;
+  top: .1mm;
+  width: 4.8mm;
+  height: 4.8mm;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-size: 7.4pt;
+  font-weight: 700;
+  line-height: 4.8mm;
+  text-align: center;
+}
+ol.legend > li > b:first-of-type { display: block; font-size: 9.8pt; }
+ol.legend.two { column-count: 2; column-gap: 9mm; }
+ol.legend.two > li { break-inside: avoid; }
+
+/* Langkah bernomor */
+.step { display: flex; gap: 4mm; margin: 0 0 3.2mm; }
+.step .sn {
+  flex: none;
+  width: 8mm;
+  height: 8mm;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 700;
+  font-size: 11pt;
+  line-height: 8mm;
+  text-align: center;
+}
+.step .sb { flex: 1; min-width: 0; }
+.step .sb h3 { margin: .8mm 0 1mm; font-size: 10.5pt; }
+.step .sb p:last-child { margin-bottom: 0; }
+
+.step-label {
+  display: inline-block;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: .6mm;
+}
+
+/* ---------- Kotak catatan ---------- */
+.note {
+  display: flex;
+  gap: 3mm;
+  background: var(--panel);
+  border-left: 1.1mm solid var(--navy);
+  border-radius: 0 2mm 2mm 0;
+  padding: 3mm 4mm 3mm 3.4mm;
+  margin: 3mm 0;
+  font-size: 9.3pt;
+  line-height: 1.45;
+}
+.note .mi { font-size: 15pt; vertical-align: 0; color: var(--navy); flex: none; margin-top: -.4mm; }
+.note .nt { font-weight: 700; display: block; margin-bottom: .6mm; color: var(--ink); }
+.note p { margin: 0 0 1.2mm; }
+.note p:last-child { margin: 0; }
+.note.tip { border-left-color: var(--blue); }
+.note.tip .mi { color: var(--blue); }
+.note.important { border-left-color: var(--ink); }
+.note.important .mi { color: var(--ink); }
+
+/* Sama dengan kotak keselamatan di menu Lapor. */
+.safety {
+  display: flex;
+  gap: 3mm;
+  align-items: flex-start;
+  background: #111;
+  color: #fff;
+  border-radius: 3.4mm;
+  padding: 3.4mm 4.2mm;
+  margin: 3mm 0;
+  font-size: 9.8pt;
+  line-height: 1.45;
+}
+.safety .mi { font-size: 16pt; vertical-align: 0; flex: none; }
+.safety b { color: #fff; }
+
+/* ---------- Tabel ---------- */
+table.tbl { width: 100%; border-collapse: collapse; font-size: 9pt; line-height: 1.42; margin: 2mm 0 3mm; }
+table.tbl th {
+  text-align: left;
+  background: var(--tint);
+  color: var(--navy);
+  font-weight: 700;
+  padding: 2mm 2.4mm;
+  border-bottom: .35mm solid var(--navy);
+  vertical-align: bottom;
+}
+table.tbl td { padding: 2.1mm 2.4mm; border-bottom: .25mm solid var(--line); vertical-align: top; }
+table.tbl td.ic { width: 11mm; text-align: center; }
+table.tbl td.ic .mi { font-size: 17pt; vertical-align: 0; }
+table.tbl tr:last-child td { border-bottom: .35mm solid var(--line); }
+table.tbl.compact td { padding: 1.35mm 2.4mm; }
+table.tbl.compact th { padding: 1.6mm 2.4mm; }
+table.tbl .st { font-weight: 700; white-space: nowrap; }
+
+/* Daftar cek */
+.checklist { border: .4mm solid var(--navy); border-radius: 3mm; padding: 3.6mm 4.4mm 2.4mm; }
+.checklist .ct { font-weight: 700; font-size: 10pt; color: var(--navy); margin-bottom: 2mm; display: flex; align-items: center; gap: 2mm; }
+.checklist .ct .mi { font-size: 15pt; vertical-align: 0; }
+.checklist ul { list-style: none; padding: 0; margin: 0; }
+.checklist li { display: flex; gap: 2.2mm; font-size: 9.4pt; margin-bottom: 1.6mm; }
+.checklist li .mi { color: var(--blue); font-size: 12.5pt; vertical-align: 0; flex: none; }
+
+/* Kartu menu */
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; margin: 2mm 0 3mm; }
+.card {
+  border: .3mm solid var(--line);
+  border-radius: 3mm;
+  padding: 3.2mm 3.6mm;
+  display: flex;
+  gap: 3mm;
+  align-items: flex-start;
+  font-size: 9pt;
+  line-height: 1.42;
+}
+.card .mi { font-size: 18pt; vertical-align: 0; color: var(--navy); flex: none; }
+.card > div > b:first-child { display: block; font-size: 10pt; margin-bottom: .5mm; }
+
+/* Bentuk penanda peta (sama dengan StatusShape di aplikasi). */
+.marker { display: inline-flex; flex-direction: column; align-items: center; gap: .6mm; }
+.marker svg { width: 8.5mm; height: 8.5mm; display: block; }
+.marker .tag {
+  background: #111;
+  color: #fff;
+  font-size: 6.6pt;
+  font-weight: 600;
+  line-height: 1;
+  padding: .7mm 1.4mm;
+  border-radius: 1.6mm;
+}
+.swatch {
+  display: inline-block;
+  width: 4mm;
+  height: 4mm;
+  border-radius: .7mm;
+  border: .25mm solid #bbb;
+  vertical-align: -.7mm;
+  margin-right: 1.2mm;
+}
+
+/* Diagram alur */
+.flow { display: flex; align-items: stretch; gap: 0; margin: 3mm 0 2mm; }
+.flow .node {
+  flex: 1;
+  border: .35mm solid var(--line);
+  border-radius: 3mm;
+  padding: 3mm 3mm 3.2mm;
+  background: #fff;
+  font-size: 8.6pt;
+  line-height: 1.42;
+  text-align: center;
+}
+.flow .node .mi { font-size: 20pt; color: var(--navy); vertical-align: 0; display: block; margin: 0 auto 1.4mm; }
+.flow .node b { display: block; font-size: 9.6pt; margin-bottom: .8mm; }
+.flow .arrow { flex: none; width: 7mm; display: flex; align-items: center; justify-content: center; color: var(--blue); }
+.flow .arrow .mi { font-size: 16pt; vertical-align: 0; }
+.flow-title { font-size: 9pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin: 4mm 0 0; }
+
+/* Contoh pesan WhatsApp untuk petugas */
+.chat {
+  background: #EFE9E1;
+  border-radius: 3mm;
+  padding: 5mm 6mm;
+}
+.bubble {
+  background: #DCF8C6;
+  border-radius: 2.4mm;
+  padding: 3mm 3.6mm 2.4mm;
+  font-size: 8.8pt;
+  line-height: 1.5;
+  max-width: 128mm;
+  margin-left: auto;
+  box-shadow: 0 .3mm .6mm rgba(0, 0, 0, .15);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.bubble .meta { display: block; text-align: right; font-size: 7.2pt; color: #667; margin-top: 1mm; }
+.collage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1mm;
+  background: #fff;
+  padding: 1mm;
+  border-radius: 1.6mm;
+  margin-bottom: 2mm;
+}
+.collage div { position: relative; }
+.collage img { width: 100%; height: 34mm; object-fit: cover; display: block; border-radius: .8mm; }
+.collage span {
+  position: absolute;
+  left: 1.4mm;
+  top: 1.4mm;
+  background: #fff;
+  font-weight: 700;
+  font-size: 8pt;
+  border-radius: 1mm;
+  padding: 0 1.4mm;
+}
+
+/* Daftar isi */
+.toc { margin-top: 2mm; }
+.toc a { color: inherit; text-decoration: none; display: flex; align-items: baseline; gap: 2mm; }
+.toc .t1 { font-size: 10.4pt; font-weight: 700; margin: 3.4mm 0 1mm; color: var(--navy); }
+.toc .t2 { font-size: 9.2pt; margin: 0 0 .9mm 9mm; color: var(--ink); }
+.toc .dots { flex: 1; border-bottom: .3mm dotted #9aa1ab; transform: translateY(-1mm); }
+.toc .pg { min-width: 7mm; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Identitas dan definisi */
+dl.meta { display: grid; grid-template-columns: 44mm 1fr; gap: 2.4mm 5mm; margin: 0; font-size: 9.6pt; }
+dl.meta dt { color: var(--ink-soft); }
+dl.meta dd { margin: 0; font-weight: 500; }
+
+/* Glosarium */
+dl.gloss { margin: 0; font-size: 9.2pt; line-height: 1.45; }
+dl.gloss dt { font-weight: 700; margin-top: 2.6mm; color: var(--navy); }
+dl.gloss dd { margin: .4mm 0 0; }
+.cols2 { column-count: 2; column-gap: 9mm; }
+.cols2 > * { break-inside: avoid; }
+
+/* Kartu siaga */
+.siaga { border: .5mm solid var(--navy); border-radius: 4mm; padding: 5mm 6mm; }
+.siaga-row { display: flex; gap: 5mm; padding: 3.6mm 0; border-bottom: .3mm solid var(--line); }
+.siaga-row:last-child { border-bottom: 0; }
+.siaga-row .who { flex: none; width: 34mm; display: flex; align-items: center; gap: 2.6mm; }
+.siaga-row .who .mi { font-size: 22pt; vertical-align: 0; }
+.siaga-row .who b { font-size: 12pt; }
+.siaga-row ul { margin: 0; }
+.fill { border-bottom: .3mm solid #999; height: 7mm; }
+
+/* ---------- Sampul ---------- */
+.cover { padding: 0; }
+.cover .top {
+  height: 36mm;
+  padding: 11mm 16mm 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cover .logos { display: flex; align-items: center; gap: 5mm; }
+.cover .logos img { height: 14mm; }
+.cover .logos img.wide { height: 12.5mm; }
+.cover .year {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 11pt;
+  letter-spacing: .04em;
+  padding: 2.6mm 6mm;
+  border-radius: 10mm;
+}
+.cover .band {
+  background: var(--navy);
+  color: #fff;
+  padding: 9mm 16mm 10mm;
+  position: relative;
+}
+.cover .band .kicker { font-size: 11pt; font-weight: 700; letter-spacing: .3em; color: var(--sky); margin-bottom: 2mm; }
+.cover .band .title { font-size: 31pt; line-height: 1.08; font-weight: 700; margin: 0 0 3mm; }
+.cover .band .sub { font-size: 12.5pt; line-height: 1.4; color: #D6E4F5; max-width: 125mm; }
+.cover .band .applogo { position: absolute; right: 14mm; top: 9mm; width: 52mm; }
+.cover .scene { position: relative; height: 166mm; overflow: hidden; }
+.cover .scene .photo { position: absolute; inset: 0; background-size: cover; background-position: center 35%; }
+.cover .scene .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 46, 94, .55) 0%, rgba(11, 46, 94, 0) 30%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, .35) 100%); }
+.cover .scene .phone { position: absolute; box-shadow: 0 3mm 9mm rgba(0, 0, 0, .45); }
+.cover .bottom {
+  height: 23mm;
+  padding: 0 16mm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9.2pt;
+  color: var(--ink-soft);
+}
+.cover .bottom b { color: var(--navy); font-size: 10.5pt; }
+
+.back { background: var(--navy); color: #fff; padding: 28mm 22mm; }
+.back p { color: #D6E4F5; }
