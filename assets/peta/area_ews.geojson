@@ -1,0 +1,74 @@
+{
+ "type": "FeatureCollection",
+ "keterangan": "Area pantau tiap alat EWS dari tim lapangan, 10 November 2026, masih perkiraan. Properti id sama dengan id alat. Tambahkan \"contoh\": true di tingkat atas bila berkas ini diisi area buatan lagi.",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "EWS-01",
+    "nama": "Jomparang"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       109.588701,
+       -7.185772
+      ],
+      [
+       109.58775,
+       -7.18506
+      ],
+      [
+       109.587502,
+       -7.185356
+      ],
+      [
+       109.588447,
+       -7.186111
+      ],
+      [
+       109.588701,
+       -7.185772
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "EWS-02",
+    "nama": "Sikembang"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       109.591973,
+       -7.186448
+      ],
+      [
+       109.591157,
+       -7.186262
+      ],
+      [
+       109.591357,
+       -7.18783
+      ],
+      [
+       109.591529,
+       -7.187723
+      ],
+      [
+       109.591973,
+       -7.186448
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

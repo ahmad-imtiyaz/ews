@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
-import '../data/sample_data.dart';
+import '../data/monitoring.dart';
 
 /// Bentuk berbeda per status, supaya status tetap terbaca tanpa melihat warna.
 class StatusShape extends StatelessWidget {
@@ -139,36 +139,6 @@ class SensorMarkerButton extends StatelessWidget {
       label: sensor.id,
       onTap: onTap,
       icon: StatusShape(status: sensor.status, size: 28),
-    );
-  }
-}
-
-class ReportMarkerButton extends StatelessWidget {
-  const ReportMarkerButton({
-    super.key,
-    required this.report,
-    required this.onTap,
-  });
-
-  final ReportPoint report;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return _MarkerButton(
-      semanticLabel: '${report.title}, ${report.place}. Buka detail.',
-      label: 'Laporan',
-      onTap: onTap,
-      icon: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: AppColors.ink,
-          border: Border.all(color: Colors.white, width: 2),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: const Icon(Icons.description, color: Colors.white, size: 16),
-      ),
     );
   }
 }

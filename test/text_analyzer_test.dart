@@ -30,6 +30,15 @@ void main() {
     expect(result.urgency, Urgency.tinggi);
   });
 
+  test('"e" yang terpisah ditandai digabung, bukan dibuang', () {
+    final tokens = analyzer.analyze('lemah e bengkah').tokens;
+
+    expect(tokens[0].normalized, 'tanahnya');
+    expect(tokens[1].normalized, isEmpty);
+    expect(tokens[1].merged, isTrue);
+    expect(tokens[2].merged, isFalse);
+  });
+
   test('akhiran -e menempel dibakukan menjadi -nya', () {
     final result = analyzer.analyze('banyune metu saka pereng');
     expect(result.standardized, 'Airnya keluar dari lereng.');
@@ -73,6 +82,18 @@ void main() {
     expect(result.category, SignCategory.longsoran);
     expect(result.place, 'tikungan Kalibening');
     expect(result.urgency, Urgency.tinggi);
+  });
+
+  test('nama dukuh dari kajian bencana ditulis dengan huruf besar', () {
+    final result = analyzer.analyze(
+      'tebing neng pinggir dalan kaliwisnu longsor, wit bongkok',
+    );
+
+    expect(
+      result.standardized,
+      'Tebing di pinggir jalan Kaliwisnu longsor, pohon bongkok.',
+    );
+    expect(result.place, 'pinggir jalan Kaliwisnu');
   });
 
   test('caps lock tetap dibakukan, singkatan pendek tetap kapital', () {

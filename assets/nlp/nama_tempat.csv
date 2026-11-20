@@ -1,12 +1,43 @@
 # Nama tempat di sekitar Lumeneng, satu per baris, tulis dengan huruf besar
 # yang benar. Dipakai untuk merapikan huruf besar dan mengenali tempat di
-# laporan. DRAF dari peta OpenStreetMap dan contoh pengguna; lengkapi dengan
-# nama dusun, RT/RW, jalan, dan sungai dari perangkat desa.
+# laporan. DRAF dari peta OpenStreetMap, contoh pengguna, dan Kajian Pemetaan
+# Bencana Desa Lumeneng 2024 (LPBI NU Kab. Pekalongan); lengkapi dengan RT/RW
+# dan jalan dari perangkat desa.
+#
+# Dicocokkan per kata. Nama dukuh, kali, atau gunung yang juga kata
+# sehari-hari (Kulon, Tengah, Wetan, Genteng, Kidul, Jurang, Jeruk, Petung,
+# Bongkok) sengaja tidak dimasukkan, supaya "wit bongkok" tidak berubah jadi
+# "wit Bongkok".
 Lumeneng
 Kalibening
 Paninggaran
 Sijambu
+Pekalongan
+
+# Dukuh. Wenosidi dari OpenStreetMap, Wanasida dari kajian; warga bisa
+# menulis yang mana saja.
+Karangsari
+Krajan
+Wanasida
 Wenosidi
 Sumingkir
+Sikudi
+Jomparang
+Kaliwisnu
+Sikembang
+
+# Mata air.
+Ciwitali
+Kaligua
+Mertelu
+Kaligenteng
+
+# Desa tetangga.
 Krandegan
-Pekalongan
+Trajumas
+Bodas
+Kaliboja
+Tanggeran
+Sawangan
+Winduaji
+Sukoharjo

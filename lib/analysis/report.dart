@@ -49,6 +49,21 @@ class ReportPhoto {
 
   /// `null` bila model CNN belum dipasang atau foto tidak bisa dibaca.
   final CnnResult? cnn;
+
+  bool get isClear => quality?.isClear ?? false;
+
+  /// Mis. "buram, terlalu gelap". Kosong bila foto jelas.
+  String get problem => switch (quality) {
+    null => 'tidak bisa dibaca',
+    final quality => quality.issueText.toLowerCase(),
+  };
+
+  /// Saran untuk masalah yang paling menentukan.
+  String get tip => switch (quality) {
+    null => 'Pilih ulang fotonya dari galeri atau kamera.',
+    final quality when quality.issues.isNotEmpty => quality.issues.first.tip,
+    _ => '',
+  };
 }
 
 class ReportAnalysis {
@@ -71,6 +86,13 @@ class ReportAnalysis {
   final TextAnalysis? text;
 
   bool get hasPhoto => photos.isNotEmpty;
+
+  /// Foto yang kurang jelas atau tidak bisa dibaca, bernomor mulai 1. Pelapor
+  /// diminta memastikan sebelum mengirim, petugas diminta memeriksa ulang.
+  List<({int number, ReportPhoto photo})> get unclearPhotos => [
+    for (final (index, photo) in photos.indexed)
+      if (!photo.isClear) (number: index + 1, photo: photo),
+  ];
 
   /// Cocok bila salah satu foto yang yakin menunjukkan tanda yang sama dengan
   /// teks. Foto lain boleh berbeda, misalnya foto suasana sekitar.
@@ -105,12 +127,9 @@ String buildReportMessage(
 }) {
   final text = report.text;
   final location = report.location;
+  final unclear = report.unclearPhotos;
   final photoIssues = [
-    for (final (index, photo) in report.photos.indexed)
-      if (photo.quality == null)
-        'foto ${index + 1} tidak bisa dibaca'
-      else if (!photo.quality!.isClear)
-        'foto ${index + 1} ${photo.quality!.issues.join(', ').toLowerCase()}',
+    for (final (:number, :photo) in unclear) 'foto $number ${photo.problem}',
   ];
   final photoGuesses = [
     for (final (index, photo) in report.photos.indexed)
@@ -147,6 +166,11 @@ String buildReportMessage(
       'Foto: ${report.photos.length} terlampir'
           '${photosCombined ? ' dalam satu gambar bernomor' : ''}'
           '${photoIssues.isEmpty ? '' : ' (${photoIssues.join('; ')})'}',
+    // Aplikasi hanya mengirim foto seperti ini setelah pelapor memilih
+    // "Tetap kirim".
+    if (unclear.isNotEmpty)
+      '*Perlu verifikasi:* pelapor sudah diberi tahu fotonya kurang jelas '
+          'dan tetap mengirim. Mohon hubungi pelapor atau periksa ke lokasi.',
     if (photoGuesses.isNotEmpty) 'Dugaan dari foto: ${photoGuesses.join('; ')}',
     if (report.hasPhoto && text != null) 'Pencocokan: ${report.match.label}',
     '',

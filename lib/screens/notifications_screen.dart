@@ -1,23 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
-import '../data/sample_data.dart';
+import '../data/ews_data.dart';
+import '../services/notification_inbox.dart';
 import '../services/notification_service.dart';
-import '../widgets/map_markers.dart';
-
-class NotificationEntry {
-  const NotificationEntry({
-    required this.status,
-    required this.title,
-    required this.body,
-    required this.time,
-  });
-
-  final MonitoringStatus status;
-  final String title;
-  final String body;
-  final String time;
-}
+import '../widgets/status_icon.dart';
+import '../widgets/top_bar.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({
@@ -63,70 +51,52 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(
-              children: [
-                OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                  child: const Icon(
-                    Icons.chevron_left,
-                    semanticLabel: 'Kembali',
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Notifikasi',
-                    textAlign: TextAlign.center,
-                    style: textTheme.titleLarge,
-                  ),
-                ),
-                const SizedBox(width: 44),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (_allowed == false) ...[
-              _PermissionCard(askedAgain: _askedAgain, onAllow: _askPermission),
-              const SizedBox(height: 16),
-            ],
-            Text(
-              'Isi di sini masih contoh dan tersimpan sampai aplikasi ditutup.',
-              style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
-            ),
-            const SizedBox(height: 12),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: widget.entries.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Text(
-                        'Belum ada notifikasi. Perubahan status titik pantau '
-                        'akan muncul di sini.',
-                        style: textTheme.bodyLarge?.copyWith(
-                          color: AppColors.inkSoft,
-                        ),
-                      ),
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final (index, entry)
-                            in widget.entries.reversed.indexed) ...[
-                          if (index > 0)
-                            const Divider(indent: 56, endIndent: 14),
-                          _NotificationRow(entry: entry),
-                        ],
-                      ],
-                    ),
-            ),
-          ],
+      appBar: const TopBar(title: 'Notifikasi', backLabel: 'Kembali'),
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          MediaQuery.paddingOf(context).bottom + 16,
         ),
+        children: [
+          if (_allowed == false) ...[
+            _PermissionCard(askedAgain: _askedAgain, onAllow: _askPermission),
+            const SizedBox(height: 16),
+          ],
+          Text(
+            'Menyimpan ${NotificationInbox.maxEntries} notifikasi terakhir.',
+            style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: 12),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: widget.entries.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Text(
+                      'Belum ada notifikasi. Perubahan status titik pantau '
+                      'akan muncul di sini.',
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final (index, entry)
+                          in widget.entries.reversed.indexed) ...[
+                        if (index > 0) const Divider(indent: 56, endIndent: 14),
+                        _NotificationRow(entry: entry),
+                      ],
+                    ],
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -187,7 +157,7 @@ class _NotificationRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StatusShape(status: entry.status, size: 28),
+          StatusIcon(status: entry.status, size: 28),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -198,7 +168,7 @@ class _NotificationRow extends StatelessWidget {
                 Text(entry.body, style: textTheme.bodyLarge),
                 const SizedBox(height: 2),
                 Text(
-                  entry.time,
+                  timeLabel(entry.time),
                   style: textTheme.bodyMedium?.copyWith(
                     color: AppColors.inkSoft,
                   ),

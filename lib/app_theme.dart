@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import 'data/sample_data.dart';
+import 'data/monitoring.dart';
 
 const appFontFamily = 'PlusJakartaSans';
+
+/// Tinggi bar atas di semua halaman, supaya judul tidak loncat saat pindah.
+const topBarHeight = 64.0;
 
 abstract final class AppColors {
   static const ink = Color(0xFF111111);
@@ -18,6 +22,13 @@ abstract final class AppColors {
   static const normal = Color(0xFF1F6B3F);
   static const waspada = Color(0xFFF2B60C);
   static const awas = Color(0xFFA91F1A);
+
+  /// Kuning [waspada] di atas putih kontrasnya cuma 1,8:1, jadi ikon garis di
+  /// kartu putih memakai kuning tua ini (4,4:1).
+  static const waspadaOnWhite = Color(0xFFA86B00);
+
+  /// Titik "lokasi Anda" di peta, biru seperti di aplikasi peta lain.
+  static const myLocation = Color(0xFF1A73E8);
 }
 
 extension MonitoringStatusColors on MonitoringStatus {
@@ -46,6 +57,29 @@ ThemeData buildAppTheme() {
     ),
     scaffoldBackgroundColor: AppColors.page,
     fontFamily: appFontFamily,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.page,
+      foregroundColor: AppColors.ink,
+      // Tanpa ini Material 3 mewarnai bar dengan warna primer (hitam) saat
+      // isi halaman lewat di bawahnya.
+      surfaceTintColor: Colors.transparent,
+      // Bar menempel di atas, isi halaman lewat di bawahnya. Bayangan tipis
+      // baru muncul saat itu terjadi, sebagai batas keduanya.
+      scrolledUnderElevation: 2,
+      shadowColor: Color(0x40000000),
+      toolbarHeight: topBarHeight,
+      titleSpacing: 16,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+    ),
+    scrollbarTheme: const ScrollbarThemeData(
+      // Ujung batang gulir tidak terpotong sudut kartu yang membulat.
+      mainAxisMargin: 10,
+      crossAxisMargin: 4,
+    ),
     textTheme: const TextTheme(
       headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
       headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),

@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../analysis/photo_analyzer.dart';
@@ -10,7 +10,11 @@ import '../analysis/sign_category.dart';
 import '../analysis/text_analyzer.dart';
 import '../app_theme.dart';
 import '../config.dart';
+import '../services/notification_inbox.dart';
+import '../services/phone_location.dart';
+import '../widgets/notification_bell.dart';
 import '../widgets/section_card.dart';
+import '../widgets/top_bar.dart';
 import 'report_result_screen.dart';
 
 const _storyHint =
@@ -33,12 +37,16 @@ class ReportScreen extends StatefulWidget {
     this.locateOnStart = true,
     this.loadText = TextAnalyzer.load,
     this.loadCnn = CnnClassifier.load,
+    this.inbox,
   });
 
   /// Dimatikan di tes karena GPS tidak tersedia.
   final bool locateOnStart;
   final Future<TextAnalyzer> Function() loadText;
   final Future<CnnClassifier?> Function() loadCnn;
+
+  /// Lonceng di bar atas. Kosong di tes yang membuka halaman ini sendiri.
+  final NotificationInbox? inbox;
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -57,7 +65,11 @@ class _ReportScreenState extends State<ReportScreen> {
 
   ReportLocation? _location;
   String? _locationError;
+  StreamSubscription<PhoneFix>? _locationUpdates;
   bool _locating = false;
+
+  /// Sudah ada posisi dari pencarian ini, tapi GPS belum masuk.
+  bool _sharpening = false;
 
   bool _analyzing = false;
 
@@ -77,6 +89,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   void dispose() {
+    _locationUpdates?.cancel();
     _story.dispose();
     _cnn.then((cnn) => cnn?.close());
     super.dispose();
@@ -136,62 +149,39 @@ class _ReportScreenState extends State<ReportScreen> {
     setState(() => _photos.removeAt(index));
   }
 
-  Future<void> _locate() async {
+  void _locate() {
+    _locationUpdates?.cancel();
     setState(() {
       _locating = true;
+      _sharpening = false;
       _locationError = null;
     });
-    String? error;
-    ReportLocation? found;
-    try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        error = 'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.';
-      } else {
-        var permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-        }
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          error = 'Izin lokasi ditolak. Laporan tetap bisa dikirim.';
-        } else {
-          Position? position;
-          try {
-            position = await Geolocator.getCurrentPosition(
-              locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.high,
-                timeLimit: Duration(seconds: 30),
-              ),
-            );
-          } catch (_) {
-            // Di dalam rumah GPS sering belum dapat sinyal; pakai lokasi
-            // terakhir yang diketahui HP, akurasinya ikut ditampilkan.
-            position = await Geolocator.getLastKnownPosition();
-          }
-          if (position == null) {
-            error = 'Lokasi belum didapat. Coba lagi di tempat terbuka.';
-          } else {
-            found = ReportLocation(
-              position.latitude,
-              position.longitude,
-              position.accuracy,
-            );
-          }
-        }
-      }
-    } catch (_) {
-      error = 'Lokasi belum didapat. Coba lagi di tempat terbuka.';
-    }
-    if (!mounted) return;
-    setState(() {
-      _locating = false;
-      _location = found ?? _location;
-      _locationError = found == null ? error : null;
-    });
+    _locationUpdates = watchPhoneLocation().listen(
+      (fix) => setState(() {
+        _location = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
+        _sharpening = true;
+      }),
+      onError: (Object e) => setState(() {
+        _locationError = switch (e) {
+          LocationUnavailable(problem: LocationProblem.serviceOff) =>
+            'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
+          LocationUnavailable(problem: LocationProblem.denied) =>
+            'Izin lokasi ditolak. Laporan tetap bisa dikirim.',
+          _ => 'Lokasi belum didapat. Coba lagi di tempat terbuka.',
+        };
+      }),
+      onDone: () => setState(() {
+        _locating = false;
+        _sharpening = false;
+      }),
+    );
   }
 
   Future<void> _submit() async {
-    FocusScope.of(context).unfocus();
+    // Melepas fokus dari kolomnya, bukan dari halaman. Dengan
+    // FocusScope.of(context).unfocus() halaman masih mengingat kolom cerita,
+    // lalu keyboard muncul lagi saat kembali dari hasil analisis.
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _analyzing = true);
 
     final story = _story.text.trim();
@@ -256,108 +246,107 @@ class _ReportScreenState extends State<ReportScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          children: [
-            // Tinggi sama dengan baris atas Beranda supaya tidak loncat
-            // saat pindah menu.
-            SizedBox(
-              height: 48,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('EWS Lumeneng', style: textTheme.titleLarge),
+      appBar: TopBar(
+        actions: [
+          if (widget.inbox case final inbox?) NotificationBell(inbox: inbox),
+        ],
+      ),
+      body: ListView(
+        // Isi boleh lewat di belakang menu bawah, tetapi bagian akhirnya
+        // diberi ruang setinggi menu itu agar tombol terakhir bisa dicapai.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.paddingOf(context).bottom + 24,
+        ),
+        children: [
+          Text(
+            'Lapor tanda longsor',
+            style: textTheme.titleLarge?.copyWith(fontSize: 22),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Tulis dengan bahasa sehari-hari. Bahasa Jawa juga bisa, nanti '
+            'dibakukan ke bahasa Indonesia.',
+            style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
+          ),
+          const SizedBox(height: 16),
+          const _SafetyNote(),
+          const SizedBox(height: 16),
+          _PhotoSection(
+            photos: _photos,
+            preparing: _preparingPhoto,
+            onCamera: () => _pickPhotos(ImageSource.camera),
+            onGallery: () => _pickPhotos(ImageSource.gallery),
+            onRemove: _removePhoto,
+          ),
+          const SizedBox(height: 16),
+          SectionCard(
+            title: 'Ceritakan yang Anda lihat',
+            children: [
+              TextField(
+                controller: _story,
+                minLines: 4,
+                maxLines: 8,
+                textCapitalization: TextCapitalization.sentences,
+                style: textTheme.bodyLarge,
+                decoration: InputDecoration(
+                  hintText: _storyHint,
+                  hintMaxLines: 3,
+                  filled: true,
+                  fillColor: AppColors.panel,
+                  contentPadding: const EdgeInsets.all(12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Lapor tanda longsor',
-              style: textTheme.titleLarge?.copyWith(fontSize: 22),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Tulis dengan bahasa sehari-hari. Bahasa Jawa juga bisa, nanti '
-              'dibakukan ke bahasa Indonesia.',
-              style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
-            ),
-            const SizedBox(height: 16),
-            const _SafetyNote(),
-            const SizedBox(height: 16),
-            _PhotoSection(
-              photos: _photos,
-              preparing: _preparingPhoto,
-              onCamera: () => _pickPhotos(ImageSource.camera),
-              onGallery: () => _pickPhotos(ImageSource.gallery),
-              onRemove: _removePhoto,
-            ),
-            const SizedBox(height: 16),
-            SectionCard(
-              title: 'Ceritakan yang Anda lihat',
-              children: [
-                TextField(
-                  controller: _story,
-                  minLines: 4,
-                  maxLines: 8,
-                  textCapitalization: TextCapitalization.sentences,
-                  style: textTheme.bodyLarge,
-                  decoration: InputDecoration(
-                    hintText: _storyHint,
-                    hintMaxLines: 3,
-                    filled: true,
-                    fillColor: AppColors.panel,
-                    contentPadding: const EdgeInsets.all(12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.border),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sebutkan tempatnya, misalnya "mburi omah pak RT" atau '
-                  '"pinggir kali".',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.inkSoft,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SectionCard(
-              title: 'Yang terlihat',
-              children: [
-                _SignChoices(
-                  selected: _choice,
-                  onSelected: (choice) => setState(() => _choice = choice),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _LocationSection(
-              location: _location,
-              error: _locationError,
-              locating: _locating,
-              onRetry: _locate,
-            ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: _canSubmit ? _submit : null,
-              child: Text(_analyzing ? 'Menganalisis...' : 'Periksa laporan'),
-            ),
-            if (!_canSubmit && !_analyzing) ...[
               const SizedBox(height: 8),
               Text(
-                'Isi cerita atau tambahkan foto dulu.',
-                textAlign: TextAlign.center,
+                'Sebutkan tempatnya, misalnya "mburi omah pak RT" atau '
+                '"pinggir kali".',
                 style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          SectionCard(
+            title: 'Yang terlihat',
+            children: [
+              _SignChoices(
+                selected: _choice,
+                onSelected: (choice) => setState(() => _choice = choice),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _LocationSection(
+            location: _location,
+            error: _locationError,
+            locating: _locating && !_sharpening,
+            sharpening: _sharpening,
+            onRetry: _locate,
+          ),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: _canSubmit ? _submit : null,
+            child: Text(_analyzing ? 'Menganalisis...' : 'Periksa laporan'),
+          ),
+          if (!_canSubmit && !_analyzing) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Isi cerita atau tambahkan foto dulu.',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -484,9 +473,11 @@ class _PhotoSection extends StatelessWidget {
       for (final (index, photo) in photos.indexed)
         if (photo.prepared == null)
           'Foto ${index + 1}: tidak bisa dibaca, tetap ikut dikirim.'
-        else if (!photo.prepared!.quality.isClear)
-          'Foto ${index + 1}: '
-              '${photo.prepared!.quality.issues.join(', ').toLowerCase()}.',
+        else if (photo.prepared!.quality case final quality
+            when !quality.isClear)
+          // Saran untuk masalah yang paling menentukan saja, supaya singkat.
+          'Foto ${index + 1}: ${quality.issueText.toLowerCase()}. '
+              '${quality.issues.first.tip}',
     ];
 
     return SectionCard(
@@ -663,12 +654,14 @@ class _LocationSection extends StatelessWidget {
     required this.location,
     required this.error,
     required this.locating,
+    required this.sharpening,
     required this.onRetry,
   });
 
   final ReportLocation? location;
   final String? error;
   final bool locating;
+  final bool sharpening;
   final VoidCallback onRetry;
 
   @override
@@ -696,7 +689,9 @@ class _LocationSection extends StatelessWidget {
                   Text(status, style: textTheme.bodyLarge),
                   if (found != null && !locating)
                     Text(
-                      'Akurasi ±${found.accuracy.round()} m',
+                      sharpening
+                          ? 'Akurasi ±${found.accuracy.round()} m, menunggu GPS...'
+                          : 'Akurasi ±${found.accuracy.round()} m',
                       style: textTheme.bodyMedium?.copyWith(
                         color: AppColors.inkSoft,
                       ),
@@ -706,7 +701,7 @@ class _LocationSection extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             OutlinedButton(
-              onPressed: locating ? null : onRetry,
+              onPressed: locating || sharpening ? null : onRetry,
               child: Text(found == null ? 'Ambil' : 'Perbarui'),
             ),
           ],

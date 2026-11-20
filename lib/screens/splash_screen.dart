@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 
-import '../data/sample_data.dart';
+import '../data/monitoring.dart';
+import '../services/ews_feed.dart';
+import '../widgets/brand_logo.dart';
 import 'main_shell.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({
-    super.key,
-    this.load = loadMonitoring,
-    this.showMapTiles = true,
-  });
+  const SplashScreen({super.key, this.feed, this.showMapTiles = true});
 
-  final Future<MonitoringData> Function() load;
+  /// Diisi di tes. Bila kosong, data diambil dari server EWS. Setelah splash,
+  /// MainShell yang memegang dan menutupnya.
+  final EwsFeed? feed;
   final bool showMapTiles;
 
   @override
@@ -31,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen>
   static const _startDelay = Duration(milliseconds: 600);
 
   late final AnimationController _controller = AnimationController(vsync: this);
+  late final EwsFeed _feed = widget.feed ?? EwsFeed();
   final _animationDone = Completer<void>();
 
   Timer? _waitTimer;
@@ -81,44 +82,44 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _openHome() async {
-    final data = _loadOrFail();
+    // Simpanan HP dibaca lebih dulu (cepat), jadi tanpa sinyal pun Beranda
+    // langsung menampilkan kondisi terakhir beserta umurnya.
+    await _feed.restore();
+
+    // Kegagalan memuat tidak boleh menahan warga di splash. Bila lewat batas
+    // waktu, pengambilan tetap jalan dan Beranda ikut berubah begitu selesai.
+    final data = _feed.refresh().timeout(_loadTimeout).catchError((_) {});
 
     // Saat Awas, warga langsung melihat kondisi tanpa menunggu animasi.
-    final isAwas = data.then((d) => d.status == MonitoringStatus.awas);
+    if (monitoringFrom(_feed.data).status == MonitoringStatus.awas) {
+      _finishAnimation();
+    }
     unawaited(
-      isAwas.then((awas) {
-        if (awas) _finishAnimation();
+      data.then((_) {
+        if (monitoringFrom(_feed.data).status == MonitoringStatus.awas) {
+          _finishAnimation();
+        }
       }),
     );
 
-    var dataReady = false;
+    // Dengan data simpanan, splash tidak perlu menunggu server.
+    var dataReady = _feed.data != null;
     unawaited(data.whenComplete(() => dataReady = true));
 
     await _animationDone.future;
     _waitTimer?.cancel();
     if (!mounted) return;
-    if (!dataReady) setState(() => _waitingForData = true);
-
-    final loaded = await data;
+    if (!dataReady) {
+      setState(() => _waitingForData = true);
+      await data;
+    }
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => MainShell(
-          initialData: loaded,
-          load: widget.load,
-          showMapTiles: widget.showMapTiles,
-        ),
+        builder: (_) =>
+            MainShell(feed: _feed, showMapTiles: widget.showMapTiles),
       ),
     );
-  }
-
-  // Kegagalan memuat tidak boleh menahan warga di splash.
-  Future<MonitoringData> _loadOrFail() async {
-    try {
-      return await widget.load().timeout(_loadTimeout);
-    } catch (_) {
-      return failedData;
-    }
   }
 
   @override
@@ -154,19 +155,12 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          const BrandLogo(height: 80, onDark: true),
+                          // Selalu memakan tempat supaya logo tidak naik saat
+                          // tulisan ini muncul.
+                          const SizedBox(height: 8),
                           Text(
-                            'EWS Lumeneng',
-                            textAlign: TextAlign.center,
-                            style: textTheme.headlineLarge?.copyWith(
-                              color: Colors.white,
-                              fontSize: 30,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _waitingForData
-                                ? 'Mengambil data terbaru'
-                                : 'Pemantauan longsor desa',
+                            _waitingForData ? 'Mengambil data terbaru' : '',
                             textAlign: TextAlign.center,
                             style: textTheme.bodyLarge?.copyWith(
                               color: Colors.white,
