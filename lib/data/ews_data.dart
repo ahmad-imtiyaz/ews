@@ -242,19 +242,29 @@ const _months = [
 /// "06-11-2026 18:44" dari server jadi "18.44" bila hari ini, selain itu
 /// "6 Nov, 18.44".
 String shortTime(String raw, {DateTime? now}) {
-  final match = RegExp(
-    r'^(\d{1,2})-(\d{1,2})-(\d{4}) (\d{1,2}):(\d{2})',
-  ).firstMatch(raw);
+  final match = RegExp(r'^(\d{1,2})-(\d{1,2})-(\d{4}) (\d{1,2}):(\d{2})')
+      .firstMatch(raw);
   if (match == null) return raw;
   final day = int.parse(match[1]!);
   final month = int.parse(match[2]!);
   final year = int.parse(match[3]!);
   if (month < 1 || month > 12) return raw;
 
-  final clock = '${match[4]!.padLeft(2, '0')}.${match[5]}';
+  return timeLabel(
+    DateTime(year, month, day, int.parse(match[4]!), int.parse(match[5]!)),
+    now: now,
+  );
+}
+
+/// "18.44" bila hari ini, selain itu "6 Nov, 18.44".
+String timeLabel(DateTime time, {DateTime? now}) {
+  String two(int part) => part.toString().padLeft(2, '0');
+  final clock = '${two(time.hour)}.${two(time.minute)}';
   final today = now ?? DateTime.now();
-  if (day == today.day && month == today.month && year == today.year) {
+  if (time.day == today.day &&
+      time.month == today.month &&
+      time.year == today.year) {
     return clock;
   }
-  return '$day ${_months[month - 1]}, $clock';
+  return '${time.day} ${_months[time.month - 1]}, $clock';
 }

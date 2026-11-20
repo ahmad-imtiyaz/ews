@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
+import '../screens/about_screen.dart';
 import 'brand_logo.dart';
 
 /// Bar atas yang tetap di tempat saat halaman digulir.
 ///
-/// Tanpa [title], bar menampilkan logo. Dipakai di menu utama supaya logo
-/// selalu ada di menu mana pun.
+/// Tanpa [title], bar menampilkan logo dan tombol Tentang. Dipakai di menu
+/// utama supaya keduanya selalu ada di menu mana pun.
 ///
 /// Isi [backLabel] untuk halaman yang dibuka dari halaman lain: tombol kembali
 /// muncul di kiri judul, dan teks ini yang dibacakan pembaca layar.
@@ -66,8 +67,31 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
           alignment: AlignmentDirectional.centerStart,
           child: title == null ? const BrandLogo(height: 40) : Text(title),
         ),
-        actions: actions,
+        actions: [
+          if (title == null) ...[
+            const _AboutButton(),
+            const SizedBox(width: 8),
+          ],
+          ...actions,
+        ],
         actionsPadding: const EdgeInsetsDirectional.only(end: 16),
+      ),
+    );
+  }
+}
+
+class _AboutButton extends StatelessWidget {
+  const _AboutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Tentang aplikasi',
+      child: OutlinedButton(
+        onPressed: () => Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => const AboutScreen())),
+        style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+        child: const Icon(Icons.info_outline, size: 22),
       ),
     );
   }

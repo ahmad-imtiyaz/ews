@@ -5,37 +5,74 @@ import 'package:flutter/foundation.dart';
 
 import '../config.dart';
 import '../data/ews_data.dart';
+import 'crash_reports.dart';
 import 'ews_api.dart';
+import 'ews_cache.dart';
 
 /// Satu pengambil data EWS untuk Beranda, Sensor, dan lonceng, supaya server
 /// cukup dipanggil sekali tiap 10 detik walau beberapa menu memakainya.
 class EwsFeed extends ChangeNotifier {
-  EwsFeed({Future<EwsData> Function()? load}) {
+  /// Tanpa [load], data diambil dari server dan disimpan ke [cache] (bawaan:
+  /// simpanan HP). Tes yang mengisi [load] tidak memakai simpanan kecuali
+  /// [cache] diisi.
+  EwsFeed({Future<EwsData> Function()? load, EwsCache? cache})
+    : _cache = cache ?? (load == null ? EwsCache() : null) {
     if (load != null) {
       _load = load;
     } else {
-      final api = _api = EwsApi(ewsBaseUrl);
+      final api = _api = EwsApi(
+        ewsBaseUrl,
+        onNewBody: (body) => _newBody = body,
+      );
       _load = api.fetch;
     }
   }
 
   late final Future<EwsData> Function() _load;
+  final EwsCache? _cache;
   EwsApi? _api;
   Timer? _timer;
   Future<void>? _pending;
   bool _disposed = false;
+  String? _newBody;
 
   EwsData? _data;
   DateTime? _checkedAt;
   bool _failed = false;
+  bool _fromCache = false;
 
-  /// Data terakhir yang berhasil diambil. Tetap ada saat sinyal putus.
+  /// Data terakhir yang berhasil diambil. Tetap ada saat sinyal putus, dan
+  /// sejak [restore] juga saat aplikasi baru dibuka tanpa sinyal.
   EwsData? get data => _data;
+
+  /// Kapan [data] terakhir dipastikan sama dengan server.
   DateTime? get checkedAt => _checkedAt;
 
   /// Pengambilan terakhir gagal.
   bool get failed => _failed;
   bool get busy => _pending != null;
+
+  /// [data] dari simpanan HP dan belum sekali pun dipastikan ke server sejak
+  /// aplikasi dibuka.
+  bool get fromCache => _fromCache;
+
+  /// [data] lebih lama dari [ewsStaleAfter], jadi bukan gambaran kondisi
+  /// sekarang.
+  bool get isStale {
+    final checkedAt = _checkedAt;
+    return checkedAt != null &&
+        clock.now().difference(checkedAt) >= ewsStaleAfter;
+  }
+
+  /// Mengisi [data] dari simpanan HP bila belum ada data dari server.
+  Future<void> restore() async {
+    final saved = await _cache?.read();
+    if (saved == null || _data != null || _disposed) return;
+    _data = saved.data;
+    _checkedAt = saved.checkedAt;
+    _fromCache = true;
+    notifyListeners();
+  }
 
   /// Sinyal desa bisa lambat, jadi permintaan baru menunggu yang masih jalan.
   Future<void> refresh() => _pending ??= _fetch().whenComplete(() {
@@ -47,9 +84,19 @@ class EwsFeed extends ChangeNotifier {
     try {
       _data = await _load();
       _failed = false;
-      _checkedAt = clock.now();
-    } catch (_) {
+      _fromCache = false;
+      final checkedAt = _checkedAt = clock.now();
+      unawaited(_cache?.save(body: _newBody, checkedAt: checkedAt));
+    } catch (error, stack) {
       _failed = true;
+      // Sinyal putus itu biasa. TypeError berarti JSON-nya terbaca tapi
+      // bentuknya berubah di server, dan warga akan terus melihat "Belum
+      // tersambung" sampai aplikasi diperbaiki.
+      if (error is TypeError) {
+        CrashReports.record(error, stack, reason: 'membaca data server');
+      }
+    } finally {
+      _newBody = null;
     }
   }
 
@@ -62,7 +109,8 @@ class EwsFeed extends ChangeNotifier {
     _timer = null;
     if (!on) return;
     final checkedAt = _checkedAt;
-    if (checkedAt == null ||
+    if (_fromCache ||
+        checkedAt == null ||
         clock.now().difference(checkedAt) >= ewsRefreshInterval) {
       refresh();
     }

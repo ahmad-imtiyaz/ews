@@ -24,3 +24,8 @@ const ewsDeviceOfArea = {1: 'EWS-02'};
 /// Data di server berubah paling cepat tiap ±8 detik, jadi mengambil lebih
 /// sering hanya menghabiskan kuota.
 const ewsRefreshInterval = Duration(seconds: 10);
+
+/// Data yang terakhir berhasil diambil lebih lama dari ini dianggap lama:
+/// Normal tidak lagi tampil aman. Sama dengan batas server menandai alat
+/// berhenti mengirim.
+const ewsStaleAfter = Duration(minutes: 15);

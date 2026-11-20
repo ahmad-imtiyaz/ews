@@ -5,10 +5,13 @@ import 'package:http/http.dart' as http;
 import '../data/ews_data.dart';
 
 class EwsApi {
-  EwsApi(this.baseUrl, {http.Client? client})
+  EwsApi(this.baseUrl, {http.Client? client, this.onNewBody})
     : _client = client ?? http.Client();
 
   final String baseUrl;
+
+  /// Dipanggil dengan isi balasan yang baru dan sudah terbaca, untuk disimpan.
+  final void Function(String body)? onNewBody;
   final http.Client _client;
   String? _etag;
   EwsData? _last;
@@ -36,9 +39,10 @@ class EwsApi {
     }
 
     // bodyBytes, bukan body: tanpa utf8.decode simbol "°" terbaca "Â°".
-    final json = jsonDecode(utf8.decode(response.bodyBytes));
-    final data = EwsData.fromJson(json as Map<String, dynamic>);
+    final body = utf8.decode(response.bodyBytes);
+    final data = EwsData.fromJson(jsonDecode(body) as Map<String, dynamic>);
     _etag = response.headers['etag'];
+    onNewBody?.call(body);
     return _last = data;
   }
 

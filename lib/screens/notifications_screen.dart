@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
+import '../data/ews_data.dart';
 import '../services/notification_inbox.dart';
 import '../services/notification_service.dart';
 import '../widgets/status_icon.dart';
@@ -64,7 +65,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 16),
           ],
           Text(
-            'Riwayat ini tersimpan sampai aplikasi ditutup.',
+            'Menyimpan ${NotificationInbox.maxEntries} notifikasi terakhir.',
             style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: 12),
@@ -167,7 +168,7 @@ class _NotificationRow extends StatelessWidget {
                 Text(entry.body, style: textTheme.bodyLarge),
                 const SizedBox(height: 2),
                 Text(
-                  entry.time,
+                  timeLabel(entry.time),
                   style: textTheme.bodyMedium?.copyWith(
                     color: AppColors.inkSoft,
                   ),

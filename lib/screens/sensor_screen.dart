@@ -28,6 +28,14 @@ String _clock(DateTime time) => [
   time.second,
 ].map((part) => part.toString().padLeft(2, '0')).join('.');
 
+/// Jam lengkap bila hari ini, selain itu dengan tanggal (data simpanan).
+String _checkedLabel(DateTime time) {
+  final now = DateTime.now();
+  return time.day == now.day && time.month == now.month && time.year == now.year
+      ? _clock(time)
+      : timeLabel(time);
+}
+
 /// Menampilkan wilayah bersensor dari server. Baru EWS-02 yang terhubung
 /// (lihat `ewsDeviceOfArea` di config.dart).
 class SensorScreen extends StatelessWidget {
@@ -80,15 +88,27 @@ class SensorScreen extends StatelessWidget {
   List<Widget> _content(BuildContext context, EwsData data) {
     final note = Theme.of(context).textTheme.bodyMedium
         ?.copyWith(color: AppColors.inkSoft);
+    final checked = _checkedLabel(feed.checkedAt!);
+    final outdated = feed.isStale;
 
     return [
       if (feed.failed) ...[
         _Notice(
           icon: Icons.cloud_off_outlined,
           title: 'Belum tersambung ke server',
-          body:
-              'Angka di bawah dari pengecekan ${_clock(feed.checkedAt!)}. '
-              'Aplikasi mencoba lagi tiap 10 detik.',
+          body: outdated
+              ? 'Angka di bawah dari pengecekan $checked, jadi kondisi '
+                    'sekarang belum diketahui. Jangan anggap sudah aman. '
+                    'Aplikasi mencoba lagi tiap 10 detik.'
+              : 'Angka di bawah dari pengecekan $checked. Aplikasi mencoba '
+                    'lagi tiap 10 detik.',
+        ),
+        const SizedBox(height: 10),
+      ] else if (feed.fromCache) ...[
+        _Notice(
+          icon: Icons.history,
+          title: 'Mengambil data terbaru',
+          body: 'Sementara ini angka dari pengecekan $checked.',
         ),
         const SizedBox(height: 10),
       ],
@@ -102,14 +122,10 @@ class SensorScreen extends StatelessWidget {
         ),
         const SizedBox(height: 10),
       ],
-      _SummaryCard(data: data),
-      if (!feed.failed) ...[
+      _SummaryCard(data: data, outdated: outdated),
+      if (!feed.failed && !feed.fromCache) ...[
         const SizedBox(height: 8),
-        Text(
-          'Diperbarui tiap 10 detik, terakhir dicek '
-          '${_clock(feed.checkedAt!)}',
-          style: note,
-        ),
+        Text('Diperbarui tiap 10 detik, terakhir dicek $checked', style: note),
       ],
       if (data.areas.isEmpty) ...[
         const SizedBox(height: _sectionGap),
@@ -127,6 +143,7 @@ class SensorScreen extends StatelessWidget {
           area: area,
           thresholds: data.thresholds,
           showStatus: data.areas.length > 1,
+          outdated: outdated,
         ),
       ],
       const SizedBox(height: _sectionGap),
@@ -245,15 +262,21 @@ class _Notice extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.data});
+  const _SummaryCard({required this.data, required this.outdated});
 
   final EwsData data;
+
+  /// Data sudah lama, jadi Normal tidak ditandai aman (sama seperti peta).
+  final bool outdated;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final summary = data.summary;
     final status = summary.statusKind;
+    final icon = outdated && status == MonitoringStatus.normal
+        ? MonitoringStatus.noData
+        : status;
     final location = summary.location;
     final time = summary.time;
     final place = [
@@ -279,7 +302,7 @@ class _SummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                StatusIcon(status: status, size: 40),
+                StatusIcon(status: icon, size: 40),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -342,10 +365,12 @@ class _AreaSection extends StatelessWidget {
     required this.area,
     required this.thresholds,
     required this.showStatus,
+    required this.outdated,
   });
 
   final EwsArea area;
   final Map<String, EwsThreshold> thresholds;
+  final bool outdated;
 
   /// Dengan satu wilayah, statusnya sudah tampil di kartu besar di atas.
   final bool showStatus;
@@ -415,7 +440,7 @@ class _AreaSection extends StatelessWidget {
                         ? _SensorCard(
                             sensor: sensors[j],
                             threshold: thresholds[sensors[j].key],
-                            stale: area.offline,
+                            stale: area.offline || outdated,
                           )
                         : const SizedBox.shrink(),
                   ),

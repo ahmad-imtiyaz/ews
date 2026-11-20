@@ -82,11 +82,18 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _openHome() async {
+    // Simpanan HP dibaca lebih dulu (cepat), jadi tanpa sinyal pun Beranda
+    // langsung menampilkan kondisi terakhir beserta umurnya.
+    await _feed.restore();
+
     // Kegagalan memuat tidak boleh menahan warga di splash. Bila lewat batas
     // waktu, pengambilan tetap jalan dan Beranda ikut berubah begitu selesai.
     final data = _feed.refresh().timeout(_loadTimeout).catchError((_) {});
 
     // Saat Awas, warga langsung melihat kondisi tanpa menunggu animasi.
+    if (monitoringFrom(_feed.data).status == MonitoringStatus.awas) {
+      _finishAnimation();
+    }
     unawaited(
       data.then((_) {
         if (monitoringFrom(_feed.data).status == MonitoringStatus.awas) {
@@ -95,15 +102,17 @@ class _SplashScreenState extends State<SplashScreen>
       }),
     );
 
-    var dataReady = false;
+    // Dengan data simpanan, splash tidak perlu menunggu server.
+    var dataReady = _feed.data != null;
     unawaited(data.whenComplete(() => dataReady = true));
 
     await _animationDone.future;
     _waitTimer?.cancel();
     if (!mounted) return;
-    if (!dataReady) setState(() => _waitingForData = true);
-
-    await data;
+    if (!dataReady) {
+      setState(() => _waitingForData = true);
+      await data;
+    }
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(

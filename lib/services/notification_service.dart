@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../data/monitoring.dart';
+import 'crash_reports.dart';
 
 /// [live] true bila kiriman datang saat aplikasi sedang dibuka. Firebase tidak
 /// menampilkannya sendiri, jadi penerima yang memutuskan perlu bunyi atau
@@ -85,8 +86,9 @@ class NotificationService {
       for (final id in _oldChannelIds) {
         await _android?.deleteNotificationChannel(channelId: id);
       }
-    } catch (_) {
+    } catch (error, stack) {
       // Tanpa notifikasi HP, riwayat di aplikasi tetap berjalan.
+      CrashReports.record(error, stack, reason: 'menyiapkan notifikasi HP');
     }
   }
 
@@ -136,8 +138,9 @@ class NotificationService {
       );
       final initial = await messaging.getInitialMessage();
       if (initial != null) forward(initial, live: false);
-    } catch (_) {
+    } catch (error, stack) {
       // Tanpa Firebase, peringatan dari data yang diambil aplikasi tetap jalan.
+      CrashReports.record(error, stack, reason: 'menyalakan kiriman server');
     }
   }
 
@@ -191,8 +194,9 @@ class NotificationService {
           ),
         ),
       );
-    } catch (_) {
+    } catch (error, stack) {
       // Riwayat di aplikasi tetap berjalan.
+      CrashReports.record(error, stack, reason: 'menampilkan peringatan');
     }
   }
 }

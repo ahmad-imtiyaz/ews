@@ -59,7 +59,12 @@ String areaLabel(EwsData data, String serverName) {
 }
 
 class SensorPoint {
-  const SensorPoint({required this.device, required this.status, this.area});
+  const SensorPoint({
+    required this.device,
+    required this.status,
+    this.area,
+    this.outdated = false,
+  });
 
   final EwsDevice device;
   final MonitoringStatus status;
@@ -67,12 +72,16 @@ class SensorPoint {
   /// `null` selama alat belum terhubung ke server.
   final EwsArea? area;
 
+  /// Aplikasi sudah lama tidak tersambung ke server, jadi bacaan alat ini
+  /// bukan kondisi sekarang walau alatnya sendiri masih mengirim.
+  final bool outdated;
+
   String get id => device.id;
   String get place => device.place;
   LatLng get position => device.position;
 
   /// Bacaannya bukan kondisi sekarang: alat belum terhubung atau diam.
-  bool get isStale => area?.offline ?? true;
+  bool get isStale => outdated || (area?.offline ?? true);
 }
 
 class LogEntry {
@@ -97,6 +106,7 @@ class MonitoringData {
     this.sensors = const [],
     this.log = const [],
     this.loadFailed = false,
+    this.outdated = false,
   });
 
   final MonitoringStatus status;
@@ -106,15 +116,18 @@ class MonitoringData {
   final List<LogEntry> log;
   final bool loadFailed;
 
+  /// Data yang tampil lebih lama dari `ewsStaleAfter`, lihat [SensorPoint.outdated].
+  final bool outdated;
+
   String get title => loadFailed ? 'Belum bisa memuat' : status.label;
 }
 
-MonitoringStatus _pointStatus(EwsArea? area) {
+MonitoringStatus _pointStatus(EwsArea? area, {required bool outdated}) {
   if (area == null) return MonitoringStatus.noData;
   final status = area.statusKind;
   // Bacaan lama yang Normal belum tentu masih aman. Waspada dan Awas tetap,
   // karena alat bisa mati justru saat tanahnya bergerak.
-  if (area.offline && status == MonitoringStatus.normal) {
+  if ((area.offline || outdated) && status == MonitoringStatus.normal) {
     return MonitoringStatus.noData;
   }
   return status;
@@ -122,7 +135,14 @@ MonitoringStatus _pointStatus(EwsArea? area) {
 
 /// [ews] `null` berarti data belum pernah berhasil diambil. [refreshFailed]
 /// berarti pengambilan terakhir gagal dan yang tampil masih data sebelumnya.
-MonitoringData monitoringFrom(EwsData? ews, {bool refreshFailed = false}) {
+/// [outdated] berarti data itu sudah lama (lihat `EwsFeed.isStale`), terakhir
+/// dipastikan pada [checkedAt].
+MonitoringData monitoringFrom(
+  EwsData? ews, {
+  bool refreshFailed = false,
+  bool outdated = false,
+  DateTime? checkedAt,
+}) {
   final areaOf = <String, EwsArea>{
     for (final area in ews?.areas ?? const <EwsArea>[])
       if (deviceOfArea(area) case final device?) device.id: area,
@@ -132,14 +152,16 @@ MonitoringData monitoringFrom(EwsData? ews, {bool refreshFailed = false}) {
       SensorPoint(
         device: device,
         area: areaOf[device.id],
-        status: _pointStatus(areaOf[device.id]),
+        status: _pointStatus(areaOf[device.id], outdated: outdated),
+        outdated: outdated,
       ),
   ];
 
   if (ews == null) {
     return MonitoringData(
       status: MonitoringStatus.noData,
-      summary: 'Kondisi sekarang belum diketahui. Periksa sinyal, lalu coba '
+      summary:
+          'Kondisi sekarang belum diketahui. Periksa sinyal, lalu coba '
           'lagi.',
       sensors: points,
       loadFailed: true,
@@ -162,6 +184,8 @@ MonitoringData monitoringFrom(EwsData? ews, {bool refreshFailed = false}) {
     status: worst?.status ?? MonitoringStatus.noData,
     summary: worst == null
         ? 'Belum ada alat yang mengirim data.'
+        : outdated
+        ? _outdatedSummary(worst, checkedAt)
         : _summary(worst, connected),
     updated: refreshFailed
         ? 'Belum tersambung'
@@ -169,7 +193,18 @@ MonitoringData monitoringFrom(EwsData? ews, {bool refreshFailed = false}) {
         ? null
         : 'Bacaan ${shortTime(readTime)}',
     sensors: points,
+    outdated: outdated,
     log: [
+      if (outdated)
+        LogEntry(
+          time: checkedAt == null ? '' : timeLabel(checkedAt),
+          title: 'Belum tersambung ke server',
+          status: MonitoringStatus.noData,
+          note:
+              'Data di aplikasi terakhir diperbarui '
+              '${checkedAt == null ? 'lama' : timeLabel(checkedAt)}. Kondisi '
+              'sekarang belum diketahui, jangan anggap sudah aman.',
+        ),
       for (final point in connected)
         if (point.area case final area? when area.offline)
           LogEntry(
@@ -199,6 +234,18 @@ String _deviceName(EwsData ews, String serverName) {
     if (area.name == serverName) return deviceOfArea(area)?.id ?? serverName;
   }
   return serverName;
+}
+
+String _outdatedSummary(SensorPoint worst, DateTime? checkedAt) {
+  final last = switch (worst.status) {
+    MonitoringStatus.waspada || MonitoringStatus.awas =>
+      '${worst.id} ${worst.place}: '
+          '${worst.area!.trigger ?? worst.status.label}. ',
+    _ => '',
+  };
+  final since = checkedAt == null ? '' : ' dari ${timeLabel(checkedAt)}';
+  return '${last}Data terakhir$since, kondisi sekarang belum diketahui. '
+      'Jangan anggap sudah aman.';
 }
 
 String _summary(SensorPoint worst, List<SensorPoint> connected) {

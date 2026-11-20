@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ews_sample.dart';
 
@@ -39,6 +40,10 @@ void main() {
     // pernah selesai dan semua tes sesudahnya ikut menunggu.
     await loadVillageMap();
   });
+
+  // Simpanan HP palsu yang kosong di tiap tes, supaya riwayat lonceng dan
+  // data tersimpan dari tes lain tidak ikut terbaca.
+  setUp(() => SharedPreferences.setMockInitialValues({}));
 
   void usePhoneSize(WidgetTester tester) {
     tester.view.physicalSize = const Size(360, 800);
@@ -110,9 +115,8 @@ void main() {
     const maxWait = Duration(seconds: 5);
 
     // Feed di sini dipegang dan ditutup MainShell.
-    Widget splash(Future<EwsData> Function() load) => app(
-      SplashScreen(feed: EwsFeed(load: load), showMapTiles: false),
-    );
+    Widget splash(Future<EwsData> Function() load) =>
+        app(SplashScreen(feed: EwsFeed(load: load), showMapTiles: false));
 
     testWidgets('selesai lalu masuk ke halaman Peta', (tester) async {
       usePhoneSize(tester);
@@ -665,9 +669,7 @@ void main() {
       ('Gagal memuat', null),
     ]) {
       for (final scale in [1.0, 1.3, 1.5, 2.0]) {
-        testWidgets('$name tanpa overflow pada teks ${scale}x', (
-          tester,
-        ) async {
+        testWidgets('$name tanpa overflow pada teks ${scale}x', (tester) async {
           usePhoneSize(tester);
           tester.platformDispatcher.textScaleFactorTestValue = scale;
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

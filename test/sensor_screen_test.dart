@@ -42,9 +42,8 @@ void main() {
   Widget app(Widget home, {double textScale = 1}) => MaterialApp(
     theme: buildAppTheme(),
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(textScale)),
       child: child!,
     ),
     home: home,
@@ -208,9 +207,7 @@ void main() {
         },
       );
       await tester.pumpWidget(
-        app(
-          MainShell(feed: feed, showMapTiles: false, locateOnReport: false),
-        ),
+        app(MainShell(feed: feed, showMapTiles: false, locateOnReport: false)),
       );
       return () => calls;
     }
