@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ews_sample.dart';
 
-/// Balasan server dengan satu wilayah (EWS-02) berstatus [status].
+/// Balasan server dengan satu wilayah (EWS) berstatus [status].
 String bodyWith(String status, {String? note}) => jsonEncode({
   'utama': {'status': status, 'saran': ''},
   'wilayah': [
@@ -135,7 +135,7 @@ void main() {
         checkedAt: checkedAt,
       );
       expect(data.status, MonitoringStatus.awas);
-      expect(data.summary, startsWith('EWS-02 Sikembang: Kabel EWS putus.'));
+      expect(data.summary, startsWith('EWS Sikembang: Kabel EWS putus.'));
     });
   });
 

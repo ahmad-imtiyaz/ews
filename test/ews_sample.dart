@@ -51,8 +51,8 @@ const ewsSampleJson = '''
 ''';
 
 /// Balasan asli desalumeneng.id, 13 November 2026 (diambil 02.17 WIB). Satu
-/// wilayah bersensor (Titik Area 2 = EWS-02) yang berhenti mengirim saat
-/// Waspada, dan EWS-01 di "titik" tanpa sensor.
+/// wilayah bersensor (Titik Area 2 = EWS) yang berhenti mengirim saat
+/// Waspada, dan satu "titik" tanpa sensor yang tidak dipakai aplikasi.
 const ewsLiveJson = r'''
 {
   "utama": {

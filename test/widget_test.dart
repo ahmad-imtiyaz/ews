@@ -57,7 +57,7 @@ void main() {
       EwsData.fromJson(jsonDecode(json) as Map<String, dynamic>);
   final live = parse(ewsLiveJson);
 
-  /// Satu wilayah (EWS-02) dengan status tertentu, mis. untuk Normal dan Awas
+  /// Satu wilayah (EWS) dengan status tertentu, mis. untuk Normal dan Awas
   /// yang tidak ada di balasan asli.
   EwsData areaWith(String status, {String? note}) => EwsData.fromJson({
     'utama': {'status': status, 'saran': ''},
@@ -130,7 +130,7 @@ void main() {
       expect(find.byType(SplashScreen), findsNothing);
       expect(find.text('Lapor'), findsOneWidget);
       expect(find.byType(Dialog), findsNothing);
-      expect(find.text('EWS-02 berubah menjadi Awas'), findsOneWidget);
+      expect(find.text('EWS berubah menjadi Awas'), findsOneWidget);
     });
 
     testWidgets('ketuk layar melewati animasi', (tester) async {
@@ -150,7 +150,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-02 berubah menjadi Awas'), findsOneWidget);
+      expect(find.text('EWS berubah menjadi Awas'), findsOneWidget);
     });
 
     testWidgets('animasi dimatikan di HP membuat splash singkat', (
@@ -217,7 +217,7 @@ void main() {
       await tester.tap(find.text('Coba lagi'));
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-02 berubah menjadi Awas'), findsOneWidget);
+      expect(find.text('EWS berubah menjadi Awas'), findsOneWidget);
       expect(find.text('Coba lagi'), findsNothing);
     });
 
@@ -228,38 +228,20 @@ void main() {
 
       expect(find.text('Data contoh'), findsNothing);
       expect(find.text('Laporan'), findsNothing);
-      expect(find.text('EWS-01'), findsOneWidget);
-      expect(find.text('EWS-02'), findsOneWidget);
+      // Hanya satu alat, tanpa nomor.
+      expect(find.text('EWS'), findsOneWidget);
+      expect(find.textContaining('EWS-0'), findsNothing);
     });
 
-    testWidgets('EWS-01 belum terhubung, detailnya bisa ditutup', (
-      tester,
-    ) async {
+    testWidgets('EWS menampilkan bacaan asli dari server', (tester) async {
       usePhoneSize(tester);
       await tester.pumpWidget(home(await feedOf(live)));
       await tester.pump();
 
-      await tester.tap(find.text('EWS-01'));
+      await tester.tap(find.text('EWS'));
       await tester.pumpAndSettle();
 
-      expect(find.text('EWS-01, Jomparang'), findsOneWidget);
-      expect(find.text('Belum terhubung'), findsOneWidget);
-      expect(find.textContaining('belum mengirim data'), findsOneWidget);
-
-      await tester.tap(find.text('Tutup'));
-      await tester.pumpAndSettle();
-      expect(find.text('EWS-01, Jomparang'), findsNothing);
-    });
-
-    testWidgets('EWS-02 menampilkan bacaan asli dari server', (tester) async {
-      usePhoneSize(tester);
-      await tester.pumpWidget(home(await feedOf(live)));
-      await tester.pump();
-
-      await tester.tap(find.text('EWS-02'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('EWS-02, Sikembang'), findsOneWidget);
+      expect(find.text('EWS, Sikembang'), findsOneWidget);
       expect(find.text('Waspada'), findsOneWidget);
       expect(find.text('Kemiringan 9,9°'), findsOneWidget);
       expect(find.textContaining('Tidak mengirim data sejak'), findsOneWidget);
@@ -274,9 +256,9 @@ void main() {
       await tester.pumpWidget(home(await feedOf(live)));
       await tester.pump();
 
-      expect(find.text('EWS-02 berhenti mengirim data'), findsOneWidget);
+      expect(find.text('EWS berhenti mengirim data'), findsOneWidget);
       expect(find.textContaining('jangan anggap sudah aman'), findsOneWidget);
-      expect(find.text('EWS-02 berubah menjadi Awas'), findsOneWidget);
+      expect(find.text('EWS berubah menjadi Awas'), findsOneWidget);
       expect(find.text('Kabel EWS putus, Kemiringan 9,9°'), findsOneWidget);
       expect(find.textContaining('Bacaan '), findsOneWidget);
     });
@@ -415,22 +397,21 @@ void main() {
             if (polygon.color != null) polygon,
       ].length;
 
-      expect(find.text('EWS-01'), findsOneWidget);
-      expect(areaCount(), 2);
+      expect(find.text('EWS'), findsOneWidget);
+      expect(areaCount(), 1);
 
       await tester.tap(find.byTooltip('Pilih mode peta'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Lokasi EWS'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-01'), findsNothing);
-      expect(find.text('EWS-02'), findsNothing);
-      expect(areaCount(), 2);
+      expect(find.text('EWS'), findsNothing);
+      expect(areaCount(), 1);
 
       await tester.tap(find.byTooltip('Pilih mode peta'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Lokasi EWS'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-01'), findsOneWidget);
+      expect(find.text('EWS'), findsOneWidget);
     });
 
     testWidgets('warna area EWS mengikuti status alatnya', (tester) async {
@@ -447,15 +428,13 @@ void main() {
       List<Color> borders() => [for (final a in areas()) a.borderColor];
 
       await pumpHomeWithMap(tester, live);
-      expect(borders(), [AppColors.stale, AppColors.waspada]);
-      // EWS-01 belum mengirim data, jadi areanya dibiarkan putih.
-      expect(areas().first.color!.withValues(alpha: 1), Colors.white);
+      expect(borders(), [AppColors.waspada]);
 
       await pumpHomeWithMap(tester, awas);
-      expect(borders(), [AppColors.stale, AppColors.awas]);
+      expect(borders(), [AppColors.awas]);
 
       await pumpHomeWithMap(tester, normal);
-      expect(borders(), [AppColors.stale, AppColors.normal]);
+      expect(borders(), [AppColors.normal]);
     });
 
     testWidgets('tombol lokasi menampilkan posisi HP di peta', (tester) async {
@@ -545,7 +524,7 @@ void main() {
       await tester.tap(find.byTooltip('Notifikasi'));
       await tester.pumpAndSettle();
       expect(find.text('Awas'), findsOneWidget);
-      expect(find.text('EWS-02 Sikembang: Kabel EWS putus.'), findsOneWidget);
+      expect(find.text('EWS Sikembang: Kabel EWS putus.'), findsOneWidget);
       expect(find.textContaining('contoh'), findsNothing);
       // Ikon garis yang sama dengan menu Sensor.
       expect(
@@ -574,7 +553,7 @@ void main() {
       Future<void> serverSends(WidgetTester tester, {bool live = true}) async {
         service.push!(
           MonitoringStatus.awas,
-          'AWAS: EWS-02 Sikembang',
+          'AWAS: EWS Sikembang',
           'Segera menjauh dari lereng.',
           live: live,
         );
@@ -596,7 +575,7 @@ void main() {
         await appFetchesAwas(tester);
 
         expect(service.alerts, [MonitoringStatus.awas]);
-        expect(inbox.entries.map((e) => e.title), ['AWAS: EWS-02 Sikembang']);
+        expect(inbox.entries.map((e) => e.title), ['AWAS: EWS Sikembang']);
       });
 
       testWidgets('data aplikasi lebih dulu, kiriman server tidak berbunyi '
@@ -714,7 +693,7 @@ void main() {
 
       await tester.tap(find.byTooltip('Beranda'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-02 berubah menjadi Awas'), findsOneWidget);
+      expect(find.text('EWS berubah menjadi Awas'), findsOneWidget);
     });
 
     testWidgets('lonceng ada di semua menu dengan hitungan yang sama', (

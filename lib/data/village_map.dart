@@ -55,7 +55,7 @@ class VillageMap {
   /// zona yang lebih rawan tergambar paling atas.
   final List<ZoneArea> zones;
 
-  /// Kuncinya id alat, mis. `EWS-01`.
+  /// Kuncinya id alat (`EWS`).
   final Map<String, List<LatLng>> monitoringAreas;
   final bool monitoringAreasAreSamples;
 

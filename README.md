@@ -5,9 +5,9 @@ Kecamatan Paninggaran, Kabupaten Pekalongan. Dibuat oleh tim KKN 2026.
 
 Tiga menu:
 
-- **Beranda**: peta desa dengan area pantau tiap alat EWS (warna ikut status)
-  dan catatan perubahan status terbaru.
-- **Sensor**: bacaan sensor EWS-02 (kelembapan tanah, intensitas hujan,
+- **Beranda**: peta desa dengan area pantau alat EWS di Sikembang (warna ikut
+  status) dan catatan perubahan status terbaru.
+- **Sensor**: bacaan sensor alat EWS (kelembapan tanah, intensitas hujan,
   kemiringan, kelembapan udara) dan riwayat status.
 - **Lapor**: warga melaporkan tanda longsor dengan cerita dan foto. Teks dibaca
   model NLP, foto diperiksa model CNN, lalu laporan dikirim lewat WhatsApp ke
