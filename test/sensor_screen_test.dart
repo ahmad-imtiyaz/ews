@@ -65,23 +65,40 @@ void main() {
     expect(find.byType(BrandLogo), findsOneWidget);
     expect(find.textContaining('terakhir dicek'), findsOneWidget);
     expect(find.text('Penyebab: Kelembapan tanah 55%'), findsOneWidget);
-    // Wilayah 1 di server adalah EWS-02.
-    expect(find.textContaining('EWS-02 Sikembang, bacaan'), findsOneWidget);
-    expect(find.text('EWS-02 Sikembang'), findsOneWidget);
+    // Wilayah 1 di server adalah EWS.
+    expect(find.textContaining('EWS Sikembang, bacaan'), findsOneWidget);
+    expect(find.text('EWS Sikembang'), findsOneWidget);
     expect(find.text('55%'), findsOneWidget);
     expect(find.text('Waspada mulai 50%'), findsOneWidget);
     expect(find.text('Waspada mulai 15°'), findsOneWidget);
-    // Dua wilayah, jadi status tiap wilayah ikut tampil.
-    expect(find.text('Aman'), findsOneWidget);
+    // Hanya alat EWS. Wilayah server lain (Tebing Dusun B) tidak tampil.
+    expect(find.text('Aman'), findsNothing);
 
     await tester.scrollUntilVisible(find.text('Perubahan status'), 300);
-    expect(find.text('Tebing Dusun B'), findsOneWidget);
+    expect(find.text('Tebing Dusun B'), findsNothing);
+    expect(find.textContaining('Alat tidak mengirim data sejak'), findsNothing);
+    expect(find.text('Waspada · EWS Sikembang'), findsOneWidget);
+  });
+
+  testWidgets('alat diam yang terakhir Lewat batas tetap ditandai Waspada', (
+    tester,
+  ) async {
+    usePhoneSize(tester);
+    // Wilayah 2 di contoh (diam, kemiringan Lewat batas) dijadikan wilayah 1,
+    // wilayah yang dibaca sebagai alat EWS.
+    final swapped = parse(
+      ewsSampleJson
+          .replaceAll('"id": 1,', '"id": 9,')
+          .replaceAll('"id": 2,', '"id": 1,'),
+    );
+    final feed = await feedOf(() async => swapped);
+    await tester.pumpWidget(app(SensorScreen(feed: feed)));
+
     expect(
       find.textContaining('Alat tidak mengirim data sejak'),
       findsOneWidget,
     );
     expect(find.text('Data lama'), findsNWidgets(4));
-    // Alat offline yang terakhir Lewat batas tetap ditandai Waspada.
     final lewatBatas = find.ancestor(
       of: find.text('Lewat batas'),
       matching: find.byType(Row),
@@ -97,7 +114,6 @@ void main() {
           .status,
       MonitoringStatus.waspada,
     );
-    expect(find.text('Waspada · EWS-02 Sikembang'), findsOneWidget);
   });
 
   testWidgets('balasan asli: alat diam saat Waspada diperingatkan di atas', (
@@ -110,14 +126,14 @@ void main() {
     expect(find.text('Alat tidak mengirim data'), findsOneWidget);
     expect(find.textContaining('jangan anggap sudah aman'), findsOneWidget);
     expect(find.text('Penyebab: Kemiringan 9,9°'), findsOneWidget);
-    expect(find.text('EWS-02 Sikembang'), findsOneWidget);
+    expect(find.text('EWS Sikembang'), findsOneWidget);
     expect(find.text('9,9°'), findsOneWidget);
     // Alat diam, jadi tiap kartu ditandai bacaan lama, bukan ambangnya.
     expect(find.text('Data lama'), findsNWidgets(4));
     expect(find.text('Data contoh'), findsNothing);
 
     await tester.scrollUntilVisible(find.text('Perubahan status'), 300);
-    expect(find.text('Awas · EWS-02 Sikembang'), findsOneWidget);
+    expect(find.text('Awas · EWS Sikembang'), findsOneWidget);
     expect(find.text('Kabel EWS putus, Kemiringan 9,9°'), findsOneWidget);
   });
 
@@ -234,7 +250,7 @@ void main() {
 
       await tester.tap(find.byTooltip('Beranda'));
       await tester.pumpAndSettle();
-      expect(find.text('EWS-02 berubah menjadi Waspada'), findsOneWidget);
+      expect(find.text('EWS berubah menjadi Waspada'), findsOneWidget);
       await unmount(tester);
     });
 

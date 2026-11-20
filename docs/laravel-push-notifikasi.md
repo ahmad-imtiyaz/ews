@@ -59,7 +59,7 @@ Semua kolom di bawah wajib, kecuali yang ditandai opsional. Isi `data` harus ber
 {
   "topic": "warga-lumeneng",
   "notification": {
-    "title": "Awas: EWS-02 Sikembang",
+    "title": "Awas: EWS Sikembang",
     "body": "Kemiringan tanah 12,4°. Segera menjauh dari lereng dan ikuti arahan petugas. (20.33)"
   },
   "data": {
@@ -91,7 +91,7 @@ Kenapa tiap kolom dibutuhkan:
 - `ttl` 6 jam: HP yang mati atau tanpa sinyal lebih dari 6 jam tidak menerima peringatan yang sudah basi. Karena pesan bisa terlambat sampai, cantumkan jam kejadian di `body`.
 - `visibility: PUBLIC`: isi peringatan tetap terbaca di layar kunci.
 
-Nama wilayah: wilayah id 1 ("Titik Area 2") adalah alat **EWS-02 Sikembang**. EWS-01 Jomparang belum punya wilayah di server. Pakai nama alat seperti itu di judul, karena nama itu yang dikenal warga di aplikasi.
+Nama wilayah: wilayah id 1 ("Titik Area 2") adalah satu-satunya alat, di aplikasi disebut **EWS Sikembang** (tanpa nomor). Pakai nama itu di judul, karena nama itu yang dikenal warga di aplikasi.
 
 Isi teks peringatan yang dibaca warga sebaiknya disepakati dengan perangkat desa atau BPBD.
 
@@ -172,7 +172,7 @@ if ($baru !== $lama) {
     if ($kode === 'awas' || (in_array($kode, ['waspada', 'offline']) && !$jeda)) {
         Cache::put("ews-push:{$wilayah->id}:{$kode}", true, now()->addMinutes(10));
 
-        $alat = [1 => 'EWS-02 Sikembang'][$wilayah->id] ?? $wilayah->nama;
+        $alat = [1 => 'EWS Sikembang'][$wilayah->id] ?? $wilayah->nama;
         $jam = now()->format('H.i');
         [$judul, $isi] = match ($kode) {
             'awas' => ["Awas: {$alat}", "{$pemicu}. Segera menjauh dari lereng dan ikuti arahan petugas. ({$jam})"],
@@ -207,7 +207,7 @@ class EwsTestPush extends Command
     public function handle(EwsPush $push): int
     {
         $status = $this->argument('status');
-        $push->send(1, $status, '[UJI] ' . ucfirst($status) . ': EWS-02 Sikembang', 'Ini hanya uji coba sistem, bukan peringatan sungguhan.');
+        $push->send(1, $status, '[UJI] ' . ucfirst($status) . ': EWS Sikembang', 'Ini hanya uji coba sistem, bukan peringatan sungguhan.');
         $this->info("Terkirim: {$status}");
 
         return self::SUCCESS;

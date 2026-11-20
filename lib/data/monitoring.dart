@@ -4,8 +4,8 @@ import '../config.dart';
 import 'ews_data.dart';
 
 // Keadaan Beranda dibentuk dari `GET /api/ews/data` (lihat ews_data.dart).
-// Titik dan area pantau dua alat dari tim lapangan (10 November 2026): EWS-01
-// di Jomparang, EWS-02 di barat permukiman Sikembang. Koordinatnya sama
+// Titik dan area pantau alat EWS dari tim lapangan (10 November 2026), di
+// barat permukiman Sikembang. Satu-satunya alat yang dipakai; koordinatnya sama
 // dengan `lintang`/`bujur` di server, areanya di assets/peta/area_ews.geojson.
 
 enum MonitoringStatus {
@@ -37,8 +37,7 @@ class EwsDevice {
 }
 
 const ewsDevices = [
-  EwsDevice('EWS-01', 'Jomparang', LatLng(-7.185390, 109.588069)),
-  EwsDevice('EWS-02', 'Sikembang', LatLng(-7.186625, 109.591824)),
+  EwsDevice('EWS', 'Sikembang', LatLng(-7.186625, 109.591824)),
 ];
 
 EwsDevice? deviceOfArea(EwsArea area) => switch (ewsDeviceOfArea[area.id]) {
@@ -47,7 +46,7 @@ EwsDevice? deviceOfArea(EwsArea area) => switch (ewsDeviceOfArea[area.id]) {
 };
 
 /// Nama wilayah dari server ("Titik Area 2") jadi nama alat di aplikasi
-/// ("EWS-02 Sikembang") bila wilayah itu terhubung ke alat.
+/// ("EWS Sikembang") bila wilayah itu terhubung ke alat.
 String areaLabel(EwsData data, String serverName) {
   for (final area in data.areas) {
     if (area.name != serverName) continue;

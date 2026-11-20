@@ -17,9 +17,9 @@ const ewsBaseUrl = String.fromEnvironment(
 );
 
 /// Wilayah bersensor di server (`wilayah[].id`) dan alat di peta yang
-/// diwakilinya. Server menamainya "Titik Area 2", di aplikasi EWS-02. EWS-01
-/// belum mengirim data, jadi belum ada di sini dan tampil "Tidak ada data".
-const ewsDeviceOfArea = {1: 'EWS-02'};
+/// diwakilinya. Server menamainya "Titik Area 2", di aplikasi cukup "EWS".
+/// Wilayah server yang tidak ada di sini tidak ditampilkan.
+const ewsDeviceOfArea = {1: 'EWS'};
 
 /// Data di server berubah paling cepat tiap ±8 detik, jadi mengambil lebih
 /// sering hanya menghabiskan kuota.

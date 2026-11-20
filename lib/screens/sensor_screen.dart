@@ -36,8 +36,8 @@ String _checkedLabel(DateTime time) {
       : timeLabel(time);
 }
 
-/// Menampilkan wilayah bersensor dari server. Baru EWS-02 yang terhubung
-/// (lihat `ewsDeviceOfArea` di config.dart).
+/// Bacaan alat EWS. Wilayah server lain tidak ditampilkan (lihat
+/// `ewsDeviceOfArea` di config.dart).
 class SensorScreen extends StatelessWidget {
   const SensorScreen({super.key, required this.feed, this.inbox});
 
@@ -90,6 +90,7 @@ class SensorScreen extends StatelessWidget {
         ?.copyWith(color: AppColors.inkSoft);
     final checked = _checkedLabel(feed.checkedAt!);
     final outdated = feed.isStale;
+    final area = data.areas.where((a) => deviceOfArea(a) != null).firstOrNull;
 
     return [
       if (feed.failed) ...[
@@ -127,25 +128,21 @@ class SensorScreen extends StatelessWidget {
         const SizedBox(height: 8),
         Text('Diperbarui tiap 10 detik, terakhir dicek $checked', style: note),
       ],
-      if (data.areas.isEmpty) ...[
-        const SizedBox(height: _sectionGap),
+      const SizedBox(height: _sectionGap),
+      if (area == null)
         const _Notice(
           icon: Icons.sensors_off_outlined,
-          title: 'Belum ada alat terdaftar',
+          title: 'Alat EWS belum terdaftar',
           body:
-              'Bacaan sensor muncul di sini setelah alat EWS dipasang dan '
-              'mulai mengirim data.',
-        ),
-      ],
-      for (final area in data.areas) ...[
-        const SizedBox(height: _sectionGap),
+              'Bacaan sensor muncul di sini setelah alat EWS terhubung ke '
+              'server dan mulai mengirim data.',
+        )
+      else
         _AreaSection(
           area: area,
           thresholds: data.thresholds,
-          showStatus: data.areas.length > 1,
           outdated: outdated,
         ),
-      ],
       const SizedBox(height: _sectionGap),
       _StatusLog(data: data, feed: feed),
       const SizedBox(height: 16),
@@ -364,16 +361,12 @@ class _AreaSection extends StatelessWidget {
   const _AreaSection({
     required this.area,
     required this.thresholds,
-    required this.showStatus,
     required this.outdated,
   });
 
   final EwsArea area;
   final Map<String, EwsThreshold> thresholds;
   final bool outdated;
-
-  /// Dengan satu wilayah, statusnya sudah tampil di kartu besar di atas.
-  final bool showStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -386,19 +379,9 @@ class _AreaSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                device == null ? area.name : '${device.id} ${device.place}',
-                style: textTheme.titleLarge,
-              ),
-            ),
-            if (showStatus) ...[
-              const SizedBox(width: 8),
-              _AreaStatus(area: area),
-            ],
-          ],
+        Text(
+          device == null ? area.name : '${device.id} ${device.place}',
+          style: textTheme.titleLarge,
         ),
         const SizedBox(height: 4),
         if (area.offline)
@@ -449,27 +432,6 @@ class _AreaSection extends StatelessWidget {
             ),
           ),
         ],
-      ],
-    );
-  }
-}
-
-class _AreaStatus extends StatelessWidget {
-  const _AreaStatus({required this.area});
-
-  final EwsArea area;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        StatusIcon(status: area.statusKind, size: 22),
-        const SizedBox(width: 6),
-        Text(
-          area.status ?? 'Belum ada data',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
       ],
     );
   }

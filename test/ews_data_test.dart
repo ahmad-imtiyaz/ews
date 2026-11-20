@@ -119,34 +119,30 @@ void main() {
       expect(live.thresholds['kemiringan']!.waspada, 5);
     });
 
-    test('wilayah server jadi EWS-02, EWS-01 tetap tanpa data', () {
+    test('wilayah server jadi satu alat bernama EWS', () {
       final data = monitoringFrom(live);
-      final [ews01, ews02] = data.sensors;
+      final [ews] = data.sensors;
 
-      expect(ews01.id, 'EWS-01');
-      expect(ews01.area, isNull);
-      expect(ews01.status, MonitoringStatus.noData);
-
-      expect(ews02.id, 'EWS-02');
-      expect(ews02.area!.name, 'Titik Area 2');
+      expect(ews.id, 'EWS');
+      expect(ews.area!.name, 'Titik Area 2');
       // Diam saat Waspada tetap Waspada, bukan dianggap aman.
-      expect(ews02.status, MonitoringStatus.waspada);
-      expect(ews02.isStale, isTrue);
+      expect(ews.status, MonitoringStatus.waspada);
+      expect(ews.isStale, isTrue);
       // Titik di aplikasi sama dengan lintang/bujur di server.
-      expect(ews02.position.latitude, -7.186625);
-      expect(ews02.position.longitude, 109.591824);
+      expect(ews.position.latitude, -7.186625);
+      expect(ews.position.longitude, 109.591824);
 
       expect(data.status, MonitoringStatus.waspada);
-      expect(data.summary, startsWith('EWS-02 Sikembang: Kemiringan 9,9°.'));
+      expect(data.summary, startsWith('EWS Sikembang: Kemiringan 9,9°.'));
       expect(data.summary, contains('jangan anggap sudah aman'));
-      expect(areaLabel(live, 'Titik Area 2'), 'EWS-02 Sikembang');
+      expect(areaLabel(live, 'Titik Area 2'), 'EWS Sikembang');
     });
 
     test('catatan berisi alat berhenti lalu perubahan status dari server', () {
       final log = monitoringFrom(live).log;
       expect(log.map((e) => e.title), [
-        'EWS-02 berhenti mengirim data',
-        'EWS-02 berubah menjadi Awas',
+        'EWS berhenti mengirim data',
+        'EWS berubah menjadi Awas',
       ]);
       expect(log[1].status, MonitoringStatus.awas);
       expect(log[1].note, 'Kabel EWS putus, Kemiringan 9,9°');
@@ -189,12 +185,10 @@ void main() {
       expect(stale.summary, contains('tidak mengirim data'));
     });
 
-    test('EWS-01 yang belum terhubung tidak menurunkan status desa', () {
-      // Hanya EWS-02 yang terhubung, jadi Normal-nya tidak tertutup oleh
-      // EWS-01 yang memang belum mengirim.
+    test('alat Normal berarti desa Normal', () {
       final data = monitoringFrom(area(status: 'Aman', offline: false));
       expect(data.status, MonitoringStatus.normal);
-      expect(data.summary, 'Semua sensor EWS-02 Sikembang normal.');
+      expect(data.summary, 'Semua sensor EWS Sikembang normal.');
     });
 
     test('gagal memperbarui tetap menampilkan data sebelumnya', () {
