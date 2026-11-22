@@ -18,13 +18,48 @@ class LocationUnavailable implements Exception {
 /// sinyal, ±50 m sampai beberapa ratus meter.
 const gpsAccuracy = 20.0;
 
+/// Posisi berhenti dipertajam di sini. GPS HP di tempat terbuka paling bagus
+/// ±3–5 m; ±1 m butuh alat GPS khusus (RTK), jadi menunggu lebih kecil dari
+/// ini hanya menghabiskan waktu warga.
+const targetAccuracy = 10.0;
+
+/// Android 12+ membolehkan izin lokasi "Perkiraan". Posisinya sengaja
+/// digeser sampai ±2 km dan GPS tidak dipakai, jadi petugas bisa salah
+/// tempat.
+Future<bool> isLocationApproximate() async {
+  try {
+    return await Geolocator.getLocationAccuracy() ==
+        LocationAccuracyStatus.reduced;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// Memunculkan dialog Android "Ubah ke lokasi tepat". Bila warga sudah
+/// beberapa kali menolak, Android tidak memunculkannya lagi; pakai
+/// [openLocationSettings].
+Future<void> askPreciseLocation() async {
+  try {
+    await Geolocator.requestPermission();
+  } catch (_) {}
+}
+
+/// Halaman izin aplikasi di pengaturan HP, tempat "Gunakan lokasi tepat".
+Future<void> openLocationSettings() async {
+  try {
+    await Geolocator.openAppSettings();
+  } catch (_) {}
+}
+
+bool _askedPrecise = false;
+
 /// Posisi HP yang makin tajam, akurasinya dalam meter. Tiap posisi yang
 /// dikirim lebih akurat dari sebelumnya. Selesai begitu akurasi sampai
-/// [gpsAccuracy] atau [timeLimit] habis. Bila sampai waktunya habis belum ada
+/// [targetAccuracy] atau [timeLimit] habis. Bila sampai waktunya habis belum ada
 /// posisi sama sekali, misalnya di dalam rumah, dipakai lokasi terakhir yang
 /// diketahui HP. Gagal dilempar sebagai [LocationUnavailable].
 Stream<PhoneFix> watchPhoneLocation({
-  Duration timeLimit = const Duration(seconds: 30),
+  Duration timeLimit = const Duration(seconds: 45),
 }) async* {
   if (!await Geolocator.isLocationServiceEnabled()) {
     throw const LocationUnavailable(LocationProblem.serviceOff);
@@ -36,6 +71,12 @@ Stream<PhoneFix> watchPhoneLocation({
   if (permission == LocationPermission.denied ||
       permission == LocationPermission.deniedForever) {
     throw const LocationUnavailable(LocationProblem.denied);
+  }
+  // Sekali per buka aplikasi, supaya warga yang dulu memilih "Perkiraan"
+  // ditawari lokasi tepat tanpa terus-menerus ditanya.
+  if (!_askedPrecise && await isLocationApproximate()) {
+    _askedPrecise = true;
+    await askPreciseLocation();
   }
 
   // getCurrentPosition berhenti di posisi pertama, yang di Android datang dari
@@ -62,7 +103,7 @@ Stream<PhoneFix> watchPhoneLocation({
       if (best != null && fix.accuracy >= best.accuracy) continue;
       best = fix;
       yield fix;
-      if (fix.accuracy <= gpsAccuracy) break;
+      if (fix.accuracy <= targetAccuracy) break;
     }
   } on TimeoutException {
     // Waktunya habis, posisi terbaik sudah dikirim.

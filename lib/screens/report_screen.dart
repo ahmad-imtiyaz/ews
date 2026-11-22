@@ -71,6 +71,15 @@ class _ReportScreenState extends State<ReportScreen> {
   /// Sudah ada posisi dari pencarian ini, tapi GPS belum masuk.
   bool _sharpening = false;
 
+  /// Izin lokasi hanya "Perkiraan", posisinya bisa meleset sampai ±2 km.
+  bool _approximate = false;
+
+  /// Dialog lokasi tepat sudah ditawarkan dari tombol. Bila masih
+  /// perkiraan, tombol berikutnya membuka pengaturan izin.
+  bool _preciseAsked = false;
+
+  late final AppLifecycleListener _lifecycle;
+
   bool _analyzing = false;
 
   bool get _canSubmit =>
@@ -84,11 +93,13 @@ class _ReportScreenState extends State<ReportScreen> {
     _story.addListener(() => setState(() {}));
     _nlp.ignore();
     _cnn.ignore();
+    _lifecycle = AppLifecycleListener(onResume: _onReturn);
     if (widget.locateOnStart) _locate();
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _locationUpdates?.cancel();
     _story.dispose();
     _cnn.then((cnn) => cnn?.close());
@@ -157,10 +168,13 @@ class _ReportScreenState extends State<ReportScreen> {
       _locationError = null;
     });
     _locationUpdates = watchPhoneLocation().listen(
-      (fix) => setState(() {
-        _location = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
-        _sharpening = true;
-      }),
+      (fix) {
+        setState(() {
+          _location = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
+          _sharpening = true;
+        });
+        _checkPrecision();
+      },
       onError: (Object e) => setState(() {
         _locationError = switch (e) {
           LocationUnavailable(problem: LocationProblem.serviceOff) =>
@@ -175,6 +189,34 @@ class _ReportScreenState extends State<ReportScreen> {
         _sharpening = false;
       }),
     );
+  }
+
+  Future<void> _checkPrecision() async {
+    final approximate = await isLocationApproximate();
+    if (mounted && approximate != _approximate) {
+      setState(() => _approximate = approximate);
+    }
+  }
+
+  Future<void> _allowPrecise() async {
+    if (_preciseAsked) {
+      // Android tidak memunculkan dialognya lagi; kembali dari pengaturan
+      // ditangani [_onReturn].
+      await openLocationSettings();
+      return;
+    }
+    await askPreciseLocation();
+    _preciseAsked = true;
+    await _checkPrecision();
+    if (mounted && !_approximate) _locate();
+  }
+
+  /// Kembali dari pengaturan izin: bila sekarang sudah lokasi tepat, ambil
+  /// ulang posisinya.
+  Future<void> _onReturn() async {
+    if (!_approximate) return;
+    await _checkPrecision();
+    if (mounted && !_approximate) _locate();
   }
 
   Future<void> _submit() async {
@@ -332,6 +374,9 @@ class _ReportScreenState extends State<ReportScreen> {
             locating: _locating && !_sharpening,
             sharpening: _sharpening,
             onRetry: _locate,
+            approximate: _approximate,
+            openSettings: _preciseAsked,
+            onAllowPrecise: _allowPrecise,
           ),
           const SizedBox(height: 20),
           FilledButton(
@@ -656,6 +701,9 @@ class _LocationSection extends StatelessWidget {
     required this.locating,
     required this.sharpening,
     required this.onRetry,
+    required this.approximate,
+    required this.openSettings,
+    required this.onAllowPrecise,
   });
 
   final ReportLocation? location;
@@ -663,6 +711,11 @@ class _LocationSection extends StatelessWidget {
   final bool locating;
   final bool sharpening;
   final VoidCallback onRetry;
+  final bool approximate;
+
+  /// Dialog Android sudah ditolak, jadi tombolnya membuka pengaturan.
+  final bool openSettings;
+  final VoidCallback onAllowPrecise;
 
   @override
   Widget build(BuildContext context) {
@@ -689,7 +742,7 @@ class _LocationSection extends StatelessWidget {
                   Text(status, style: textTheme.bodyLarge),
                   if (found != null && !locating)
                     Text(
-                      sharpening
+                      sharpening && !approximate
                           ? 'Akurasi ±${found.accuracy.round()} m, menunggu GPS...'
                           : 'Akurasi ±${found.accuracy.round()} m',
                       style: textTheme.bodyMedium?.copyWith(
@@ -706,6 +759,35 @@ class _LocationSection extends StatelessWidget {
             ),
           ],
         ),
+        if (approximate) ...[
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.warning_amber_rounded, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  openSettings
+                      ? 'Lokasi masih perkiraan, bisa meleset sampai 2 km. '
+                            'Di pengaturan, buka Izin > Lokasi, lalu nyalakan '
+                            '"Gunakan lokasi tepat".'
+                      : 'Lokasi masih perkiraan, bisa meleset sampai 2 km. '
+                            'Izinkan lokasi tepat agar petugas menemukan '
+                            'tempatnya.',
+                  style: textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: onAllowPrecise,
+            child: Text(
+              openSettings ? 'Buka pengaturan izin' : 'Izinkan lokasi tepat',
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         Text(
           'Ini lokasi HP Anda. Bila kejadiannya di tempat lain, sebutkan di '
