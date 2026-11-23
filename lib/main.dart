@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'services/crash_reports.dart';
+import 'services/report_contact.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,11 @@ Future<void> main() async {
     CrashReports.record(error, stack, fatal: true);
     return true;
   };
+
+  // Nomor WhatsApp laporan bisa diganti dari web Laravel kapan saja, jadi
+  // diambil lagi setiap aplikasi dibuka atau kembali ke depan.
+  reportContact.refresh();
+  AppLifecycleListener(onResume: reportContact.refresh);
 
   runApp(const EwsApp());
 }

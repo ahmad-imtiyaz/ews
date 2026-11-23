@@ -13,6 +13,7 @@ import '../config.dart';
 import '../services/notification_inbox.dart';
 import '../services/phone_location.dart';
 import '../widgets/notification_bell.dart';
+import '../widgets/photo_viewer.dart';
 import '../widgets/section_card.dart';
 import '../widgets/top_bar.dart';
 import 'report_result_screen.dart';
@@ -71,6 +72,15 @@ class _ReportScreenState extends State<ReportScreen> {
   /// Sudah ada posisi dari pencarian ini, tapi GPS belum masuk.
   bool _sharpening = false;
 
+  /// Izin lokasi hanya "Perkiraan", posisinya bisa meleset sampai ±2 km.
+  bool _approximate = false;
+
+  /// Dialog lokasi tepat sudah ditawarkan dari tombol. Bila masih
+  /// perkiraan, tombol berikutnya membuka pengaturan izin.
+  bool _preciseAsked = false;
+
+  late final AppLifecycleListener _lifecycle;
+
   bool _analyzing = false;
 
   bool get _canSubmit =>
@@ -84,11 +94,13 @@ class _ReportScreenState extends State<ReportScreen> {
     _story.addListener(() => setState(() {}));
     _nlp.ignore();
     _cnn.ignore();
+    _lifecycle = AppLifecycleListener(onResume: _onReturn);
     if (widget.locateOnStart) _locate();
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _locationUpdates?.cancel();
     _story.dispose();
     _cnn.then((cnn) => cnn?.close());
@@ -157,10 +169,13 @@ class _ReportScreenState extends State<ReportScreen> {
       _locationError = null;
     });
     _locationUpdates = watchPhoneLocation().listen(
-      (fix) => setState(() {
-        _location = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
-        _sharpening = true;
-      }),
+      (fix) {
+        setState(() {
+          _location = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
+          _sharpening = true;
+        });
+        _checkPrecision();
+      },
       onError: (Object e) => setState(() {
         _locationError = switch (e) {
           LocationUnavailable(problem: LocationProblem.serviceOff) =>
@@ -175,6 +190,34 @@ class _ReportScreenState extends State<ReportScreen> {
         _sharpening = false;
       }),
     );
+  }
+
+  Future<void> _checkPrecision() async {
+    final approximate = await isLocationApproximate();
+    if (mounted && approximate != _approximate) {
+      setState(() => _approximate = approximate);
+    }
+  }
+
+  Future<void> _allowPrecise() async {
+    if (_preciseAsked) {
+      // Android tidak memunculkan dialognya lagi; kembali dari pengaturan
+      // ditangani [_onReturn].
+      await openLocationSettings();
+      return;
+    }
+    await askPreciseLocation();
+    _preciseAsked = true;
+    await _checkPrecision();
+    if (mounted && !_approximate) _locate();
+  }
+
+  /// Kembali dari pengaturan izin: bila sekarang sudah lokasi tepat, ambil
+  /// ulang posisinya.
+  Future<void> _onReturn() async {
+    if (!_approximate) return;
+    await _checkPrecision();
+    if (mounted && !_approximate) _locate();
   }
 
   Future<void> _submit() async {
@@ -332,6 +375,9 @@ class _ReportScreenState extends State<ReportScreen> {
             locating: _locating && !_sharpening,
             sharpening: _sharpening,
             onRetry: _locate,
+            approximate: _approximate,
+            openSettings: _preciseAsked,
+            onAllowPrecise: _allowPrecise,
           ),
           const SizedBox(height: 20),
           FilledButton(
@@ -469,16 +515,14 @@ class _PhotoSection extends StatelessWidget {
       );
     }
 
-    final notes = [
+    final photoNotes = [
       for (final (index, photo) in photos.indexed)
-        if (photo.prepared == null)
-          'Foto ${index + 1}: tidak bisa dibaca, tetap ikut dikirim.'
-        else if (photo.prepared!.quality case final quality
-            when !quality.isClear)
-          // Saran untuk masalah yang paling menentukan saja, supaya singkat.
-          'Foto ${index + 1}: ${quality.issueText.toLowerCase()}. '
-              '${quality.issues.first.tip}',
+        if (_noteOf(photo) case final note?)
+          'Foto ${index + 1}: $note'
+        else
+          null,
     ];
+    final notes = photoNotes.nonNulls.toList();
 
     return SectionCard(
       title: 'Foto (${photos.length} dari $maxReportPhotos)',
@@ -496,6 +540,12 @@ class _PhotoSection extends StatelessWidget {
                     size: size,
                     number: index + 1,
                     photo: photo,
+                    onOpen: () => PhotoViewer.open(
+                      context,
+                      photos: [for (final photo in photos) photo.bytes],
+                      initialIndex: index,
+                      notes: photoNotes,
+                    ),
                     onRemove: () => onRemove(index),
                   ),
                 if (preparing)
@@ -526,6 +576,15 @@ class _PhotoSection extends StatelessWidget {
       ],
     );
   }
+
+  static String? _noteOf(_PendingPhoto photo) {
+    final prepared = photo.prepared;
+    if (prepared == null) return 'tidak bisa dibaca, tetap ikut dikirim.';
+    final quality = prepared.quality;
+    if (quality.isClear) return null;
+    // Saran untuk masalah yang paling menentukan saja, supaya singkat.
+    return '${quality.issueText.toLowerCase()}. ${quality.issues.first.tip}';
+  }
 }
 
 class _PhotoTile extends StatelessWidget {
@@ -533,12 +592,14 @@ class _PhotoTile extends StatelessWidget {
     required this.size,
     required this.number,
     required this.photo,
+    required this.onOpen,
     required this.onRemove,
   });
 
   final double size;
   final int number;
   final _PendingPhoto photo;
+  final VoidCallback onOpen;
   final VoidCallback onRemove;
 
   @override
@@ -557,6 +618,21 @@ class _PhotoTile extends StatelessWidget {
               fit: BoxFit.cover,
               cacheWidth: 300,
               gaplessPlayback: true,
+            ),
+          ),
+          Positioned.fill(
+            child: Material(
+              type: MaterialType.transparency,
+              borderRadius: BorderRadius.circular(12),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onOpen,
+                child: Semantics(
+                  button: true,
+                  label: 'Lihat foto $number',
+                  child: const SizedBox.expand(),
+                ),
+              ),
             ),
           ),
           Positioned(
@@ -656,6 +732,9 @@ class _LocationSection extends StatelessWidget {
     required this.locating,
     required this.sharpening,
     required this.onRetry,
+    required this.approximate,
+    required this.openSettings,
+    required this.onAllowPrecise,
   });
 
   final ReportLocation? location;
@@ -663,6 +742,11 @@ class _LocationSection extends StatelessWidget {
   final bool locating;
   final bool sharpening;
   final VoidCallback onRetry;
+  final bool approximate;
+
+  /// Dialog Android sudah ditolak, jadi tombolnya membuka pengaturan.
+  final bool openSettings;
+  final VoidCallback onAllowPrecise;
 
   @override
   Widget build(BuildContext context) {
@@ -689,7 +773,7 @@ class _LocationSection extends StatelessWidget {
                   Text(status, style: textTheme.bodyLarge),
                   if (found != null && !locating)
                     Text(
-                      sharpening
+                      sharpening && !approximate
                           ? 'Akurasi ±${found.accuracy.round()} m, menunggu GPS...'
                           : 'Akurasi ±${found.accuracy.round()} m',
                       style: textTheme.bodyMedium?.copyWith(
@@ -706,6 +790,35 @@ class _LocationSection extends StatelessWidget {
             ),
           ],
         ),
+        if (approximate) ...[
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.warning_amber_rounded, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  openSettings
+                      ? 'Lokasi masih perkiraan, bisa meleset sampai 2 km. '
+                            'Di pengaturan, buka Izin > Lokasi, lalu nyalakan '
+                            '"Gunakan lokasi tepat".'
+                      : 'Lokasi masih perkiraan, bisa meleset sampai 2 km. '
+                            'Izinkan lokasi tepat agar petugas menemukan '
+                            'tempatnya.',
+                  style: textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: onAllowPrecise,
+            child: Text(
+              openSettings ? 'Buka pengaturan izin' : 'Izinkan lokasi tepat',
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         Text(
           'Ini lokasi HP Anda. Bila kejadiannya di tempat lain, sebutkan di '

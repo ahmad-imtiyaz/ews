@@ -638,6 +638,7 @@ void main() {
       expect(of('offline'), MonitoringStatus.noData);
       expect(of('normal'), MonitoringStatus.normal);
       expect(of(null, 'ews_awas_v3'), MonitoringStatus.awas);
+      expect(of(null, 'ews_offline_v1'), MonitoringStatus.noData);
       expect(of(null), MonitoringStatus.waspada);
     });
 

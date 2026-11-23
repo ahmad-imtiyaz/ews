@@ -6,7 +6,7 @@ import '../analysis/photo_collage.dart';
 import '../analysis/report.dart';
 import '../analysis/text_analyzer.dart';
 import '../app_theme.dart';
-import '../config.dart';
+import '../services/report_contact.dart';
 import '../services/whatsapp_sender.dart';
 import '../widgets/section_card.dart';
 import '../widgets/top_bar.dart';
@@ -44,10 +44,63 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
   /// lagi.
   bool _unclearConfirmed = false;
 
+  /// Laporan berfoto yang menunggu sapaan ke nomor baru terkirim. Nomornya
+  /// ikut disimpan supaya laporan tetap ke nomor yang disapa walau admin
+  /// menggantinya di antara dua langkah.
+  ({String phone, String text, List<String> paths})? _pending;
+
+  /// Laporan sudah sekali dibuka otomatis saat warga kembali ke aplikasi.
+  /// Selanjutnya lewat tombol, supaya tidak berulang terus.
+  bool _pendingOpenedOnReturn = false;
+
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    // Admin bisa mengganti nomor saat aplikasi sedang terbuka. Diambil lagi
+    // di sini supaya nomor di bawah tombol kirim sudah yang terbaru.
+    reportContact.refresh();
+    _lifecycle = AppLifecycleListener(onResume: _onReturn);
+  }
+
   @override
   void dispose() {
+    _lifecycle.dispose();
     _standardized.dispose();
     super.dispose();
+  }
+
+  void _onReturn() {
+    if (_pending == null || _sharing || _pendingOpenedOnReturn) return;
+    _pendingOpenedOnReturn = true;
+    _sendPending();
+  }
+
+  /// Sapaan sudah terkirim, jadi chat-nya sudah ada dan WhatsApp langsung
+  /// membuka laporan berfoto, tidak memunculkan menu "Kirim ke...".
+  Future<void> _sendPending() async {
+    final pending = _pending!;
+    setState(() => _sharing = true);
+    final opened = await WhatsAppSender.send(
+      phone: pending.phone,
+      text: pending.text,
+      imagePaths: pending.paths,
+    );
+    if (opened) await reportContact.markChatted(pending.phone);
+    if (!mounted) return;
+    setState(() {
+      _sharing = false;
+      if (opened) {
+        _pending = null;
+        _shared = true;
+      }
+    });
+    if (!opened) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('WhatsApp belum bisa dibuka.')),
+      );
+    }
   }
 
   Future<void> _share() async {
@@ -90,12 +143,41 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
     if (_textCopied) {
       await Clipboard.setData(ClipboardData(text: message));
     }
-    final opened = await WhatsAppSender.send(text: message, imagePaths: paths);
+
+    // wa.me selalu langsung ke chat petugas walau nomornya tidak disimpan
+    // warga, tapi tidak bisa membawa foto. Foto dengan teks sebagai
+    // keterangannya hanya langsung ke chat yang sudah ada, jadi nomor yang
+    // belum pernah di-chat disapa dulu.
+    final phone = reportContact.number.value;
+    final bool opened;
+    if (paths.isEmpty) {
+      opened = await WhatsAppSender.openChat(phone: phone, text: message);
+    } else if (await reportContact.hasChatted(phone)) {
+      opened = await WhatsAppSender.send(
+        phone: phone,
+        text: message,
+        imagePaths: paths,
+      );
+    } else {
+      // Laporan berfoto disimpan dulu, dibuka begitu warga kembali ke
+      // aplikasi setelah sapaannya terkirim.
+      _pending = (phone: phone, text: message, paths: paths);
+      _pendingOpenedOnReturn = false;
+      opened = await WhatsAppSender.openChat(
+        phone: phone,
+        text:
+            'Halo, saya warga Lumeneng. Saya mau mengirim laporan tanda '
+            'longsor dari aplikasi EWS Lumeneng.',
+      );
+      if (!opened) _pending = null;
+    }
     if (!mounted) return;
     if (opened) {
+      if (_pending == null) await reportContact.markChatted(phone);
+      if (!mounted) return;
       setState(() {
         _sharing = false;
-        _shared = true;
+        _shared = _pending == null;
       });
       return;
     }
@@ -145,6 +227,18 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
         children: [
           _StandardizedCard(report: report, controller: _standardized),
           const SizedBox(height: 16),
+          // Pilihan warga tampil sendiri, supaya tidak tertukar dengan dugaan
+          // NLP yang bisa "Belum dikenali" walau warga sudah memilih.
+          SectionCard(
+            title: 'Yang terlihat',
+            children: [
+              Text(
+                report.reporterChoice?.label ?? 'Belum tahu',
+                style: textTheme.bodyLarge,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           if (report.text != null) ...[
             _NlpCard(text: report.text!, trainingSize: widget.trainingSize),
             const SizedBox(height: 16),
@@ -177,8 +271,35 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          if (_shared) ...[
-            _SharedNotice(textCopied: _textCopied),
+          if (_pending != null) ...[
+            const _Notice(
+              icon: Icons.chat_outlined,
+              text:
+                  'Laporan dan fotonya belum terkirim. Bila sapaan sudah '
+                  'terkirim, tekan tombol di bawah lalu tekan kirim di '
+                  'WhatsApp.',
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: _sharing ? null : _sendPending,
+              icon: const Icon(Icons.send_outlined, size: 18),
+              label: const Text('Kirim laporan dan foto'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: _sharing ? null : _share,
+              child: const Text('Buka lagi sapaan'),
+            ),
+          ] else if (_shared) ...[
+            _Notice(
+              icon: Icons.check_circle_outline,
+              text:
+                  '${_textCopied ? 'Teks laporan juga sudah disalin. Bila '
+                            'tidak muncul di WhatsApp, tekan lama kolom pesan '
+                            'lalu Tempel. ' : ''}'
+                  'Pastikan pesannya sudah terkirim di WhatsApp. Bila tanda '
+                  'makin parah, segera menjauh dan hubungi petugas desa.',
+            ),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -196,14 +317,18 @@ class _ReportResultScreenState extends State<ReportResultScreen> {
               label: const Text('Kirim ke petugas lewat WhatsApp'),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Dikirim ke WhatsApp penanggung jawab '
-              '${localPhone(reportWhatsAppNumber)}.'
-              '${report.photos.length > 1 ? ' ${report.photos.length} foto '
-                        'digabung jadi satu gambar bernomor agar laporan '
-                        'masuk dalam satu pesan.' : ''}',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
+            ValueListenableBuilder(
+              valueListenable: reportContact.number,
+              builder: (context, phone, _) => Text(
+                'Dikirim ke WhatsApp penanggung jawab ${localPhone(phone)}, '
+                'tidak perlu disimpan di kontak.'
+                '${report.hasPhoto ? ' Foto dan isi laporan masuk dalam '
+                          'satu pesan. Bila WhatsApp membuka sapaan dulu, '
+                          'kirim sapaannya lalu buka lagi aplikasi ini: '
+                          'laporannya langsung muncul.' : ''}',
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
+              ),
             ),
           ],
         ],
@@ -379,7 +504,7 @@ class _NlpCard extends StatelessWidget {
     return SectionCard(
       title: 'Analisis teks (NLP)',
       children: [
-        InfoRow(label: 'Jenis tanda', value: categoryText),
+        InfoRow(label: 'Dugaan dari teks', value: categoryText),
         if (confidence != null)
           InfoRow(label: 'Keyakinan', value: _decimal(confidence)),
         InfoRow(
@@ -622,10 +747,11 @@ class _PhotoResult extends StatelessWidget {
   }
 }
 
-class _SharedNotice extends StatelessWidget {
-  const _SharedNotice({required this.textCopied});
+class _Notice extends StatelessWidget {
+  const _Notice({required this.icon, required this.text});
 
-  final bool textCopied;
+  final IconData icon;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -639,17 +765,10 @@ class _SharedNotice extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            const Icon(Icons.check_circle_outline),
+            Icon(icon),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                '${textCopied ? 'Teks laporan juga sudah disalin. Bila tidak '
-                          'muncul di WhatsApp, tekan lama kolom pesan lalu '
-                          'Tempel. ' : ''}'
-                'Pastikan pesannya sudah terkirim di WhatsApp. Bila tanda '
-                'makin parah, segera menjauh dan hubungi petugas desa.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
+              child: Text(text, style: Theme.of(context).textTheme.bodyLarge),
             ),
           ],
         ),

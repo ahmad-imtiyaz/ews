@@ -3,6 +3,7 @@ package id.kkn.ewslumeneng
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -17,25 +18,53 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ews/whatsapp")
             .setMethodCallHandler { call, result ->
-                if (call.method != "send") {
-                    result.notImplemented()
+                val whatsApp = listOf("com.whatsapp", "com.whatsapp.w4b").firstOrNull(::isInstalled)
+                if (whatsApp == null) {
+                    result.success(false)
                     return@setMethodCallHandler
                 }
+                val phone = call.argument<String>("phone")!!
+                val text = call.argument<String>("text")!!
+                val imagePaths = call.argument<List<String>>("imagePaths").orEmpty()
+                val intent = when (call.method) {
+                    "openChat" -> chatIntent(whatsApp, phone, text)
+                    "send" -> reportIntent(whatsApp, phone, text, imagePaths)
+                    else -> {
+                        result.notImplemented()
+                        return@setMethodCallHandler
+                    }
+                }
                 result.success(
-                    sendToWhatsApp(
-                        phone = call.argument<String>("phone")!!,
-                        text = call.argument<String>("text")!!,
-                        imagePaths = call.argument<List<String>>("imagePaths").orEmpty(),
-                    ),
+                    try {
+                        startActivity(intent)
+                        true
+                    } catch (_: ActivityNotFoundException) {
+                        false
+                    },
                 )
             }
     }
 
-    /** Membuka chat [phone] langsung dengan teks dan foto, tanpa menu bagikan. */
-    private fun sendToWhatsApp(phone: String, text: String, imagePaths: List<String>): Boolean {
-        val whatsApp = listOf("com.whatsapp", "com.whatsapp.w4b").firstOrNull(::isInstalled)
-            ?: return false
+    /**
+     * Chat [phone] dengan teks terisi lewat tautan wa.me. Selalu langsung ke
+     * chat walau nomornya tidak ada di kontak, tapi tanpa foto.
+     */
+    private fun chatIntent(whatsApp: String, phone: String, text: String): Intent {
+        val link = Uri.parse("https://api.whatsapp.com/send?phone=$phone&text=${Uri.encode(text)}")
+        return Intent(Intent.ACTION_VIEW, link).setPackage(whatsApp)
+    }
 
+    /**
+     * Chat [phone] dengan teks dan foto. WhatsApp hanya menuruti `jid` bila
+     * nomornya ada di kontak atau sudah pernah chat; selain itu muncul menu
+     * "Kirim ke...".
+     */
+    private fun reportIntent(
+        whatsApp: String,
+        phone: String,
+        text: String,
+        imagePaths: List<String>,
+    ): Intent {
         val uris = ArrayList(
             imagePaths.mapIndexedNotNull { index, path ->
                 copyForSharing(path, index)?.let {
@@ -43,26 +72,17 @@ class MainActivity : FlutterActivity() {
                 }
             },
         )
-
         val action = if (uris.size > 1) Intent.ACTION_SEND_MULTIPLE else Intent.ACTION_SEND
-        val intent = Intent(action).apply {
+        return Intent(action).apply {
             setPackage(whatsApp)
             putExtra(Intent.EXTRA_TEXT, text)
             putExtra("jid", "$phone@s.whatsapp.net")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             when {
                 uris.size > 1 -> putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
                 uris.size == 1 -> putExtra(Intent.EXTRA_STREAM, uris.first())
             }
             type = if (uris.isEmpty()) "text/plain" else "image/jpeg"
             if (uris.isNotEmpty()) addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        return try {
-            startActivity(intent)
-            true
-        } catch (_: ActivityNotFoundException) {
-            false
         }
     }
 
