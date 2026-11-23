@@ -1,0 +1,1300 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Manual Book Aplikasi EWS Lumeneng</title>
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="m-normal" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14.7" fill="#1F6B3F" stroke="#fff" stroke-width="2.56"/>
+    </symbol>
+    <symbol id="m-waspada" viewBox="0 0 32 32">
+      <path d="M16 1.3 L30.7 30.7 L1.3 30.7 Z" fill="#F2B60C" stroke="#111" stroke-width="2.56" stroke-linejoin="round"/>
+      <text x="16" y="27.2" text-anchor="middle" font-family="Jakarta" font-weight="700" font-size="15" fill="#111">!</text>
+    </symbol>
+    <symbol id="m-awas" viewBox="0 0 32 32">
+      <path d="M16 1.3 L30.7 16 L16 30.7 L1.3 16 Z" fill="#A91F1A" stroke="#fff" stroke-width="2.56" stroke-linejoin="round"/>
+      <text x="16" y="21.6" text-anchor="middle" font-family="Jakarta" font-weight="700" font-size="15" fill="#fff">!</text>
+    </symbol>
+    <symbol id="m-nodata" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14.7" fill="#fff"/>
+      <circle cx="16" cy="16" r="14.7" fill="none" stroke="#595959" stroke-width="2.56" stroke-dasharray="6.94 4.62"/>
+      <text x="16" y="21.6" text-anchor="middle" font-family="Jakarta" font-weight="700" font-size="15" fill="#111">?</text>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ===================== SAMPUL ===================== -->
+<section class="page cover nonum front">
+  <div class="top">
+    <div class="logos">
+      <img src="img/logo_kemdikti.png" alt="Kemendiktisaintek">
+      <img class="wide" src="img/logo_berdampak.png" alt="Diktisaintek Berdampak">
+      <img src="img/logo_ivet.png" alt="Universitas IVET">
+    </div>
+    <div class="year">TAHUN 2026/2027</div>
+  </div>
+  <div class="band">
+    <div class="kicker">MANUAL BOOK</div>
+    <div class="title">APLIKASI EWS<br>LUMENENG</div>
+    <div class="sub">Panduan memakai aplikasi peringatan dini tanah longsor untuk warga Desa Lumeneng</div>
+    <img class="applogo" src="img/logo_wordmark_light.png" alt="EWS Lumeneng">
+  </div>
+  <div class="scene">
+    <div class="photo" style="background-image:url('img/foto_lumeneng.jpg')"></div>
+    <div class="shade"></div>
+    <div class="phone" style="width:50mm;left:27mm;top:36mm;"><img src="img/sensor_atas.jpg" alt=""></div>
+    <div class="phone" style="width:50mm;left:133mm;top:36mm;"><img src="img/lapor_2_foto.jpg" alt=""></div>
+    <div class="phone" style="width:60mm;left:75mm;top:14mm;z-index:2;"><img src="img/beranda.jpg" alt=""></div>
+  </div>
+  <div class="bottom">
+    <div><b>Desa Lumeneng</b><br>Kecamatan Paninggaran, Kabupaten Pekalongan</div>
+    <div style="text-align:right"><b>Disusun oleh</b><br>Tim Aksara Desa Lumeneng 2026</div>
+  </div>
+</section>
+
+<!-- ===================== IDENTITAS ===================== -->
+<section class="page front">
+  <div class="front-title">IDENTITAS BUKU</div>
+  <dl class="meta">
+    <dt>Judul</dt><dd>Manual Book Aplikasi EWS Lumeneng</dd>
+    <dt>Isi</dt><dd>Panduan memasang dan memakai aplikasi peringatan dini tanah longsor EWS Lumeneng</dd>
+    <dt>Untuk aplikasi</dt><dd>EWS Lumeneng versi 1.0.0, HP Android</dd>
+    <dt>Edisi</dt><dd>Pertama, November 2026</dd>
+    <dt>Disusun oleh</dt><dd>Tim Aksara Desa Lumeneng 2026<br>Program Mahasiswa Berdampak, Universitas IVET</dd>
+    <dt>Untuk</dt><dd>Warga dan Pemerintah Desa Lumeneng, Kecamatan Paninggaran, Kabupaten Pekalongan, Jawa Tengah</dd>
+    <dt>Data alat EWS</dt><dd>Server EWS desa, desalumeneng.id</dd>
+    <dt>Peta rawan longsor dan batas desa</dt><dd>Kajian Pemetaan Bencana Desa Lumeneng 2024, LPBI NU Kabupaten Pekalongan dan Ringan Tangan Indonesia</dd>
+    <dt>Peta dasar di aplikasi</dt><dd>OpenStreetMap, Esri, dan OpenTopoMap</dd>
+    <dt>Foto sampul dan contoh laporan</dt><dd>Dokumentasi Kajian Pemetaan Bencana Desa Lumeneng 2024</dd>
+  </dl>
+
+  <div class="note mt6">
+    <i class="mi">&#xf120;</i>
+    <div><span class="nt">Tentang gambar layar</span>
+      <p>Gambar layar di buku ini diambil dari aplikasi EWS Lumeneng versi 1.0.0 di HP Android. Supaya semua keadaan bisa ditunjukkan (Aman, Waspada, Awas, dan Tidak ada data), angka sensor, jam, catatan, dan koordinat yang terlihat adalah <b>data contoh</b>. Kondisi sebenarnya selalu dilihat langsung di aplikasi.</p>
+    </div>
+  </div>
+  <div class="note tip">
+    <i class="mi">&#xe692;</i>
+    <div><span class="nt">Bila tampilan di HP sedikit berbeda</span>
+      <p>Aplikasi akan terus diperbarui. Bila ada tulisan atau tombol yang berbeda dari gambar di buku ini, ikuti petunjuk yang tertulis di layar HP.</p>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== KATA PENGANTAR ===================== -->
+<section class="page front" id="pengantar">
+  <div class="front-title">KATA PENGANTAR</div>
+  <div style="font-size:10.5pt;line-height:1.65;text-align:justify;">
+    <p style="text-indent:8mm">Puji syukur kami panjatkan ke hadirat Tuhan Yang Maha Esa atas rahmat dan karunia-Nya, sehingga <b>Manual Book Aplikasi EWS Lumeneng</b> ini dapat kami susun. Buku ini merupakan bagian dari program kerja Tim Aksara Desa Lumeneng 2026 di bidang pengurangan risiko bencana.</p>
+    <p style="text-indent:8mm">Desa Lumeneng berada di perbukitan dengan ketinggian 540 sampai 1.350 mdpl, dan lereng di bagian selatannya curam. Kajian Pemetaan Bencana Desa Lumeneng tahun 2024 mencatat sebelas kejadian tanah longsor antara tahun 1944 dan 2024. Pada longsor besar Gunung Bongkok tahun 1944, sebagian besar warga Dukuh Sikudi selamat karena sudah mengenali tanda-tanda longsor dan segera pindah ke tempat aman. Pengalaman itu menunjukkan bahwa tanda yang diketahui lebih awal dapat menyelamatkan nyawa.</p>
+    <p style="text-indent:8mm">Aplikasi EWS Lumeneng dibuat untuk membantu hal tersebut. Aplikasi ini menampilkan bacaan alat peringatan dini (EWS) yang dipasang di lereng Sikembang, membunyikan peringatan di HP saat statusnya berubah, dan memudahkan warga melaporkan tanda longsor kepada penanggung jawab. Buku ini menjelaskan cara memasang dan memakai aplikasi tersebut langkah demi langkah, lengkap dengan gambar layar dan arti setiap tanda yang muncul.</p>
+    <p style="text-indent:8mm">Kami berterima kasih kepada Pemerintah Desa Lumeneng dan warga yang telah menerima dan mendukung kegiatan kami, kepada dosen pembimbing, serta kepada LPBI NU Kabupaten Pekalongan dan Ringan Tangan Indonesia yang kajiannya menjadi dasar peta rawan longsor di dalam aplikasi.</p>
+    <p style="text-indent:8mm">Aplikasi ini akan terus diperbarui, sehingga isi buku ini juga dapat berubah. Saran dan masukan dari pembaca akan kami gunakan untuk edisi berikutnya. Semoga buku ini bermanfaat bagi warga Desa Lumeneng.</p>
+  </div>
+  <div style="margin-top:14mm;text-align:right;font-size:10.5pt;line-height:1.6">
+    Lumeneng, November 2026<br><br>
+    Tim Penyusun,<br>
+    <i>Program Mahasiswa Berdampak / Tim Aksara Desa Lumeneng 2026</i>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== DAFTAR ISI ===================== -->
+<section class="page front" id="daftar-isi">
+  <div class="front-title">DAFTAR ISI</div>
+  <div class="toc">
+    <a class="t1" href="#pengantar"><span>Kata Pengantar</span><span class="dots"></span><span class="pg" data-ref="pengantar"></span></a>
+    <a class="t1" href="#tujuan"><span>Tujuan Buku Panduan</span><span class="dots"></span><span class="pg" data-ref="tujuan"></span></a>
+
+    <a class="t1" href="#bab1"><span>BAB 1&nbsp; Mengenal EWS Lumeneng</span><span class="dots"></span><span class="pg" data-ref="bab1"></span></a>
+    <a class="t2" href="#s1-2"><span>Mengapa Desa Lumeneng membutuhkan EWS</span><span class="dots"></span><span class="pg" data-ref="s1-2"></span></a>
+    <a class="t2" href="#s1-3"><span>Cara kerja EWS Lumeneng</span><span class="dots"></span><span class="pg" data-ref="s1-3"></span></a>
+    <a class="t2" href="#s1-5"><span>Arti status Aman, Waspada, Awas, dan Tidak ada data</span><span class="dots"></span><span class="pg" data-ref="s1-5"></span></a>
+
+    <a class="t1" href="#bab2"><span>BAB 2&nbsp; Memasang dan Membuka Aplikasi</span><span class="dots"></span><span class="pg" data-ref="bab2"></span></a>
+    <a class="t2" href="#s2-3"><span>Membuka aplikasi pertama kali</span><span class="dots"></span><span class="pg" data-ref="s2-3"></span></a>
+    <a class="t2" href="#s2-4"><span>Izin lokasi</span><span class="dots"></span><span class="pg" data-ref="s2-4"></span></a>
+
+    <a class="t1" href="#bab3"><span>BAB 3&nbsp; Mengenal Tampilan</span><span class="dots"></span><span class="pg" data-ref="bab3"></span></a>
+
+    <a class="t1" href="#bab4"><span>BAB 4&nbsp; Menu Beranda</span><span class="dots"></span><span class="pg" data-ref="bab4"></span></a>
+    <a class="t2" href="#s4-2"><span>Membaca warna dan penanda di peta</span><span class="dots"></span><span class="pg" data-ref="s4-2"></span></a>
+    <a class="t2" href="#s4-4"><span>Mengganti mode peta</span><span class="dots"></span><span class="pg" data-ref="s4-4"></span></a>
+    <a class="t2" href="#s4-5"><span>Zona rawan longsor dan detail alat EWS</span><span class="dots"></span><span class="pg" data-ref="s4-5"></span></a>
+    <a class="t2" href="#s4-7"><span>Lokasi Anda dan catatan perubahan status</span><span class="dots"></span><span class="pg" data-ref="s4-7"></span></a>
+
+    <a class="t1" href="#bab5"><span>BAB 5&nbsp; Menu Sensor</span><span class="dots"></span><span class="pg" data-ref="bab5"></span></a>
+    <a class="t2" href="#s5-2"><span>Arti tiap sensor dan tulisan pada kartu</span><span class="dots"></span><span class="pg" data-ref="s5-2"></span></a>
+    <a class="t2" href="#s5-4"><span>Contoh saat Waspada dan Awas</span><span class="dots"></span><span class="pg" data-ref="s5-4"></span></a>
+
+    <a class="t1" href="#bab6"><span>BAB 6&nbsp; Menu Lapor: Melaporkan Tanda Longsor</span><span class="dots"></span><span class="pg" data-ref="bab6"></span></a>
+    <a class="t2" href="#s6-3"><span>Langkah membuat laporan</span><span class="dots"></span><span class="pg" data-ref="s6-3"></span></a>
+    <a class="t2" href="#s6-4"><span>Hasil analisis dan mengirim laporan</span><span class="dots"></span><span class="pg" data-ref="s6-4"></span></a>
+    <a class="t2" href="#s6-6"><span>Contoh pesan yang diterima petugas</span><span class="dots"></span><span class="pg" data-ref="s6-6"></span></a>
+
+    <a class="t1" href="#bab7"><span>BAB 7&nbsp; Notifikasi dan Peringatan</span><span class="dots"></span><span class="pg" data-ref="bab7"></span></a>
+    <a class="t2" href="#s7-3"><span>Bila HP tidak berbunyi</span><span class="dots"></span><span class="pg" data-ref="s7-3"></span></a>
+    <a class="t1" href="#bab8"><span>BAB 8&nbsp; Saat Sinyal Lemah atau Alat Tidak Mengirim Data</span><span class="dots"></span><span class="pg" data-ref="bab8"></span></a>
+    <a class="t2" href="#s8-4"><span>Alat tidak mengirim data</span><span class="dots"></span><span class="pg" data-ref="s8-4"></span></a>
+    <a class="t2" href="#s8-6"><span>Ringkasan tulisan saat data bermasalah</span><span class="dots"></span><span class="pg" data-ref="s8-6"></span></a>
+    <a class="t1" href="#bab9"><span>BAB 9&nbsp; Tentang Aplikasi, Data, dan Privasi</span><span class="dots"></span><span class="pg" data-ref="bab9"></span></a>
+    <a class="t1" href="#bab10"><span>BAB 10&nbsp; Pemecahan Masalah</span><span class="dots"></span><span class="pg" data-ref="bab10"></span></a>
+
+    <a class="t1" href="#siaga"><span>Lampiran: Kartu Siaga</span><span class="dots"></span><span class="pg" data-ref="siaga"></span></a>
+    <a class="t1" href="#glosarium"><span>Glosarium</span><span class="dots"></span><span class="pg" data-ref="glosarium"></span></a>
+    <a class="t1" href="#penutup"><span>Penutup</span><span class="dots"></span><span class="pg" data-ref="penutup"></span></a>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== TUJUAN ===================== -->
+<section class="page front" id="tujuan">
+  <div class="front-title">TUJUAN BUKU PANDUAN</div>
+  <p>Buku ini menjadi pegangan warga dan perangkat Desa Lumeneng dalam memakai aplikasi EWS Lumeneng sehari-hari, terutama saat musim hujan. Secara rinci, buku ini disusun untuk:</p>
+  <ul class="dots">
+    <li>Menjelaskan fungsi aplikasi EWS Lumeneng dan cara kerja alat EWS secara sederhana.</li>
+    <li>Memandu cara memasang aplikasi dan memberi izin yang dibutuhkan.</li>
+    <li>Menjelaskan arti status Aman, Waspada, Awas, dan Tidak ada data, beserta tindakan yang perlu dilakukan.</li>
+    <li>Memandu cara membaca peta, bacaan sensor, dan riwayat perubahan status.</li>
+    <li>Memandu cara melaporkan tanda longsor lewat menu Lapor.</li>
+    <li>Menjadi bahan bagi perangkat desa, RT, RW, dan relawan saat mengenalkan aplikasi kepada warga.</li>
+  </ul>
+
+  <h2>Siapa yang perlu membaca</h2>
+  <ul class="dots">
+    <li>Warga yang tinggal, berkebun, atau melintas di dekat lereng.</li>
+    <li>Perangkat desa, ketua RT, dan ketua RW.</li>
+    <li>Relawan dan kader siaga bencana.</li>
+    <li>Penanggung jawab EWS yang menerima laporan warga.</li>
+  </ul>
+
+  <h2>Cara membaca buku ini</h2>
+  <table class="tbl">
+    <tr><th style="width:34mm">Tanda</th><th>Artinya</th></tr>
+    <tr><td><span class="co" style="position:static;display:inline-block;margin:0">1</span></td><td>Nomor bulat pada gambar layar. Penjelasannya ada pada daftar bernomor di samping atau di bawah gambar.</td></tr>
+    <tr><td><b>Periksa laporan</b></td><td>Tulisan tebal adalah nama tombol atau tulisan yang terlihat di layar HP.</td></tr>
+    <tr><td><span class="note important mb0" style="margin:0;padding:1.4mm 2.4mm;font-size:8.6pt"><b>Penting</b></span></td><td>Hal yang wajib diperhatikan supaya aplikasi dipakai dengan benar.</td></tr>
+    <tr><td><span class="note tip mb0" style="margin:0;padding:1.4mm 2.4mm;font-size:8.6pt"><b>Tips</b></span></td><td>Cara yang memudahkan, tetapi tidak wajib.</td></tr>
+    <tr><td><span class="safety mb0" style="margin:0;padding:1.4mm 2.4mm;font-size:8.6pt;display:inline-flex">Keselamatan</span></td><td>Pengingat keselamatan, sama seperti kotak hitam di menu Lapor.</td></tr>
+  </table>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 1 ===================== -->
+<section class="page main" id="bab1">
+  <div class="chapter-head">
+    <div class="bab">Bab 1</div>
+    <h1>Mengenal EWS Lumeneng</h1>
+    <div class="lead mb0">Apa aplikasi ini, untuk siapa, dan mengapa Desa Lumeneng membutuhkannya.</div>
+  </div>
+
+  <h2><span class="n">1.1</span>Apa itu EWS Lumeneng</h2>
+  <p>EWS adalah singkatan dari <i>Early Warning System</i>, artinya sistem peringatan dini. <b>EWS Lumeneng</b> adalah aplikasi Android untuk warga Desa Lumeneng, Kecamatan Paninggaran, Kabupaten Pekalongan. Aplikasi ini punya tiga tugas:</p>
+  <ul class="dots">
+    <li>Menampilkan kondisi lereng dari alat EWS yang dipasang di barat permukiman Sikembang.</li>
+    <li>Membunyikan peringatan dan menampilkan notifikasi di HP saat status alat berubah.</li>
+    <li>Menjadi saluran bagi warga untuk melaporkan tanda-tanda longsor kepada penanggung jawab EWS.</li>
+  </ul>
+  <p>Aplikasi ini tidak memakai akun, jadi tidak perlu mendaftar atau mengingat kata sandi.</p>
+  <div class="note important">
+    <i class="mi">&#xe238;</i>
+    <div><span class="nt">Penting</span>
+      <p>Aplikasi ini alat bantu pemantauan warga, <b>bukan peringatan resmi BPBD</b>. Saat ragu, utamakan keselamatan dan ikuti arahan perangkat desa.</p>
+    </div>
+  </div>
+
+  <h2 id="s1-2"><span class="n">1.2</span>Mengapa Desa Lumeneng membutuhkan EWS</h2>
+  <div class="row">
+    <div class="grow">
+      <p>Wilayah Desa Lumeneng seluas 884,6 hektare didominasi perbukitan dengan ketinggian 540 sampai 1.350 mdpl. Kontur di bagian selatan rapat, berupa lereng bukit yang curam, dan curah hujannya tinggi.</p>
+      <p>Kajian Pemetaan Bencana Desa Lumeneng 2024 mencatat 11 kejadian longsor sejak 1944. Yang terbesar adalah longsor lereng Gunung Bongkok tahun 1944, yang menggusur hampir seluruh permukiman Dukuh Sikudi. Dari sekitar 40 kepala keluarga, hanya 4 rumah yang tersisa. Sebagian besar warga selamat karena sudah mengenali tanda-tanda longsor dan segera keluar ke tempat aman. Mereka kemudian membangun permukiman baru yang sekarang dikenal sebagai Dukuh Sumingkir.</p>
+    </div>
+    <div class="shot" style="width:64mm;flex:none">
+      <img src="img/foto_permukiman.jpg" alt="" style="width:64mm;height:46mm;object-fit:cover;border-radius:2.4mm;display:block">
+      <div class="cap">Permukiman di lereng Desa Lumeneng.<br>Foto: Kajian Pemetaan Bencana 2024</div>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h3 class="mt0">Kejadian longsor di Desa Lumeneng, 1944–2024</h3>
+  <table class="tbl compact" style="font-size:8.6pt">
+    <tr><th style="width:16mm">Tahun</th><th style="width:30mm">Lokasi</th><th style="width:44mm">Kejadian</th><th>Dampak</th></tr>
+    <tr><td>1944</td><td>Dukuh Sikudi</td><td>Longsor Gunung Bongkok</td><td>Korban jiwa, permukiman tergusur</td></tr>
+    <tr><td>2008</td><td>Kaliwisnu</td><td>Longsor tebing</td><td>2 rumah, jalan, sawah, dan ladang rusak</td></tr>
+    <tr><td>2020</td><td>Wetan Atas</td><td>Longsor tebing</td><td>1 rumah</td></tr>
+    <tr><td>2020</td><td>Wanasida</td><td>Longsor tebing</td><td>Jaringan air</td></tr>
+    <tr><td>2022</td><td>Kaliwisnu</td><td>Longsor permukiman</td><td>3 rumah, jalan, dan sawah rusak</td></tr>
+    <tr><td>2022</td><td>Sikembang</td><td>Longsor permukiman</td><td>Bagian belakang rumah rusak</td></tr>
+    <tr><td>2023</td><td>Wanasida</td><td>Longsor tebing</td><td>Jaringan air</td></tr>
+    <tr><td>2023</td><td>Wanasida</td><td>Longsor permukiman</td><td>2 rumah</td></tr>
+    <tr><td>2023</td><td>Kaliwisnu</td><td>Longsor tebing</td><td>3 rumah, jalan, dan sawah rusak</td></tr>
+    <tr><td>2023</td><td>Krajan</td><td>Longsor permukiman</td><td>Pagar rumah</td></tr>
+    <tr><td>2024</td><td>Sikembang</td><td>Longsor tebing jalan</td><td>Jalan</td></tr>
+  </table>
+  <p class="small soft">Sumber: Kajian Pemetaan Bencana Desa Lumeneng 2024. Dua kejadian terbaru di Sikembang (2022 dan 2024) terjadi di dukuh yang sama dengan lokasi alat EWS sekarang.</p>
+
+  <h2 id="s1-3"><span class="n">1.3</span>Cara kerja EWS Lumeneng</h2>
+  <div class="flow-title">Pemantauan lereng</div>
+  <div class="flow">
+    <div class="node"><i class="mi">&#xf35a;</i><b>Alat EWS di lereng</b>Membaca kelembapan tanah, intensitas hujan, kemiringan, dan kelembapan udara.</div>
+    <div class="arrow"><i class="mi">&#xe216;</i></div>
+    <div class="node"><i class="mi">&#xefd4;</i><b>Server desa</b>desalumeneng.id menyimpan bacaan dan menentukan status Aman, Waspada, atau Awas.</div>
+    <div class="arrow"><i class="mi">&#xe216;</i></div>
+    <div class="node"><i class="mi">&#xf3a9;</i><b>Aplikasi di HP</b>Mengambil data tiap 10 detik selama dibuka, lalu menampilkannya di Beranda dan Sensor.</div>
+    <div class="arrow"><i class="mi">&#xe216;</i></div>
+    <div class="node"><i class="mi">&#xe451;</i><b>Peringatan</b>Saat status berubah menjadi Waspada atau Awas, HP berbunyi dan muncul notifikasi.</div>
+  </div>
+  <div class="flow-title">Laporan warga</div>
+  <div class="flow">
+    <div class="node"><i class="mi">&#xf06f6;</i><b>Warga melihat tanda</b>Retakan, longsoran kecil, rembesan air, pohon miring, atau suara gemuruh.</div>
+    <div class="arrow"><i class="mi">&#xe216;</i></div>
+    <div class="node"><i class="mi">&#xf030f;</i><b>Menu Lapor</b>Foto, cerita, dan lokasi HP diperiksa otomatis oleh aplikasi.</div>
+    <div class="arrow"><i class="mi">&#xe216;</i></div>
+    <div class="node"><i class="mi">&#xef44;</i><b>WhatsApp penanggung jawab</b>Laporan terkirim sebagai satu pesan lengkap dengan foto.</div>
+    <div class="arrow"><i class="mi">&#xe216;</i></div>
+    <div class="node"><i class="mi">&#xf0db;</i><b>Petugas memeriksa</b>Petugas menilai laporan dan memeriksa langsung ke lokasi.</div>
+  </div>
+  <div class="note">
+    <i class="mi">&#xefd4;</i>
+    <div><p>Status Aman, Waspada, dan Awas selalu ditentukan oleh <b>server desa</b>, tidak dihitung sendiri oleh aplikasi. Karena itu, semua HP yang tersambung menampilkan status yang sama.</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0"><span class="n">1.4</span>Menu dan fitur utama</h2>
+  <div class="cards">
+    <div class="card"><i class="mi">&#xf7f5;</i><div><b>Beranda</b>Peta desa dengan area pantau alat EWS yang warnanya mengikuti status, zona rawan longsor, dan catatan perubahan status terbaru.</div></div>
+    <div class="card"><i class="mi">&#xf014c;</i><div><b>Sensor</b>Bacaan keempat sensor alat EWS, penyebab dan saran saat status berubah, serta riwayat perubahan status.</div></div>
+    <div class="card"><i class="mi">&#xf030f;</i><div><b>Lapor</b>Melaporkan tanda longsor dengan foto, cerita dalam bahasa sehari-hari, dan lokasi HP, lalu mengirimnya lewat WhatsApp.</div></div>
+    <div class="card"><i class="mi">&#xe451;</i><div><b>Lonceng notifikasi</b>Riwayat 50 peringatan terakhir. Angka di lonceng menunjukkan peringatan yang belum dibaca.</div></div>
+    <div class="card"><i class="mi">&#xe33d;</i><div><b>Tentang aplikasi</b>Versi aplikasi, nomor darurat 112, sumber data, serta penjelasan data dan privasi.</div></div>
+    <div class="card"><i class="mi">&#xef61;</i><div><b>Tetap terbaca tanpa sinyal</b>Status terakhir dan riwayat peringatan tersimpan di HP, lengkap dengan waktunya.</div></div>
+  </div>
+
+  <h2 id="s1-5"><span class="n">1.5</span>Arti status</h2>
+  <p>Ada empat keadaan yang perlu dikenali. Tiap keadaan punya ikon dan bentuk penanda sendiri, jadi tetap bisa dibedakan tanpa melihat warna.</p>
+  <table class="tbl">
+    <tr><th style="width:12mm">Ikon</th><th style="width:19mm">Di peta</th><th style="width:27mm">Status</th><th>Artinya</th><th style="width:52mm">Yang dilakukan</th></tr>
+    <tr>
+      <td class="ic"><i class="mi c-normal">&#xf634;</i></td>
+      <td class="center"><svg width="26" height="26"><use href="#m-normal"/></svg></td>
+      <td><span class="st">Aman</span><br><span class="small soft">Di peta dan detail alat tertulis <i>Normal</i></span></td>
+      <td>Semua sensor di bawah batas waspada.</td>
+      <td>Beraktivitas seperti biasa. Tetap pantau aplikasi saat hujan.</td>
+    </tr>
+    <tr>
+      <td class="ic"><i class="mi c-waspada">&#xf02a0;</i></td>
+      <td class="center"><svg width="26" height="26"><use href="#m-waspada"/></svg></td>
+      <td><span class="st">Waspada</span></td>
+      <td>Ada sensor yang melewati batas waspada: tanah mulai jenuh air, hujan deras, atau lereng mulai bergerak.</td>
+      <td>Hindari lereng. Siapkan tas siaga dan jalur evakuasi. Pantau kabar dari petugas.</td>
+    </tr>
+    <tr>
+      <td class="ic"><i class="mi c-awas">&#xef9e;</i></td>
+      <td class="center"><svg width="26" height="26"><use href="#m-awas"/></svg></td>
+      <td><span class="st">Awas</span></td>
+      <td>Kabel pada alat EWS putus, yang bisa terjadi bila tanah di lereng bergerak, atau status Awas ditetapkan admin.</td>
+      <td><b>Segera menjauh dari lereng</b> dan ikuti arahan petugas. Saat darurat, telepon 112.</td>
+    </tr>
+    <tr>
+      <td class="ic"><i class="mi c-stale">&#xf359;</i></td>
+      <td class="center"><svg width="26" height="26"><use href="#m-nodata"/></svg></td>
+      <td><span class="st">Tidak ada data</span></td>
+      <td>Alat tidak mengirim data, atau HP belum tersambung ke server. Kondisi sekarang belum diketahui.</td>
+      <td><b>Jangan anggap sudah aman.</b> Periksa sinyal HP dan ikuti kabar dari perangkat desa.</td>
+    </tr>
+  </table>
+  <p class="small soft">Saran yang tampil di aplikasi dikirim oleh server desa dan bisa disesuaikan oleh pengelola EWS bersama perangkat desa. Bila berbeda dengan tabel ini, ikuti saran di aplikasi dan arahan petugas.</p>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 2 ===================== -->
+<section class="page main" id="bab2">
+  <div class="chapter-head">
+    <div class="bab">Bab 2</div>
+    <h1>Memasang dan Membuka Aplikasi</h1>
+    <div class="lead mb0">Yang perlu disiapkan, cara memasang, dan izin yang diminta saat aplikasi pertama kali dibuka.</div>
+  </div>
+
+  <h2><span class="n">2.1</span>Yang perlu disiapkan</h2>
+  <table class="tbl">
+    <tr><td class="ic"><i class="mi c-navy">&#xf3a9;</i></td><td><b>HP Android versi 7.0 atau lebih baru.</b></td></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xeff2;</i></td><td><b>Ruang penyimpanan kosong minimal 200 MB.</b> File pemasangannya berukuran sekitar 80 MB.</td></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xe5a7;</i></td><td><b>Paket data atau WiFi.</b> Selama aplikasi dibuka, data dicek tiap 10 detik. Bila tidak ada perubahan, server hanya membalas singkat sehingga kuota hemat. Peta satelit memakai kuota lebih banyak saat digeser.</td></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xf193;</i></td><td><b>Lokasi (GPS) HP.</b> Untuk titik Anda di peta dan lokasi laporan.</td></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xef44;</i></td><td><b>WhatsApp.</b> Untuk mengirim laporan. Bila tidak ada, aplikasi memakai menu Bagikan di HP.</td></tr>
+  </table>
+
+  <h2><span class="n">2.2</span>Cara memasang aplikasi</h2>
+  <p>Saat buku ini disusun, EWS Lumeneng belum tersedia di Play Store. Aplikasi dibagikan sebagai file pemasangan berakhiran <b>.apk</b> oleh Tim Aksara Desa Lumeneng atau perangkat desa.</p>
+  <div class="step"><div class="sn">1</div><div class="sb"><h3>Terima file APK</h3><p>Minta file pemasangan EWS Lumeneng kepada tim atau perangkat desa. File biasanya dikirim lewat WhatsApp atau tautan unduhan.</p></div></div>
+  <div class="step"><div class="sn">2</div><div class="sb"><h3>Buka file</h3><p>Ketuk file tersebut di WhatsApp, atau buka aplikasi pengelola file di HP lalu cari di folder <b>Download</b> (Unduhan).</p></div></div>
+  <div class="step"><div class="sn">3</div><div class="sb"><h3>Izinkan pemasangan</h3><p>Bila muncul pesan bahwa HP tidak mengizinkan pemasangan dari sumber ini, ketuk <b>Setelan</b>, nyalakan <b>Izinkan dari sumber ini</b>, lalu kembali.</p></div></div>
+  <div class="step"><div class="sn">4</div><div class="sb"><h3>Ketuk Instal</h3><p>Tunggu sampai selesai. Bila Play Protect menampilkan peringatan, pilih <b>Tetap instal</b> hanya bila file berasal dari tim atau perangkat desa.</p></div></div>
+  <div class="step"><div class="sn">5</div><div class="sb" style="display:flex;gap:4mm;align-items:center"><div><h3>Buka aplikasi</h3><p>Ketuk <b>Buka</b>, atau cari ikon EWS Lumeneng (gunung biru dengan tanda sinyal) di layar HP.</p></div><img src="img/icon.png" alt="Ikon EWS Lumeneng" style="width:15mm;height:15mm;border-radius:3.4mm;box-shadow:0 .4mm 1.6mm rgba(0,0,0,.25);flex:none"></div></div>
+  <div class="note tip">
+    <i class="mi">&#xf0681;</i>
+    <div><p>Saat ada versi baru, tim akan membagikan file APK terbaru. Pasang dengan cara yang sama. Versi yang sedang terpasang bisa dilihat di halaman <b>Tentang aplikasi</b> (BAB 9).</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s2-3"><span class="n">2.3</span>Membuka aplikasi pertama kali</h2>
+  <div class="row center" style="gap:8mm">
+    <div class="shot"><div class="phone" style="width:50mm"><img src="img/splash_1.jpg" alt=""></div><div class="cap"><b>Animasi pembuka</b><br>Alat EWS berbunyi saat tanah retak</div></div>
+    <div class="shot"><div class="phone" style="width:50mm"><img src="img/splash_2.jpg" alt=""></div><div class="cap"><b>Akhir animasi</b><br>Warga menerima kabar di HP</div></div>
+    <div class="shot"><div class="phone" style="width:50mm"><img src="img/izin_notifikasi.jpg" alt=""></div><div class="cap"><b>Izin notifikasi</b><br>Pilih <b>Izinkan</b></div></div>
+  </div>
+  <div class="mt6">
+    <div class="step"><div class="sn">1</div><div class="sb"><h3>Animasi pembuka</h3><p>Animasi tampil beberapa detik. Ketuk layar bila ingin melewatinya. Saat status sedang Awas, animasi dilewati otomatis supaya kondisi langsung terlihat.</p></div></div>
+    <div class="step"><div class="sn">2</div><div class="sb"><h3>Mengambil data</h3><p>Bila data belum siap, muncul tulisan <b>Mengambil data terbaru</b> di bawah logo. Bila HP tidak ada sinyal, aplikasi langsung menampilkan data terakhir yang tersimpan di HP beserta waktunya.</p></div></div>
+    <div class="step"><div class="sn">3</div><div class="sb"><h3>Izinkan notifikasi</h3><p>Saat Beranda terbuka, HP menanyakan <b>Izinkan EWS Lumeneng mengirim notifikasi kepada Anda?</b> Pilih <b>Izinkan</b>. Tanpa izin ini, HP tidak berbunyi saat status berubah.</p></div></div>
+  </div>
+  <div class="note important">
+    <i class="mi">&#xe238;</i>
+    <div><span class="nt">Terlanjur memilih Jangan izinkan?</span><p>Ketuk lonceng di kanan atas, lalu ketuk <b>Izinkan notifikasi</b>. Bila jendela izin tidak muncul, nyalakan notifikasi EWS Lumeneng lewat Pengaturan HP (lihat BAB 7).</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s2-4"><span class="n">2.4</span>Izin lokasi</h2>
+  <div class="row">
+    <div class="shot"><div class="phone sm"><img src="img/izin_lokasi.jpg" alt=""></div><div class="cap">Jendela izin lokasi</div></div>
+    <div class="grow">
+      <p>Izin lokasi diminta saat menu <b>Lapor</b> dibuka pertama kali, atau saat tombol lokasi saya di peta ditekan. Lokasi dipakai untuk mencatat tempat laporan dan menampilkan titik Anda di peta.</p>
+      <div class="step"><div class="sn">1</div><div class="sb"><p class="mt2">Pilih <b>Presisi</b> supaya lokasi lebih tepat.</p></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><p class="mt2">Pilih <b>Saat aplikasi digunakan</b>.</p></div></div>
+      <p>Bila izin ditolak, laporan tetap bisa dikirim, tetapi tanpa lokasi HP. Izin bisa diubah lagi di <b>Pengaturan HP &gt; Aplikasi &gt; EWS Lumeneng &gt; Izin</b>.</p>
+      <div class="note">
+        <i class="mi">&#xf2d0;</i>
+        <div><p>Lokasi HP hanya dipakai selama aplikasi dibuka, dan hanya ikut terkirim bila Anda sendiri mengirim laporan.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="mt6"><span class="n">2.5</span>Bila HP berbeda merek</h2>
+  <p>Tulisan pada jendela izin bisa sedikit berbeda antarmerek HP, misalnya <b>Izinkan hanya saat menggunakan aplikasi</b> atau <b>Saat aplikasi digunakan</b>. Artinya sama. Pilih pilihan yang mengizinkan lokasi selama aplikasi dibuka.</p>
+
+  <h2 id="s2-6"><span class="n">2.6</span>Pemakaian kuota dan baterai</h2>
+  <table class="tbl">
+    <tr><th style="width:52mm">Keadaan</th><th>Yang terjadi</th></tr>
+    <tr><td><b>Aplikasi dibuka</b></td><td>Data dicek tiap 10 detik. Bila tidak ada perubahan, server hanya membalas singkat sehingga kuota yang terpakai kecil.</td></tr>
+    <tr><td><b>Peta digeser atau diperbesar</b></td><td>Gambar peta diunduh dari internet. Bagian inilah yang paling banyak memakai kuota, terutama citra satelit.</td></tr>
+    <tr><td><b>Aplikasi ditutup atau HP dikunci</b></td><td>Pengambilan data berhenti, jadi tidak memakai kuota dan baterai.</td></tr>
+    <tr><td><b>Server desa mengirim peringatan</b></td><td>Notifikasi tetap masuk walaupun aplikasi ditutup, selama HP tersambung internet.</td></tr>
+  </table>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 3 ===================== -->
+<section class="page main" id="bab3">
+  <div class="chapter-head">
+    <div class="bab">Bab 3</div>
+    <h1>Mengenal Tampilan</h1>
+    <div class="lead mb0">Semua menu memakai susunan yang sama: bar atas, isi menu, dan menu bawah.</div>
+  </div>
+  <div class="row">
+    <div class="phone xl">
+      <img src="img/sensor_atas.jpg" alt="">
+      <span class="co" style="left:39.8%;top:6.9%">1</span>
+      <span class="co" style="left:65.9%;top:5.3%">2</span>
+      <span class="co" style="left:92.6%;top:5.3%">3</span>
+      <span class="co" style="left:50%;top:13.8%">4</span>
+      <span class="co" style="left:30.6%;top:86.4%">5</span>
+      <span class="co" style="left:59.5%;top:87.6%">6</span>
+      <span class="co" style="left:88.9%;top:86.2%">7</span>
+    </div>
+    <div class="grow">
+      <ol class="legend">
+        <li><span class="num">1</span><b>Logo EWS Lumeneng</b>Tampil di menu Beranda, Sensor, dan Lapor.</li>
+        <li><span class="num">2</span><b>Tombol Tentang</b>Membuka informasi aplikasi, nomor darurat, sumber data, dan privasi.</li>
+        <li><span class="num">3</span><b>Lonceng notifikasi</b>Membuka riwayat peringatan. Angka kecil pada lonceng menunjukkan peringatan yang belum dibaca.</li>
+        <li><span class="num">4</span><b>Isi menu</b>Berubah sesuai menu yang dipilih. Pada gambar ini menu Sensor sedang dibuka.</li>
+        <li><span class="num">5</span><b>Lapor</b>Melaporkan tanda longsor.</li>
+        <li><span class="num">6</span><b>Beranda</b>Tombol bulat di tengah. Saat Beranda dibuka, tombol ini menonjol ke atas.</li>
+        <li><span class="num">7</span><b>Sensor</b>Menu yang sedang dibuka diberi latar abu-abu dan tulisannya tebal.</li>
+      </ol>
+      <h3>Berpindah menu</h3>
+      <p>Ketuk nama menu di bagian bawah. Menu bawah tersembunyi selama papan ketik terbuka.</p>
+      <p>Halaman lain, misalnya Notifikasi atau Tentang aplikasi, punya tombol <b>‹</b> di kiri atas untuk kembali. Tombol kembali di HP juga bisa dipakai.</p>
+      <div class="note tip">
+        <i class="mi">&#xf0681;</i>
+        <div><p>Isian di menu Lapor tidak hilang saat Anda pindah menu, jadi laporan bisa dilanjutkan nanti.</p></div>
+      </div>
+    </div>
+  </div>
+  <h3 class="mt4">Ikon yang sering muncul</h3>
+  <div class="row" style="gap:6mm">
+    <table class="tbl compact grow mb0">
+      <tr><td class="ic"><i class="mi c-normal">&#xf634;</i></td><td><b>Normal</b> atau <b>Aman</b></td></tr>
+      <tr><td class="ic"><i class="mi c-waspada">&#xf02a0;</i></td><td><b>Waspada</b>, atau sensor melewati batas</td></tr>
+      <tr><td class="ic"><i class="mi c-awas">&#xef9e;</i></td><td><b>Awas</b></td></tr>
+      <tr><td class="ic"><i class="mi c-stale">&#xf359;</i></td><td><b>Tidak ada data</b>, alat tidak mengirim</td></tr>
+    </table>
+    <table class="tbl compact grow mb0">
+      <tr><td class="ic"><i class="mi">&#xef61;</i></td><td><b>Belum tersambung</b> ke server</td></tr>
+      <tr><td class="ic"><i class="mi">&#xe314;</i></td><td><b>Angka sementara</b> dari simpanan HP</td></tr>
+      <tr><td class="ic"><i class="mi">&#xe15e;</i></td><td><b>Kembali</b> ke halaman sebelumnya</td></tr>
+      <tr><td class="ic"><i class="mi">&#xe5d5;</i></td><td><b>Tarik ke bawah</b> untuk memperbarui data</td></tr>
+    </table>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 4 ===================== -->
+<section class="page main" id="bab4">
+  <div class="chapter-head">
+    <div class="bab">Bab 4</div>
+    <h1>Menu Beranda</h1>
+    <div class="lead mb0">Beranda adalah halaman pertama setelah animasi pembuka. Isinya peta desa dan catatan perubahan status alat EWS.</div>
+  </div>
+  <h2><span class="n">4.1</span>Bagian-bagian Beranda</h2>
+  <div class="row">
+    <div class="phone xl">
+      <img src="img/beranda_desa.jpg" alt="">
+      <span class="co" style="left:36.6%;top:15%">1</span>
+      <span class="co" style="left:61.6%;top:15%">2</span>
+      <span class="co" style="left:41%;top:36%">3</span>
+      <span class="co" style="left:61.5%;top:27%">4</span>
+      <span class="co" style="left:71%;top:37.4%">5</span>
+      <span class="co" style="left:80.4%;top:30.4%">6</span>
+      <span class="co" style="left:79.4%;top:43.4%">7</span>
+      <span class="co" style="left:40.5%;top:53.3%">8</span>
+      <span class="co" style="left:69.2%;top:53.3%">9</span>
+      <span class="co" style="left:51.9%;top:75.6%">10</span>
+    </div>
+    <div class="grow">
+      <ol class="legend">
+        <li><span class="num">1</span><b>Mode peta</b>Mengganti tampilan peta dan menampilkan zona rawan longsor.</li>
+        <li><span class="num">2</span><b>Keterangan</b>Membuka penjelasan warna di peta.</li>
+        <li><span class="num">3</span><b>Area pantau EWS</b>Bidang yang dipantau alat EWS. Warnanya mengikuti status alat.</li>
+        <li><span class="num">4</span><b>Penanda alat EWS</b>Ketuk untuk melihat bacaan alat.</li>
+        <li><span class="num">5</span><b>Batas desa</b>Garis putih batas wilayah Desa Lumeneng.</li>
+        <li><span class="num">6</span><b>Ke lokasi saya</b>Menampilkan posisi HP Anda di peta.</li>
+        <li><span class="num">7</span><b>Perbesar dan perkecil</b>Bisa juga dengan mencubit peta memakai dua jari.</li>
+        <li><span class="num">8</span><b>Catatan terbaru</b>Dua perubahan status terakhir.</li>
+        <li><span class="num">9</span><b>Waktu bacaan</b>Jam terakhir alat mengirim bacaan.</li>
+        <li><span class="num">10</span><b>Lihat semua</b>Membuka semua catatan perubahan status.</li>
+      </ol>
+    </div>
+  </div>
+  <h3 class="mt4">Menggerakkan peta</h3>
+  <table class="tbl compact mb0">
+    <tr><td style="width:66mm"><b>Geser dengan satu jari</b></td><td>Memindahkan peta.</td></tr>
+    <tr><td><b>Renggangkan dua jari</b>, atau ketuk dua kali</td><td>Memperbesar peta.</td></tr>
+    <tr><td><b>Cubit dengan dua jari</b></td><td>Memperkecil peta.</td></tr>
+    <tr><td><b>Tombol + dan −</b></td><td>Memperbesar dan memperkecil satu tingkat.</td></tr>
+  </table>
+  <p class="small soft mt2">Halaman Beranda tidak bergulir supaya peta mudah digeser. Bila catatan tidak muat, gulir di dalam kartu Catatan terbaru.</p>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s4-2"><span class="n">4.2</span>Membaca warna dan penanda di peta</h2>
+  <table class="tbl">
+    <tr><th style="width:20mm">Penanda</th><th style="width:30mm">Warna area</th><th style="width:28mm">Status</th><th>Keterangan</th></tr>
+    <tr><td class="center"><span class="marker"><svg><use href="#m-normal"/></svg><span class="tag">EWS</span></span></td><td><span class="swatch" style="background:#1F6B3F"></span>Hijau</td><td class="st">Normal</td><td>Kondisi aman. Sama dengan Aman di menu Sensor.</td></tr>
+    <tr><td class="center"><span class="marker"><svg><use href="#m-waspada"/></svg><span class="tag">EWS</span></span></td><td><span class="swatch" style="background:#F2B60C"></span>Kuning</td><td class="st">Waspada</td><td>Penanda segitiga bertanda seru.</td></tr>
+    <tr><td class="center"><span class="marker"><svg><use href="#m-awas"/></svg><span class="tag">EWS</span></span></td><td><span class="swatch" style="background:#A91F1A"></span>Merah</td><td class="st">Awas</td><td>Penanda belah ketupat bertanda seru.</td></tr>
+    <tr><td class="center"><span class="marker"><svg><use href="#m-nodata"/></svg><span class="tag">EWS</span></span></td><td><span class="swatch" style="background:#fff"></span>Putih atau abu-abu</td><td class="st">Tidak ada data</td><td>Penanda bulat bergaris putus dengan tanda tanya. Kondisi sekarang belum diketahui.</td></tr>
+  </table>
+  <div class="note">
+    <i class="mi">&#xf359;</i>
+    <div><span class="nt">Garis tepi area putus-putus</span><p>Artinya bacaan di peta bukan kondisi sekarang: alat sedang tidak mengirim data, atau aplikasi sudah lama tidak tersambung ke server. Status Waspada dan Awas tetap ditampilkan, karena alat bisa berhenti mengirim justru saat tanah bergerak.</p></div>
+  </div>
+
+  <h3 class="mt4">Contoh tampilan Beranda saat status berubah</h3>
+  <div class="row center" style="gap:8mm">
+    <div class="shot"><div class="phone sm"><img src="img/beranda_waspada.jpg" alt=""></div><div class="cap"><b>Waspada</b><br>Area dan penanda kuning</div></div>
+    <div class="shot"><div class="phone sm"><img src="img/beranda_awas.jpg" alt=""></div><div class="cap"><b>Awas</b><br>Area dan penanda merah</div></div>
+    <div class="shot"><div class="phone sm"><img src="img/beranda_tidak_ada_data.jpg" alt=""></div><div class="cap"><b>Tidak ada data</b><br>Abu-abu, garis putus-putus</div></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s4-4"><span class="n">4.3</span>Mengganti mode peta</h2>
+  <div class="row">
+    <div class="shot"><div class="phone md"><img src="img/beranda_menu_peta.jpg" alt=""></div><div class="cap">Menu mode peta</div></div>
+    <div class="grow">
+      <div class="step"><div class="sn">1</div><div class="sb"><h3>Buka menu mode peta</h3><p>Ketuk tombol di kiri atas peta: <img class="btn-img" src="img/tombol_mode_peta.png" alt="Satelit"></p></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><h3>Pilih tampilan</h3><p>Pilih <b>Peta</b>, <b>Satelit</b>, atau <b>Medan</b>. Tanda centang menunjukkan pilihan yang sedang aktif. Tampilan awal adalah Satelit.</p></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><h3>Tampilkan atau sembunyikan lapisan</h3><p>Di bagian bawah menu yang sama ada dua pilihan:</p>
+        <ul class="dots"><li><b>Zona rawan longsor</b>, untuk menampilkan peta kerawanan dari kajian 2024.</li><li><b>Lokasi EWS</b>, untuk menyembunyikan penanda alat supaya area pantau di bawahnya terlihat utuh.</li></ul></div></div>
+      <p>Untuk membuka penjelasan warna, ketuk <img class="btn-img" src="img/tombol_keterangan.png" alt="Keterangan"> di kanan atas peta. Ketuk sekali lagi untuk menutupnya.</p>
+    </div>
+  </div>
+  <div class="row mt6" style="gap:5mm">
+    <div class="shot grow"><img src="img/peta_mode_peta.jpg" alt="" style="width:100%;border-radius:2.4mm;display:block"><div class="cap"><b>Peta</b><br>Jalan dan nama dukuh, tanpa warna</div></div>
+    <div class="shot grow"><img src="img/peta_mode_satelit.jpg" alt="" style="width:100%;border-radius:2.4mm;display:block"><div class="cap"><b>Satelit</b><br>Foto udara: rumah, kebun, dan hutan</div></div>
+    <div class="shot grow"><img src="img/peta_mode_medan.jpg" alt="" style="width:100%;border-radius:2.4mm;display:block"><div class="cap"><b>Medan</b><br>Garis kontur tinggi rendahnya tanah</div></div>
+  </div>
+  <h3 class="mt4">Kapan memakai tiap mode</h3>
+  <ul class="dots">
+    <li><b>Satelit</b>: mengenali rumah, kebun, dan hutan di sekitar alat EWS.</li>
+    <li><b>Peta</b>: melihat jalan dan nama dukuh, misalnya Sumingkir, Jomparang, dan Kaliwisnu.</li>
+    <li><b>Medan</b>: melihat bentuk lereng. Makin rapat garis konturnya, makin curam lerengnya.</li>
+  </ul>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s4-5"><span class="n">4.4</span>Zona rawan longsor</h2>
+  <div class="row">
+    <div class="shot" style="width:84mm;flex:none"><img src="img/peta_zona.jpg" alt="" style="width:84mm;border-radius:2.4mm;display:block"><div class="cap">Zona rawan longsor dengan keterangan terbuka</div></div>
+    <div class="grow">
+      <p>Pilih <b>Zona rawan longsor</b> di menu mode peta. Peta diberi warna sesuai tingkat kerawanan:</p>
+      <table class="tbl" style="margin-top:0">
+        <tr><td><span class="swatch" style="background:#5FC0E8"></span><b>Aman</b></td></tr>
+        <tr><td><span class="swatch" style="background:#FACD19"></span><b>Agak rawan</b></td></tr>
+        <tr><td><span class="swatch" style="background:#F42612"></span><b>Rawan</b></td></tr>
+        <tr><td><span class="swatch" style="background:#8C0408"></span><b>Sangat rawan</b></td></tr>
+      </table>
+      <p class="small">Sumber zona tertulis di pojok kiri bawah peta: <i>Zona: kajian LPBI NU 2024</i>.</p>
+    </div>
+  </div>
+  <div class="note important">
+    <i class="mi">&#xe238;</i>
+    <div><span class="nt">Zona bukan kondisi saat ini</span><p>Zona ditelusuri dari gambar peta Kajian Pemetaan Bencana Desa Lumeneng 2024 dan merupakan perkiraan. Zona menunjukkan tempat yang rawan dalam jangka panjang. Kondisi saat ini tetap dilihat dari warna area EWS.</p></div>
+  </div>
+
+  <h2 id="s4-6"><span class="n">4.5</span>Melihat detail alat EWS</h2>
+  <div class="row">
+    <div class="shot"><div class="phone xs"><img src="img/detail_ews.jpg" alt=""></div><div class="cap">Detail alat EWS</div></div>
+    <div class="grow">
+      <p>Ketuk penanda <b>EWS</b> di peta. Lembar detail muncul dari bawah layar dan berisi:</p>
+      <ul class="dots">
+        <li>Nama dan lokasi alat: <b>EWS, Sikembang</b>.</li>
+        <li>Status alat beserta penyebabnya bila sedang Waspada atau Awas.</li>
+        <li>Jam bacaan terakhir, misalnya <b>Bacaan 18.03</b>.</li>
+        <li>Bacaan keempat sensor beserta keterangannya (Normal, Waspada, Lewat batas, atau Hanya informasi).</li>
+      </ul>
+      <p>Bila alat sedang tidak mengirim data, tertulis <b>Tidak mengirim data sejak</b> diikuti jamnya, dan setiap angka ditandai <b>Data lama</b>.</p>
+      <p>Ketuk <b>Tutup</b> untuk kembali ke peta.</p>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s4-7"><span class="n">4.6</span>Melihat lokasi Anda</h2>
+  <div class="row" style="align-items:center;gap:5mm">
+    <img src="img/tombol_lokasi_saya.png" alt="Ke lokasi saya" style="width:15mm;border-radius:3mm;flex:none">
+    <p class="mb0">Ketuk tombol ini di kanan peta. Titik biru menunjukkan posisi HP Anda, dan lingkaran biru muda di sekelilingnya menunjukkan perkiraan ketelitian. Peta ikut bergerak ke posisi yang makin tepat sampai Anda menggeser peta sendiri.</p>
+  </div>
+  <table class="tbl mt4">
+    <tr><th style="width:82mm">Pesan yang mungkin muncul</th><th>Yang dilakukan</th></tr>
+    <tr><td>Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.</td><td>Nyalakan Lokasi/GPS dari panel atas HP.</td></tr>
+    <tr><td>Izin lokasi ditolak, jadi posisi Anda tidak bisa ditampilkan.</td><td>Berikan izin lokasi (BAB 2.4).</td></tr>
+    <tr><td>Lokasi belum didapat. Coba lagi di tempat terbuka.</td><td>Keluar dari rumah atau menjauh dari atap, lalu ketuk tombol lagi.</td></tr>
+    <tr><td>Titik Anda masih perkiraan, bisa meleset sampai ±… m.</td><td>GPS belum mendapat sinyal. Coba lagi di tempat terbuka.</td></tr>
+  </table>
+
+  <h2 id="s4-8"><span class="n">4.7</span>Catatan perubahan status</h2>
+  <div class="row">
+    <div class="shot"><div class="phone sm"><img src="img/catatan_semua.jpg" alt=""></div><div class="cap">Halaman Catatan terbaru</div></div>
+    <div class="grow">
+      <p>Kartu <b>Catatan terbaru</b> di bawah peta menampilkan dua perubahan status terakhir. Tiap baris berisi ikon status, judul (misalnya <i>EWS berubah menjadi Waspada</i>), penyebabnya, dan jam. Bila kejadiannya bukan hari ini, tanggal ikut ditulis, misalnya <i>19 Nov, 17.25</i>.</p>
+      <p>Ketuk <b>Lihat semua</b> untuk membuka semua catatan, yang terbaru di atas. Catatan dibuka 15 baris dulu; ketuk <b>Tampilkan 15 lagi</b> untuk melihat yang lebih lama.</p>
+      <h3>Tulisan di kanan judul kartu</h3>
+      <ul class="dots">
+        <li><b>Bacaan 18.03</b>: jam terakhir alat mengirim bacaan.</li>
+        <li><b>Belum tersambung</b>: aplikasi sedang tidak bisa mengambil data dari server (lihat BAB 8).</li>
+      </ul>
+      <p>Catatan juga bisa berisi <i>EWS berhenti mengirim data</i> bila alat diam, dan <i>Belum tersambung ke server</i> bila data di HP sudah lama.</p>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 5 ===================== -->
+<section class="page main" id="bab5">
+  <div class="chapter-head">
+    <div class="bab">Bab 5</div>
+    <h1>Menu Sensor</h1>
+    <div class="lead mb0">Menu Sensor menampilkan bacaan alat EWS secara lengkap: status, penyebab, saran, angka tiap sensor, dan riwayat perubahan status.</div>
+  </div>
+  <h2><span class="n">5.1</span>Bagian-bagian menu Sensor</h2>
+  <div class="row center" style="gap:10mm">
+    <div class="shot"><div class="phone md">
+      <img src="img/sensor_atas.jpg" alt="">
+      <span class="co" style="left:5.6%;top:14.8%">1</span>
+      <span class="co" style="left:91.4%;top:27.1%">2</span>
+      <span class="co" style="left:91.4%;top:34.2%">3</span>
+      <span class="co" style="left:52%;top:40.6%">4</span>
+      <span class="co" style="left:44.4%;top:54.4%">5</span>
+      <span class="co" style="left:39%;top:58.7%">6</span>
+      <span class="co" style="left:43.6%;top:80.5%">7</span>
+      <span class="co" style="left:92.6%;top:67.2%">8</span>
+    </div><div class="cap">Bagian atas</div></div>
+    <div class="shot"><div class="phone md">
+      <img src="img/sensor_bawah.jpg" alt="">
+      <span class="co" style="left:44.4%;top:42.8%">9</span>
+      <span class="co" style="left:51.9%;top:70%">10</span>
+      <span class="co" style="left:93.5%;top:79.4%">11</span>
+    </div><div class="cap">Setelah digeser ke bawah</div></div>
+  </div>
+  <div class="mt4">
+    <ol class="legend two">
+      <li><span class="num">1</span><b>Status sekarang</b>Aman, Waspada, atau Awas, dengan nama alat dan jam bacaan.</li>
+      <li><span class="num">2</span><b>Penyebab dan saran</b>Saat Waspada atau Awas tertulis penyebabnya. Di bawahnya ada saran dari server.</li>
+      <li><span class="num">3</span><b>Waktu pengecekan</b>Aplikasi mengecek server tiap 10 detik.</li>
+      <li><span class="num">4</span><b>Nama alat</b>EWS Sikembang dan jam bacaannya.</li>
+      <li><span class="num">5</span><b>Angka bacaan</b>Angka terakhir yang dikirim sensor.</li>
+      <li><span class="num">6</span><b>Keterangan sensor</b>Normal, Waspada, atau Lewat batas.</li>
+      <li><span class="num">7</span><b>Batas waspada</b>Angka saat sensor mulai dinilai Waspada. Diatur admin server.</li>
+      <li><span class="num">8</span><b>Kelembapan udara</b>Kartunya hanya bergaris tepi karena tidak ikut menentukan status.</li>
+      <li><span class="num">9</span><b>Perubahan status</b>Tiga perubahan status terakhir.</li>
+      <li><span class="num">10</span><b>Lihat semua</b>Membuka semua perubahan status.</li>
+      <li><span class="num">11</span><b>Pengingat</b>Aplikasi ini bukan peringatan resmi BPBD.</li>
+    </ol>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s5-2"><span class="n">5.2</span>Arti tiap sensor</h2>
+  <table class="tbl">
+    <tr><th style="width:10mm"></th><th style="width:34mm">Sensor</th><th style="width:18mm">Satuan</th><th>Artinya</th><th style="width:26mm">Menentukan status?</th></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xf0695;</i></td><td><b>Kelembapan tanah</b></td><td>persen (%)</td><td>Seberapa basah tanah di lereng. Tanah yang jenuh air lebih mudah longsor.</td><td>Ya</td></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xf071b;</i></td><td><b>Intensitas hujan</b></td><td>persen (%)</td><td>Seberapa basah papan sensor hujan: 0% berarti kering, 100% berarti basah kuyup.</td><td>Ya</td></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xf14e;</i></td><td><b>Kemiringan</b></td><td>derajat (°)</td><td>Kemiringan tanah tempat alat dipasang. Bila angkanya bertambah, tanah mungkin bergeser. Angka minus dinilai sama, misalnya −12° sama dengan 12°.</td><td>Ya</td></tr>
+    <tr><td class="ic"><i class="mi c-navy">&#xe064;</i></td><td><b>Kelembapan udara</b></td><td>persen (%)</td><td>Kelembapan udara di sekitar alat.</td><td>Tidak, hanya informasi</td></tr>
+  </table>
+
+  <h2 id="s5-3"><span class="n">5.3</span>Tulisan pada kartu sensor</h2>
+  <table class="tbl">
+    <tr><th style="width:38mm">Tulisan</th><th>Artinya</th></tr>
+    <tr><td><i class="mi c-normal">&#xf634;</i> <b>Normal</b></td><td>Angka masih di bawah batas waspada.</td></tr>
+    <tr><td><i class="mi c-waspada">&#xf02a0;</i> <b>Waspada</b></td><td>Angka sudah melewati batas waspada.</td></tr>
+    <tr><td><i class="mi c-waspada">&#xf02a0;</i> <b>Lewat batas</b></td><td>Angka melewati batas atas yang diatur admin. Admin diminta memeriksa alat.</td></tr>
+    <tr><td><b>Hanya informasi</b></td><td>Sensor tidak ikut menentukan status (kelembapan udara).</td></tr>
+    <tr><td><i class="mi c-stale">&#xf359;</i> <b>Tidak ada data</b></td><td>Sensor tidak mengirim angka.</td></tr>
+    <tr><td><b>Data lama</b></td><td>Alat sedang tidak mengirim data. Angka berwarna abu-abu adalah bacaan terakhir, bukan kondisi sekarang.</td></tr>
+    <tr><td><b>Waspada mulai 50%</b></td><td>Batas waspada sensor tersebut. Angkanya diatur admin server dan bisa berubah.</td></tr>
+  </table>
+
+  <h2 id="s5-5"><span class="n">5.4</span>Memperbarui data</h2>
+  <div class="row" style="align-items:center;gap:5mm">
+    <i class="mi c-navy" style="font-size:28pt;vertical-align:0;flex:none">&#xf0578;</i>
+    <div class="grow">
+      <p>Data diperbarui otomatis tiap 10 detik selama aplikasi dibuka. Untuk mengambil data saat itu juga, <b>tarik layar Sensor ke bawah</b> lalu lepaskan.</p>
+      <p class="mb0">Saat aplikasi ditutup atau HP dikunci, pengambilan data berhenti supaya kuota tidak terpakai. Begitu aplikasi dibuka lagi, data langsung diambil ulang.</p>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s5-4"><span class="n">5.5</span>Contoh saat Waspada dan Awas</h2>
+  <div class="row center" style="gap:12mm">
+    <div class="shot"><div class="phone lg"><img src="img/sensor_waspada.jpg" alt=""></div><div class="cap"><b>Waspada</b><br>Hujan deras dan tanah mulai jenuh air</div></div>
+    <div class="shot"><div class="phone lg"><img src="img/sensor_awas.jpg" alt=""></div><div class="cap"><b>Awas</b><br>Kabel EWS putus</div></div>
+  </div>
+  <div class="mt6">
+    <p>Saat Waspada atau Awas, kartu paling atas menampilkan <b>Penyebab</b>, yaitu sensor yang melewati batas atau kejadian lain seperti <i>Kabel EWS putus</i>. Di bawahnya ada saran untuk warga. Pada kartu sensor, sensor yang melewati batas ditandai segitiga dengan tulisan <b>Waspada</b> atau <b>Lewat batas</b>.</p>
+    <div class="note important">
+      <i class="mi">&#xef9e;</i>
+      <div><span class="nt">Saat status Awas</span><p>Jangan menunggu angka berikutnya. Segera menjauh dari lereng, ikuti arahan petugas, dan bantu tetangga yang membutuhkan, terutama orang tua dan anak-anak.</p></div>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 6 ===================== -->
+<section class="page main" id="bab6">
+  <div class="chapter-head">
+    <div class="bab">Bab 6</div>
+    <h1>Menu Lapor: Melaporkan Tanda Longsor</h1>
+    <div class="lead mb0">Bila Anda melihat tanda longsor di sekitar rumah, kebun, atau jalan, laporkan lewat menu Lapor. Laporan sampai ke WhatsApp penanggung jawab EWS lengkap dengan foto, cerita, dan lokasi.</div>
+  </div>
+  <div class="safety">
+    <i class="mi">&#xf0f2;</i>
+    <div><b>Ambil foto dari tempat aman.</b> Jangan mendekati lereng atau tanah yang bergerak. Bila tanda makin parah, segera menjauh dan hubungi petugas desa.</div>
+  </div>
+
+  <h2><span class="n">6.1</span>Tanda longsor yang perlu dilaporkan</h2>
+  <div class="cards">
+    <div class="card"><i class="mi">&#xf42b;</i><div><b>Retakan tanah</b>Tanah, jalan, atau dinding rumah retak. Laporkan juga bila retakan makin lebar.</div></div>
+    <div class="card"><i class="mi">&#xf06f6;</i><div><b>Longsoran</b>Tanah atau batu runtuh dari lereng, walaupun sedikit.</div></div>
+    <div class="card"><i class="mi">&#xf0695;</i><div><b>Rembesan air</b>Air keluar dari lereng atau tebing, muncul mata air baru, atau air menjadi keruh.</div></div>
+    <div class="card"><i class="mi">&#xf25c;</i><div><b>Pohon atau tiang miring</b>Pohon, tiang listrik, atau pagar yang mulai miring.</div></div>
+    <div class="card"><i class="mi">&#xf0f4;</i><div><b>Suara gemuruh</b>Suara gemuruh atau gemeretak dari arah lereng.</div></div>
+    <div class="card"><i class="mi">&#xef44;</i><div><b>Belum yakin?</b>Tetap laporkan dan pilih <b>Belum tahu</b>. Petugas yang akan menilai.</div></div>
+  </div>
+
+  <h2 id="s6-2"><span class="n">6.2</span>Alur singkat</h2>
+  <ol style="column-count:2;column-gap:10mm;font-size:9.6pt">
+    <li>Buka menu <b>Lapor</b>.</li>
+    <li>Tambahkan foto dari <b>Kamera</b> atau <b>Galeri</b>.</li>
+    <li>Tulis cerita di <b>Ceritakan yang Anda lihat</b>.</li>
+    <li>Pilih tanda di <b>Yang terlihat</b>.</li>
+    <li>Periksa bagian <b>Lokasi</b>.</li>
+    <li>Ketuk <b>Periksa laporan</b>.</li>
+    <li>Baca hasil analisis, perbaiki bila perlu.</li>
+    <li>Ketuk <b>Kirim ke petugas lewat WhatsApp</b>, lalu tekan kirim di WhatsApp.</li>
+  </ol>
+  <div class="note">
+    <i class="mi">&#xf0db;</i>
+    <div><span class="nt">Laporan warga melengkapi alat EWS</span><p>Alat EWS hanya memantau satu titik di barat permukiman Sikembang. Tanda longsor di dukuh lain hanya bisa diketahui petugas dari laporan warga. Laporkan secepatnya, terutama saat atau setelah hujan deras.</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s6-3"><span class="n">6.3</span>Langkah membuat laporan</h2>
+  <div class="row">
+    <div class="shot"><div class="phone sm"><img src="img/lapor_1.jpg" alt=""></div></div>
+    <div class="grow">
+      <span class="step-label">Langkah 1</span>
+      <h3 class="mt0">Buka menu Lapor</h3>
+      <p>Ketuk <b>Lapor</b> di kiri bawah. Bagian atas menu ini berisi petunjuk menulis dan pengingat keselamatan berwarna hitam.</p>
+      <p>Saat pertama kali dibuka, HP menanyakan izin lokasi. Pilih <b>Saat aplikasi digunakan</b> (BAB 2.4).</p>
+    </div>
+  </div>
+  <div class="row mt6">
+    <div class="shot"><div class="phone sm"><img src="img/lapor_2_foto.jpg" alt=""></div></div>
+    <div class="grow">
+      <span class="step-label">Langkah 2</span>
+      <h3 class="mt0">Tambahkan foto</h3>
+      <p>Ketuk <b>Kamera</b> untuk memotret langsung, atau <b>Galeri</b> untuk memilih foto yang sudah ada.</p>
+      <ul class="dots">
+        <li>Foto boleh dilewati bila tempatnya tidak aman.</li>
+        <li>Paling banyak 5 foto. Disarankan 3 foto: dari dekat, dari jauh, dan keadaan sekitar.</li>
+        <li>Setiap foto diberi nomor. Tanda <i class="mi">&#xe15a;</i> berarti foto cukup jelas.</li>
+        <li>Ketuk <b>×</b> di pojok foto untuk menghapusnya.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h3 class="mt0">Bila foto kurang jelas</h3>
+  <div class="row">
+    <div class="shot"><div class="phone sm"><img src="img/lapor_foto_buram.jpg" alt=""></div><div class="cap">Foto 1 ditandai buram</div></div>
+    <div class="grow">
+      <p>Aplikasi memeriksa setiap foto langsung di HP: ukuran, kecerahan, dan ketajamannya. Foto yang kurang jelas diberi tanda <i class="mi">&#xe33d;</i> dan sarannya muncul di bawah foto.</p>
+      <table class="tbl">
+        <tr><th style="width:30mm">Masalah</th><th>Saran</th></tr>
+        <tr><td><b>Buram</b> atau <b>agak buram</b></td><td>Pegang HP diam, lalu ketuk layar di bagian yang difoto.</td></tr>
+        <tr><td><b>Terlalu gelap</b></td><td>Nyalakan lampu kilat atau tunggu lebih terang.</td></tr>
+        <tr><td><b>Terlalu terang</b></td><td>Jangan menghadap matahari atau lampu.</td></tr>
+        <tr><td><b>Tidak jelas</b></td><td>Bersihkan lensa, jangan tertutup jari, dan arahkan ke tanda yang dilaporkan.</td></tr>
+        <tr><td><b>Resolusi rendah</b></td><td>Pakai foto langsung dari kamera, bukan tangkapan layar.</td></tr>
+      </table>
+      <div class="note tip">
+        <i class="mi">&#xf0681;</i>
+        <div><p>Foto yang kurang jelas tetap boleh dikirim. Ambil ulang hanya bila tempatnya aman.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="row mt6">
+    <div class="shot"><div class="phone sm"><img src="img/lapor_3_cerita.jpg" alt=""></div></div>
+    <div class="grow">
+      <span class="step-label">Langkah 3</span>
+      <h3 class="mt0">Ceritakan yang Anda lihat</h3>
+      <p>Tulis di kolom <b>Ceritakan yang Anda lihat</b> dengan bahasa sehari-hari. Bahasa Jawa (ngapak) juga bisa, nanti dibakukan ke bahasa Indonesia.</p>
+      <div class="note">
+        <i class="mi">&#xe67b;</i>
+        <div><span class="nt">Contoh cerita</span><p><i>Ana banyu metu terus seka tebing mburi omah pak RT, saiki tambah deres lan butek.</i></p></div>
+      </div>
+      <p class="mb0"><b>Supaya cerita mudah dipahami petugas, sebutkan:</b></p>
+      <ul class="dots">
+        <li>Apa yang terlihat: retak, air keluar, tanah turun, atau pohon miring.</li>
+        <li>Tempatnya: <i>mburi omah pak RT</i>, <i>pinggir kali</i>, atau nama jalan dan kebun.</li>
+        <li>Sejak kapan: tadi pagi, semalam, atau sudah beberapa hari.</li>
+        <li>Apakah makin parah: makin lebar, makin deras, atau terus bertambah.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <div class="row">
+    <div class="shot"><div class="phone lg"><img src="img/lapor_4_lokasi.jpg" alt=""></div><div class="cap">Bagian bawah formulir Lapor</div></div>
+    <div class="grow">
+      <span class="step-label">Langkah 4</span>
+      <h3 class="mt0">Pilih yang terlihat</h3>
+      <p>Di bagian <b>Yang terlihat</b>, ketuk satu pilihan yang paling sesuai: <b>Retakan tanah</b>, <b>Longsoran</b>, <b>Rembesan air</b>, <b>Pohon atau tiang miring</b>, atau <b>Suara gemuruh</b>. Pilih <b>Belum tahu</b> bila ragu.</p>
+      <p>Pilihan ini ikut terkirim sebagai keterangan dari pelapor. Cerita Anda tetap dianalisis sendiri oleh aplikasi.</p>
+
+      <span class="step-label mt4">Langkah 5</span>
+      <h3 class="mt0">Periksa lokasi, lalu ketuk Periksa laporan</h3>
+      <p>Bagian <b>Lokasi</b> terisi otomatis dengan koordinat HP dan perkiraan ketelitiannya, misalnya <i>Akurasi ±20 m</i>. Selama tertulis <i>menunggu GPS</i>, tunggu sebentar. Ketuk <b>Perbarui</b> untuk mengambil ulang.</p>
+      <p>Bila kejadiannya di tempat lain, sebutkan tempatnya di cerita.</p>
+      <p>Setelah itu ketuk <b>Periksa laporan</b>. Tombol ini aktif bila sudah ada cerita atau foto.</p>
+      <div class="note tip">
+        <i class="mi">&#xf193;</i>
+        <div><span class="nt">Arti angka akurasi</span><p>Angka akurasi menunjukkan seberapa jauh titik bisa meleset. Di dalam rumah, lokasi sering hanya perkiraan dari sinyal dan bisa meleset puluhan sampai ratusan meter. Di tempat terbuka, GPS biasanya mencapai 20 m atau lebih tepat.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist mt6">
+    <div class="ct"><i class="mi">&#xf637;</i>Sebelum mengetuk Periksa laporan, pastikan:</div>
+    <ul>
+      <li><i class="mi">&#xe156;</i><span>Foto memperlihatkan tanda yang dilaporkan dan diambil dari tempat aman.</span></li>
+      <li><i class="mi">&#xe156;</i><span>Cerita menyebut apa yang terlihat, tempatnya, dan sejak kapan.</span></li>
+      <li><i class="mi">&#xe156;</i><span>Pilihan di <b>Yang terlihat</b> sudah sesuai, atau <b>Belum tahu</b> bila ragu.</span></li>
+      <li><i class="mi">&#xe156;</i><span>Lokasi sudah terisi, atau tempat kejadian sudah disebut di cerita.</span></li>
+    </ul>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s6-4"><span class="n">6.4</span>Hasil analisis</h2>
+  <p>Setelah <b>Periksa laporan</b> diketuk, aplikasi membaca cerita dan foto di HP, lalu menampilkan halaman <b>Hasil analisis</b>.</p>
+  <div class="row center" style="gap:10mm">
+    <div class="shot"><div class="phone md">
+      <img src="img/hasil_1.jpg" alt="">
+      <span class="co" style="left:91.7%;top:16.9%">1</span>
+      <span class="co" style="left:91.7%;top:34.8%">2</span>
+      <span class="co" style="left:91.7%;top:47.7%">3</span>
+      <span class="co" style="left:91.7%;top:68.3%">4</span>
+    </div></div>
+    <div class="shot"><div class="phone md"><img src="img/hasil_nlp.jpg" alt=""></div><div class="cap">Isi <b>Lihat langkah NLP</b></div></div>
+  </div>
+  <div class="mt4">
+    <ol class="legend two">
+      <li><span class="num">1</span><b>Laporan dalam bahasa Indonesia</b>Cerita yang sudah dibakukan. Bisa diperbaiki bila ada kata yang kurang pas.</li>
+      <li><span class="num">2</span><b>Tulisan asli</b>Cerita persis seperti yang Anda tulis. Ikut terkirim ke petugas.</li>
+      <li><span class="num">3</span><b>Analisis teks (NLP)</b>Jenis tanda, keyakinan (0 sampai 1, makin besar makin yakin), urgensi, dan tempat yang disebut.</li>
+      <li><span class="num">4</span><b>Kata dibakukan</b>Kata bahasa Jawa dan padanannya, misalnya <i>mburi → belakang</i>.</li>
+    </ol>
+  </div>
+  <p class="small soft">Ketuk <b>Lihat langkah NLP</b> untuk melihat proses pengolahan cerita: case folding, tokenisasi, normalisasi kamus lokal, penghapusan stopword, dan klasifikasi Naive Bayes. Model ini dilatih dari 58 contoh awal buatan tim, belum dari laporan warga, jadi angka keyakinan dipakai sebagai petunjuk saja.</p>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <div class="row center" style="gap:10mm">
+    <div class="shot"><div class="phone md"><img src="img/hasil_foto.jpg" alt=""></div><div class="cap">Analisis foto dan pencocokan</div></div>
+    <div class="shot"><div class="phone md">
+      <img src="img/hasil_kirim.jpg" alt="">
+      <span class="co" style="left:91.7%;top:43.2%">1</span>
+      <span class="co" style="left:91.7%;top:61.6%">2</span>
+      <span class="co" style="left:93%;top:79.6%">3</span>
+    </div><div class="cap">Bagian paling bawah</div></div>
+  </div>
+  <div class="row mt4" style="gap:8mm">
+    <div class="grow">
+      <h3 class="mt0">Analisis foto</h3>
+      <p>Kualitas tiap foto: ukuran, kecerahan, dan ketajaman. Model CNN untuk mengenali isi foto belum dipasang karena belum ada foto lapangan berlabel untuk melatihnya. Foto tetap dikirim untuk dilihat petugas.</p>
+    </div>
+    <div class="grow">
+      <ol class="legend">
+        <li><span class="num">1</span><b>Pencocokan teks dan foto</b>Hasil otomatis hanya membantu petugas. Yang menentukan tetap pemeriksaan di lapangan.</li>
+        <li><span class="num">2</span><b>Lokasi dan waktu</b>Lokasi HP, tempat yang disebut, dan waktu laporan.</li>
+        <li><span class="num">3</span><b>Kirim ke petugas lewat WhatsApp</b>Tombol untuk mengirim laporan (Langkah 6).</li>
+      </ol>
+    </div>
+  </div>
+  <div class="note tip">
+    <i class="mi">&#xf04f6;</i>
+    <div><p>Ingin mengubah isian? Ketuk tombol <b>‹</b> di kiri atas. Formulir terbuka lagi dan semua isian serta foto masih ada.</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s6-5"><span class="n">6.5</span>Mengirim laporan</h2>
+  <span class="step-label">Langkah 6</span>
+  <h3 class="mt0">Ketuk Kirim ke petugas lewat WhatsApp</h3>
+  <p>WhatsApp terbuka di chat penanggung jawab, dengan teks laporan dan foto yang sudah terisi. Bila fotonya lebih dari satu, semua foto digabung menjadi satu gambar bernomor supaya laporan masuk dalam satu pesan. <b>Tekan tombol kirim di WhatsApp</b> untuk mengirimnya.</p>
+  <table class="tbl">
+    <tr><th style="width:52mm">Keadaan</th><th>Yang terjadi</th></tr>
+    <tr><td><b>Ada foto yang kurang jelas</b></td><td>Sebelum WhatsApp terbuka, muncul pertanyaan, misalnya <i>Foto 1 kurang jelas</i>. Pilih <b>Ganti foto</b> untuk kembali ke formulir, atau <b>Tetap kirim</b>. Laporan yang tetap dikirim diberi catatan agar petugas memeriksa ulang.</td></tr>
+    <tr><td><b>WhatsApp tidak terpasang</b></td><td>Menu Bagikan HP terbuka. Pilih aplikasi lain untuk mengirim laporan.</td></tr>
+    <tr><td><b>Muncul tulisan <i>Teks laporan juga sudah disalin</i></b></td><td>Foto gagal digabung, jadi teks bisa tidak ikut terisi. Bila kolom pesan WhatsApp kosong, tekan lama kolom pesan lalu pilih <b>Tempel</b>.</td></tr>
+    <tr><td><b>Setelah kembali dari WhatsApp</b></td><td>Muncul pengingat untuk memastikan pesan sudah terkirim, serta tombol <b>Buat laporan baru</b> dan <b>Kirim lagi</b>.</td></tr>
+  </table>
+  <div class="safety">
+    <i class="mi">&#xf0f2;</i>
+    <div>Pastikan pesannya sudah terkirim di WhatsApp. <b>Bila tanda makin parah, segera menjauh dan hubungi petugas desa.</b></div>
+  </div>
+
+  <h2 id="s6-7"><span class="n">6.6</span>Laporan yang tidak lengkap</h2>
+  <p>Laporan tetap bisa dikirim walaupun ada bagian yang kosong. Yang terjadi:</p>
+  <table class="tbl">
+    <tr><th style="width:44mm">Keadaan</th><th>Yang terjadi</th></tr>
+    <tr><td><b>Tanpa foto</b></td><td>Di hasil analisis tertulis <i>Tidak ada foto</i>, dan pencocokan tertulis <i>Hanya keterangan teks, tanpa foto</i>.</td></tr>
+    <tr><td><b>Tanpa cerita</b></td><td>Tertulis <i>Tidak ada cerita. Petugas akan melihat fotonya saja.</i> Pencocokan tertulis <i>Hanya foto, tanpa keterangan</i>.</td></tr>
+    <tr><td><b>Tanpa lokasi</b><br><span class="small soft">izin ditolak atau GPS mati</span></td><td>Pesan berisi <i>Lokasi HP pelapor: tidak tersedia</i>. Sebutkan tempat kejadian di cerita.</td></tr>
+    <tr><td><b>Ada kata yang belum dikenal</b></td><td>Kata itu tertulis di <i>Belum ada di kamus</i> dan ikut dikirim. Perbaiki kalimatnya di kolom <b>Laporan dalam bahasa Indonesia</b> bila perlu.</td></tr>
+  </table>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s6-6"><span class="n">6.7</span>Contoh pesan yang diterima petugas</h2>
+  <div class="row" style="gap:7mm">
+  <div class="chat" style="width:104mm;flex:none;padding:4mm">
+    <div class="bubble" style="font-size:8.2pt;line-height:1.42"><img src="img/kolase_contoh.jpg" alt="" style="width:100%;display:block;border-radius:1.4mm;margin-bottom:1.6mm"><b>LAPORAN TANDA LONGSOR - EWS Lumeneng</b>
+Waktu: 20-11-2026 18.14
+Lokasi HP pelapor: -7.18604, 109.59248 (akurasi ±20 m)
+https://maps.google.com/?q=-7.186040,109.592480
+Tempat yang disebut: belakang rumah Pak RT
+
+<b>Keterangan:</b>
+Ada air keluar terus dari tebing belakang rumah Pak RT, sekarang makin deras dan keruh.
+
+<i>Tulisan asli pelapor:</i> Ana banyu metu terus seka tebing mburi omah pak RT, saiki tambah deres lan butek
+
+Yang dilihat pelapor: Rembesan air
+Dugaan dari teks: Rembesan air, urgensi tinggi
+Foto: 2 terlampir dalam satu gambar bernomor
+Pencocokan: Foto belum dianalisis CNN, petugas memeriksa fotonya
+
+Hasil otomatis belum diverifikasi. Mohon diperiksa petugas.<span class="meta">18.15</span></div>
+  </div>
+  <div class="grow">
+    <h3 class="mt0">Isi pesan</h3>
+    <ul class="dots small">
+      <li><b>Gambar bernomor</b>: semua foto laporan, digabung jadi satu.</li>
+      <li><b>Waktu</b> laporan dibuat.</li>
+      <li><b>Lokasi HP pelapor</b> dan tautan peta. Ketuk tautannya untuk membuka titik lokasi di Google Maps.</li>
+      <li><b>Tempat yang disebut</b> di dalam cerita.</li>
+      <li><b>Keterangan</b>: cerita dalam bahasa Indonesia, sudah diperiksa pelapor.</li>
+      <li><b>Tulisan asli pelapor</b>, apa adanya.</li>
+      <li><b>Yang dilihat pelapor</b>: pilihan di bagian Yang terlihat.</li>
+      <li><b>Dugaan dari teks</b>: jenis tanda dan urgensi hasil NLP.</li>
+      <li><b>Foto</b>: jumlah foto dan catatan bila ada foto yang kurang jelas.</li>
+      <li><b>Pencocokan</b> teks dan foto.</li>
+    </ul>
+    <p class="small soft">Bila pelapor tetap mengirim foto yang kurang jelas, pesan berisi tambahan <b>Perlu verifikasi</b> agar petugas menghubungi pelapor atau memeriksa ke lokasi.</p>
+  </div>
+  </div>
+  <p class="small soft mt4">Pesan di atas memakai data contoh.</p>
+  <div class="note">
+    <i class="mi">&#xf0db;</i>
+    <div><span class="nt">Untuk penanggung jawab penerima laporan</span><p>Laporan masuk ke WhatsApp sebagai pesan biasa dari nomor pelapor. Balas pelapor bila perlu keterangan tambahan, dan periksa ke lokasi sebelum mengambil keputusan. Hasil analisis otomatis di dalam pesan belum diverifikasi.</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 7 ===================== -->
+<section class="page main" id="bab7">
+  <div class="chapter-head">
+    <div class="bab">Bab 7</div>
+    <h1>Notifikasi dan Peringatan</h1>
+    <div class="lead mb0">Saat status alat berubah, HP berbunyi dan muncul notifikasi. Semua peringatan tercatat di lonceng.</div>
+  </div>
+
+  <h2><span class="n">7.1</span>Peringatan di HP</h2>
+  <div class="row" style="gap:6mm">
+    <div class="shot grow"><img src="img/notif_waspada.jpg" alt="" style="width:100%;border-radius:2.4mm;display:block;border:.3mm solid var(--line)"><div class="cap"><b>Waspada</b></div></div>
+    <div class="shot grow"><img src="img/notif_awas.jpg" alt="" style="width:100%;border-radius:2.4mm;display:block;border:.3mm solid var(--line)"><div class="cap"><b>Awas</b></div></div>
+  </div>
+  <table class="tbl mt4">
+    <tr><th style="width:56mm">Keadaan</th><th>Yang terjadi di HP</th></tr>
+    <tr><td><i class="mi c-waspada">&#xf02a0;</i> Status berubah menjadi <b>Waspada</b></td><td>HP berbunyi dengan suara peringatan Waspada dan muncul notifikasi.</td></tr>
+    <tr><td><i class="mi c-awas">&#xef9e;</i> Status berubah menjadi <b>Awas</b></td><td>HP berbunyi dengan suara peringatan Awas yang berbeda, dan muncul notifikasi.</td></tr>
+    <tr><td><i class="mi c-stale">&#xf359;</i> Alat <b>berhenti mengirim data</b></td><td>HP berbunyi dengan suara Waspada dan muncul notifikasi <i>Tidak ada data</i>.</td></tr>
+    <tr><td><i class="mi c-normal">&#xf634;</i> Kembali <b>Normal</b></td><td>Tidak berbunyi. Cukup dicatat di lonceng.</td></tr>
+    <tr><td>Aplikasi baru dibuka</td><td>Tidak berbunyi. Kondisi saat itu dicatat di lonceng bila bukan Normal.</td></tr>
+    <tr><td>Sinyal HP putus</td><td>Tidak berbunyi. Sinyal yang putus bukan perubahan kondisi lereng.</td></tr>
+  </table>
+  <p>Suara peringatan mengikuti <b>volume nada dering</b>, bukan volume notifikasi, supaya terdengar lebih keras.</p>
+  <div class="note important">
+    <i class="mi">&#xe238;</i>
+    <div><span class="nt">Saat aplikasi ditutup</span><p>Aplikasi hanya mengecek data selama dibuka. Saat aplikasi ditutup, peringatan hanya masuk bila dikirim server desa lewat internet. Karena itu, saat hujan deras, buka aplikasi EWS Lumeneng untuk melihat kondisi terbaru.</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s7-2"><span class="n">7.2</span>Riwayat notifikasi (lonceng)</h2>
+  <div class="row">
+    <div class="shot"><div class="phone sm"><img src="img/notifikasi.jpg" alt=""></div><div class="cap">Halaman Notifikasi</div></div>
+    <div class="grow">
+      <div class="row" style="gap:4mm;align-items:center;margin-bottom:3mm">
+        <img src="img/tombol_lonceng_angka.png" alt="" style="width:13mm;border-radius:2.6mm;flex:none">
+        <p class="mb0">Angka pada lonceng menunjukkan jumlah peringatan yang belum dibaca. Ketuk lonceng untuk membuka halaman <b>Notifikasi</b>.</p>
+      </div>
+      <ul class="dots">
+        <li>Peringatan terbaru ada di paling atas.</li>
+        <li>Tiap baris berisi ikon status, judul, isi peringatan, dan jamnya.</li>
+        <li>Aplikasi menyimpan <b>50 notifikasi terakhir</b>. Riwayat tetap ada walaupun aplikasi ditutup.</li>
+        <li>Setelah halaman ini dibuka, angka pada lonceng hilang.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="s7-3"><span class="n">7.3</span>Bila HP tidak berbunyi</h2>
+  <div class="step"><div class="sn">1</div><div class="sb"><h3>Periksa izin notifikasi</h3><p>Buka lonceng. Bila muncul kartu <b>Notifikasi HP belum diizinkan</b>, ketuk <b>Izinkan notifikasi</b>. Bila jendela izin tidak muncul, buka <b>Pengaturan HP &gt; Aplikasi &gt; EWS Lumeneng &gt; Notifikasi</b> lalu nyalakan.</p></div></div>
+  <div class="step"><div class="sn">2</div><div class="sb"><h3>Periksa kategori peringatan</h3><p>Di pengaturan notifikasi EWS Lumeneng, pastikan <b>Peringatan Awas</b> dan <b>Peringatan Waspada</b> menyala.</p></div></div>
+  <div class="step"><div class="sn">3</div><div class="sb"><h3>Naikkan volume nada dering</h3><p>Matikan mode senyap atau jangan ganggu bila ingin peringatan tetap terdengar.</p></div></div>
+  <div class="step"><div class="sn">4</div><div class="sb"><h3>Periksa internet dan penghemat baterai</h3><p>Pastikan HP tersambung internet. Pada HP yang memakai penghemat baterai ketat, keluarkan EWS Lumeneng dari daftar aplikasi yang dibatasi.</p></div></div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 8 ===================== -->
+<section class="page main" id="bab8">
+  <div class="chapter-head">
+    <div class="bab">Bab 8</div>
+    <h1>Saat Sinyal Lemah atau Alat Tidak Mengirim Data</h1>
+    <div class="lead mb0">Sinyal di desa sering putus. Aplikasi tetap bisa dibuka dan selalu memberi tahu bila data yang tampil bukan kondisi sekarang.</div>
+  </div>
+  <h2><span class="n">8.1</span>Belum tersambung ke server</h2>
+  <div class="row center" style="gap:10mm">
+    <div class="shot"><div class="phone sm"><img src="img/sensor_belum_tersambung.jpg" alt=""></div><div class="cap"><b>Sensor</b>: kotak <i>Belum tersambung ke server</i></div></div>
+    <div class="shot"><div class="phone sm"><img src="img/beranda_belum_tersambung.jpg" alt=""></div><div class="cap"><b>Beranda</b>: tulisan <i>Belum tersambung</i></div></div>
+  </div>
+  <p class="mt4">Bila aplikasi gagal mengambil data, misalnya karena sinyal lemah atau kuota habis, data terakhir tetap ditampilkan beserta jam pengecekannya. Aplikasi mencoba lagi tiap 10 detik. Di menu Sensor, tarik layar ke bawah untuk mencoba saat itu juga.</p>
+
+  <h2 id="s8-2"><span class="n">8.2</span>Data lebih dari 15 menit</h2>
+  <p>Bila aplikasi tidak tersambung ke server selama 15 menit atau lebih, status Normal tidak lagi ditampilkan sebagai aman. Area di peta menjadi abu-abu dengan garis putus-putus, dan muncul catatan <i>Belum tersambung ke server</i> dengan pesan agar tidak menganggap kondisi sudah aman. Status Waspada dan Awas tetap ditampilkan.</p>
+
+  <h2 id="s8-3"><span class="n">8.3</span>Dibuka tanpa sinyal</h2>
+  <p>Data terakhir yang pernah diambil tersimpan di HP. Saat aplikasi dibuka tanpa sinyal, data itu langsung ditampilkan dengan tulisan <i>Mengambil data terbaru</i> dan jam pengecekannya. Bila belum pernah ada data sama sekali, muncul tulisan <i>Belum bisa mengambil data sensor</i> dan tombol <b>Coba lagi</b>.</p>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<section class="page main">
+  <h2 class="mt0" id="s8-4"><span class="n">8.4</span>Alat tidak mengirim data</h2>
+  <div class="row">
+    <div class="shot"><div class="phone sm"><img src="img/beranda_tidak_ada_data.jpg" alt=""></div><div class="cap">Area abu-abu, penanda bertanda tanya</div></div>
+    <div class="grow">
+      <p>Bila alat EWS diam selama 15 menit atau lebih, server menandai alat tidak mengirim data.</p>
+      <ul class="dots">
+        <li><b>Beranda</b>: area pantau abu-abu dengan garis putus-putus, penanda bertanda tanya, dan catatan <i>EWS berhenti mengirim data</i>.</li>
+        <li><b>Sensor</b>: kotak <i>Alat tidak mengirim data</i> di paling atas, kartu sensor bertuliskan <i>Tidak ada data</i> atau <i>Data lama</i>.</li>
+      </ul>
+      <img src="img/kartu_alat_mati.jpg" alt="" style="width:100%;border-radius:2mm;border:.3mm solid var(--line);display:block;margin:2mm 0 3mm">
+      <div class="note important">
+        <i class="mi">&#xe238;</i>
+        <div><span class="nt">Jangan anggap aman</span><p>Alat bisa berhenti mengirim justru saat lereng bergerak. Selama data tidak tersedia, ikuti kabar dari perangkat desa dan perhatikan tanda-tanda di sekitar Anda.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="s8-5"><span class="n">8.5</span>Peta tidak muncul</h2>
+  <p>Gambar peta diambil dari internet. Bila sinyal lemah, muncul tulisan <i>Peta belum bisa dimuat. Periksa sinyal.</i> dengan tombol <b>Coba lagi</b>. Area EWS, batas desa, dan penanda alat tetap tampil walaupun gambar peta belum termuat.</p>
+
+  <h2 id="s8-6"><span class="n">8.6</span>Ringkasan tulisan saat data bermasalah</h2>
+  <table class="tbl compact">
+    <tr><th style="width:54mm">Tulisan di layar</th><th style="width:34mm">Muncul di</th><th>Artinya</th></tr>
+    <tr><td><b>Mengambil data terbaru</b></td><td>Animasi pembuka, Sensor</td><td>Angka sementara dari simpanan HP. Data baru sedang diambil.</td></tr>
+    <tr><td><b>Belum tersambung ke server</b></td><td>Sensor, Catatan terbaru</td><td>Data terbaru gagal diambil. Angka dari pengecekan terakhir.</td></tr>
+    <tr><td><b>Belum tersambung</b></td><td>Beranda, di kanan judul Catatan terbaru</td><td>Sama dengan di atas.</td></tr>
+    <tr><td><b>Belum bisa mengambil data sensor</b> atau <b>Belum bisa memuat</b></td><td>Sensor, Beranda</td><td>Belum ada data sama sekali di HP. Ketuk <b>Coba lagi</b>.</td></tr>
+    <tr><td><b>Alat tidak mengirim data</b> atau <b>EWS berhenti mengirim data</b></td><td>Sensor, Beranda</td><td>Alat diam 15 menit atau lebih. Jangan anggap aman.</td></tr>
+    <tr><td><b>Data lama</b></td><td>Kartu sensor, detail alat</td><td>Angka bacaan terakhir sebelum alat berhenti mengirim.</td></tr>
+    <tr><td><b>Peta belum bisa dimuat. Periksa sinyal.</b></td><td>Peta</td><td>Gambar peta gagal diunduh. Ketuk <b>Coba lagi</b>.</td></tr>
+  </table>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 9 ===================== -->
+<section class="page main" id="bab9">
+  <div class="chapter-head">
+    <div class="bab">Bab 9</div>
+    <h1>Tentang Aplikasi, Data, dan Privasi</h1>
+    <div class="lead mb0">Ketuk tombol <img class="btn-img" src="img/tombol_tentang.png" alt="Tentang" style="height:6mm"> di kanan atas untuk membuka halaman Tentang aplikasi.</div>
+  </div>
+  <div class="row">
+    <div class="shot"><div class="phone sm"><img src="img/tentang_1.jpg" alt=""></div><div class="cap">Bagian atas</div></div>
+    <div class="shot"><div class="phone sm"><img src="img/tentang_3.jpg" alt=""></div><div class="cap">Setelah digeser ke bawah</div></div>
+    <div class="grow">
+      <h3 class="mt0">Isi halaman</h3>
+      <ul class="dots">
+        <li><b>Versi aplikasi</b>, misalnya <i>Versi 1.0.0 (1)</i>.</li>
+        <li><b>Keadaan darurat</b>: telepon <b>112</b>, layanan darurat nasional yang gratis.</li>
+        <li><b>Sumber data</b>: server EWS desa, kajian 2024, dan peta dasar.</li>
+        <li><b>Data dan privasi</b>.</li>
+      </ul>
+    </div>
+  </div>
+  <h2 class="mt6"><span class="n">9.1</span>Data dan privasi</h2>
+  <ul class="dots">
+    <li>Aplikasi ini <b>tidak memakai akun</b>.</li>
+    <li>Lokasi HP dipakai untuk titik Anda di peta, dan ikut dalam laporan bila Anda mengirimnya.</li>
+    <li>Foto dan isi laporan hanya terkirim lewat WhatsApp saat Anda sendiri menekan kirim.</li>
+    <li>Status terakhir dan 50 notifikasi terakhir disimpan di HP, supaya tetap terbaca saat tidak ada sinyal.</li>
+    <li>Bila aplikasi mengalami galat, laporan teknis (jenis HP dan letak galat di kode, tanpa nama, lokasi, atau foto) dikirim ke pengembang lewat Firebase Crashlytics.</li>
+  </ul>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== BAB 10 ===================== -->
+<section class="page main" id="bab10">
+  <div class="chapter-head">
+    <div class="bab">Bab 10</div>
+    <h1>Pemecahan Masalah</h1>
+    <div class="lead mb0">Masalah yang paling sering ditemui dan cara mengatasinya.</div>
+  </div>
+  <table class="tbl" style="font-size:8.8pt">
+    <tr><th style="width:44mm">Masalah</th><th style="width:48mm">Penyebab yang mungkin</th><th>Yang dilakukan</th></tr>
+    <tr><td><b>Aplikasi tidak bisa dipasang</b></td><td>Izin pemasangan dari sumber ini belum aktif, ruang penyimpanan penuh, atau Android lebih lama dari versi 7.0.</td><td>Nyalakan <b>Izinkan dari sumber ini</b>, kosongkan ruang penyimpanan, lalu ulangi (BAB 2.2).</td></tr>
+    <tr><td><b>Muncul <i>Belum tersambung ke server</i></b></td><td>Sinyal lemah, kuota habis, atau server sedang gangguan.</td><td>Periksa data seluler atau WiFi. Aplikasi mencoba lagi tiap 10 detik. Di menu Sensor, tarik layar ke bawah.</td></tr>
+    <tr><td><b>Area EWS abu-abu dengan garis putus-putus</b></td><td>Alat tidak mengirim data, atau data di HP sudah lebih dari 15 menit.</td><td>Jangan anggap aman. Periksa sinyal dan ikuti kabar dari perangkat desa (BAB 8).</td></tr>
+    <tr><td><b>Gambar peta kosong atau abu-abu</b></td><td>Sinyal lemah saat memuat gambar peta.</td><td>Ketuk <b>Coba lagi</b> di pojok peta, atau tunggu sinyal membaik.</td></tr>
+    <tr><td><b>HP tidak berbunyi saat status berubah</b></td><td>Izin notifikasi belum diberikan, volume nada dering kecil, atau mode senyap aktif.</td><td>Ikuti langkah di BAB 7.3.</td></tr>
+    <tr><td><b>Lokasi tidak didapat</b></td><td>GPS mati, izin lokasi ditolak, atau berada di dalam ruangan.</td><td>Nyalakan lokasi, berikan izin, lalu ketuk <b>Perbarui</b> di tempat terbuka.</td></tr>
+    <tr><td><b>Foto ditandai kurang jelas</b></td><td>HP bergoyang, kurang cahaya, atau lensa kotor.</td><td>Ikuti saran di bawah foto. Ambil ulang bila aman, atau kirim saja.</td></tr>
+    <tr><td><b>Tombol Periksa laporan tidak bisa ditekan</b></td><td>Cerita masih kosong dan belum ada foto.</td><td>Isi cerita atau tambahkan minimal satu foto.</td></tr>
+    <tr><td><b>Kata bahasa Jawa tidak dibakukan</b></td><td>Kata belum ada di kamus aplikasi.</td><td>Perbaiki langsung di kolom <b>Laporan dalam bahasa Indonesia</b> sebelum dikirim.</td></tr>
+    <tr><td><b>WhatsApp tidak terbuka saat mengirim</b></td><td>WhatsApp tidak terpasang.</td><td>Pilih aplikasi lain di menu Bagikan, atau pasang WhatsApp.</td></tr>
+    <tr><td><b>Teks laporan tidak muncul di WhatsApp</b></td><td>Foto gagal digabung menjadi satu gambar.</td><td>Teks sudah disalin. Tekan lama kolom pesan, lalu pilih <b>Tempel</b>.</td></tr>
+    <tr><td><b>Lupa versi aplikasi yang terpasang</b></td><td>—</td><td>Buka <b>Tentang aplikasi</b>. Versi tertulis di bawah logo.</td></tr>
+  </table>
+  <div class="note">
+    <i class="mi">&#xf28c;</i>
+    <div><p>Masalah belum teratasi? Hubungi Tim Aksara Desa Lumeneng atau perangkat desa. Sebutkan merek HP, versi aplikasi, dan tulisan yang muncul di layar.</p></div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== KARTU SIAGA ===================== -->
+<section class="page main" id="siaga">
+  <div class="chapter-head">
+    <div class="bab">Lampiran</div>
+    <h1>Kartu Siaga</h1>
+    <div class="lead mb0">Ringkasan yang bisa dicetak dan ditempel di rumah. Lakukan ini saat status di aplikasi berubah.</div>
+  </div>
+  <div class="siaga">
+    <div class="siaga-row">
+      <div class="who"><i class="mi c-normal">&#xf634;</i><b>Aman</b></div>
+      <ul class="dots"><li>Beraktivitas seperti biasa.</li><li>Saat hujan deras, buka aplikasi dan pantau status.</li><li>Kenali jalur evakuasi dan tempat aman terdekat.</li></ul>
+    </div>
+    <div class="siaga-row">
+      <div class="who"><i class="mi c-waspada">&#xf02a0;</i><b>Waspada</b></div>
+      <ul class="dots"><li>Hindari lereng, tebing, dan aliran air.</li><li>Siapkan tas siaga: dokumen penting, obat, senter, dan air minum.</li><li>Siapkan jalur evakuasi dan pantau kabar dari petugas.</li></ul>
+    </div>
+    <div class="siaga-row">
+      <div class="who"><i class="mi c-awas">&#xef9e;</i><b>Awas</b></div>
+      <ul class="dots"><li><b>Segera menjauh dari lereng.</b></li><li>Ikuti arahan petugas dan perangkat desa.</li><li>Bantu orang tua, anak-anak, dan tetangga yang membutuhkan.</li></ul>
+    </div>
+    <div class="siaga-row">
+      <div class="who"><i class="mi c-stale">&#xf359;</i><b style="font-size:10.5pt">Tidak ada data</b></div>
+      <ul class="dots"><li><b>Jangan anggap sudah aman.</b></li><li>Periksa sinyal HP.</li><li>Perhatikan tanda di sekitar dan ikuti kabar dari perangkat desa.</li></ul>
+    </div>
+  </div>
+  <div class="row mt6" style="gap:8mm">
+    <div class="grow">
+      <h3 class="mt0">Lihat tanda longsor? Laporkan lewat menu Lapor</h3>
+      <p class="small">Retakan tanah, longsoran kecil, rembesan air, pohon atau tiang miring, dan suara gemuruh. Ambil foto hanya dari tempat aman.</p>
+      <div class="row" style="gap:3mm;align-items:center">
+        <i class="mi" style="font-size:24pt;vertical-align:0;color:var(--awas)">&#xf05f4;</i>
+        <div><b style="font-size:13pt">Darurat: 112</b><br><span class="small soft">Layanan darurat nasional, gratis</span></div>
+      </div>
+    </div>
+    <div class="grow">
+      <h3 class="mt0">Nomor penting</h3>
+      <div class="small soft">Ketua RT / RW</div><div class="fill"></div>
+      <div class="small soft mt2">Perangkat desa</div><div class="fill"></div>
+      <div class="small soft mt2">Tempat aman terdekat</div><div class="fill"></div>
+    </div>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== GLOSARIUM ===================== -->
+<section class="page main" id="glosarium">
+  <div class="front-title" style="text-align:left;margin-bottom:4mm">GLOSARIUM</div>
+  <dl class="gloss cols2">
+    <div><dt>Ambang batas</dt><dd>Angka batas yang diatur admin server. Bila bacaan sensor melewatinya, sensor dinilai Waspada.</dd></div>
+    <div><dt>APK</dt><dd>File pemasangan aplikasi Android.</dd></div>
+    <div><dt>Area pantau</dt><dd>Bidang di sekitar alat EWS yang kondisinya diwakili alat tersebut.</dd></div>
+    <div><dt>Awas</dt><dd>Status paling berbahaya. Warga diminta segera menjauh dari lereng.</dd></div>
+    <div><dt>BPBD</dt><dd>Badan Penanggulangan Bencana Daerah.</dd></div>
+    <div><dt>CNN</dt><dd><i>Convolutional Neural Network</i>, metode kecerdasan buatan untuk mengenali isi foto. Belum dipasang di versi ini.</dd></div>
+    <div><dt>EWS</dt><dd><i>Early Warning System</i>, sistem peringatan dini.</dd></div>
+    <div><dt>GPS</dt><dd>Sistem satelit untuk menentukan posisi HP.</dd></div>
+    <div><dt>Intensitas hujan</dt><dd>Seberapa basah papan sensor hujan, dalam persen.</dd></div>
+    <div><dt>Kelembapan tanah</dt><dd>Seberapa basah tanah di lereng, dalam persen.</dd></div>
+    <div><dt>Kemiringan</dt><dd>Kemiringan tanah tempat alat dipasang, dalam derajat.</dd></div>
+    <div><dt>mdpl</dt><dd>Meter di atas permukaan laut.</dd></div>
+    <div><dt>Naive Bayes</dt><dd>Metode statistik untuk menebak jenis tanda dari kata-kata dalam cerita.</dd></div>
+    <div><dt>NLP</dt><dd><i>Natural Language Processing</i>, pengolahan bahasa. Di aplikasi ini dipakai untuk membakukan cerita berbahasa Jawa dan menebak jenis tanda.</dd></div>
+    <div><dt>Normal</dt><dd>Sebutan status Aman di peta dan detail alat.</dd></div>
+    <div><dt>Notifikasi</dt><dd>Pemberitahuan yang muncul di bagian atas layar HP.</dd></div>
+    <div><dt>Server</dt><dd>Komputer yang menerima data alat dan menentukan status, di alamat desalumeneng.id.</dd></div>
+    <div><dt>Status</dt><dd>Keadaan lereng menurut server: Aman, Waspada, atau Awas.</dd></div>
+    <div><dt>Waspada</dt><dd>Status saat ada sensor yang melewati batas waspada.</dd></div>
+    <div><dt>Zona rawan longsor</dt><dd>Peta tingkat kerawanan longsor dari Kajian Pemetaan Bencana Desa Lumeneng 2024.</dd></div>
+  </dl>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== PENUTUP ===================== -->
+<section class="page main" id="penutup">
+  <div class="front-title">PENUTUP</div>
+  <div style="font-size:10.5pt;line-height:1.65;text-align:justify;">
+    <p style="text-indent:8mm">Puji syukur ke hadirat Tuhan Yang Maha Esa atas tersusunnya <b>Manual Book Aplikasi EWS Lumeneng</b> ini. Buku ini diharapkan menjadi pegangan bagi warga, perangkat desa, dan relawan dalam memantau kondisi lereng dan melaporkan tanda-tanda longsor di Desa Lumeneng.</p>
+    <p style="text-indent:8mm">Alat dan aplikasi hanya membantu. Kesiapsiagaan tetap bergantung pada warga yang mengenali tanda-tanda longsor, saling memberi kabar, dan mengikuti arahan petugas, seperti warga Dukuh Sikudi pada tahun 1944.</p>
+    <p style="text-indent:8mm">Semoga buku ini bermanfaat dan menjadi bagian dari upaya bersama mewujudkan Desa Lumeneng yang tangguh terhadap bencana.</p>
+  </div>
+  <div style="margin-top:14mm;text-align:right;font-size:10.5pt;line-height:1.6">
+    Tim Penyusun,<br>
+    <i>Program Mahasiswa Berdampak / Tim Aksara Desa Lumeneng 2026</i>
+  </div>
+  <div class="footer"><span class="fl"></span><span class="pn"></span></div>
+</section>
+
+<!-- ===================== SAMPUL BELAKANG ===================== -->
+<section class="page back nonum">
+  <img src="img/logo_wordmark_light.png" alt="EWS Lumeneng" style="width:78mm;display:block;margin-bottom:12mm">
+  <p style="font-size:12.5pt;line-height:1.55;max-width:140mm">Aplikasi peringatan dini tanah longsor untuk warga Desa Lumeneng, Kecamatan Paninggaran, Kabupaten Pekalongan. Menampilkan kondisi lereng dari alat EWS di Sikembang, membunyikan peringatan saat status berubah, dan menerima laporan tanda longsor dari warga.</p>
+  <p style="font-size:10.5pt;line-height:1.55;max-width:140mm;margin-top:6mm">Aplikasi ini alat bantu pemantauan warga, bukan peringatan resmi BPBD. Saat ragu, utamakan keselamatan dan ikuti arahan perangkat desa.</p>
+  <div style="margin-top:10mm;display:flex;align-items:center;gap:4mm">
+    <i class="mi" style="font-size:28pt;vertical-align:0;color:#fff">&#xf05f4;</i>
+    <div><div style="font-size:16pt;font-weight:700">Darurat: 112</div><div style="color:#D6E4F5;font-size:9.5pt">Layanan darurat nasional, gratis</div></div>
+  </div>
+  <div style="position:absolute;left:22mm;right:22mm;bottom:22mm">
+    <div style="background:#fff;border-radius:3mm;padding:4mm 6mm;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:5mm">
+        <img src="img/logo_kemdikti.png" alt="" style="height:13mm">
+        <img src="img/logo_berdampak.png" alt="" style="height:11mm">
+        <img src="img/logo_ivet.png" alt="" style="height:13mm">
+      </div>
+      <div style="color:var(--navy);font-size:9pt;line-height:1.45;text-align:right"><b>Tim Aksara Desa Lumeneng 2026</b><br>Program Mahasiswa Berdampak<br>Universitas IVET</div>
+    </div>
+    <p class="small" style="margin-top:4mm;color:#AFC4DF">Foto sampul: dokumentasi Kajian Pemetaan Bencana Desa Lumeneng 2024. Ikon antarmuka: Material Icons (Apache License 2.0).</p>
+  </div>
+</section>
+
+<script>
+(function () {
+  var roman = ['', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+  var pages = document.querySelectorAll('.page');
+  var r = 0, a = 0, chapter = '';
+  pages.forEach(function (p) {
+    var num = '';
+    if (p.classList.contains('front')) { r++; num = roman[r]; }
+    else if (p.classList.contains('main')) { a++; num = String(a); }
+    p.dataset.num = num;
+    var bab = p.querySelector('.bab');
+    var h1 = p.querySelector('h1');
+    if (bab && h1) chapter = bab.textContent.trim().toUpperCase() + ' · ' + h1.textContent.trim();
+    var titled = p.querySelector('.front-title');
+    var label = p.classList.contains('front') ? 'Manual Book EWS Lumeneng'
+      : (titled && !bab ? titled.textContent.trim().charAt(0) + titled.textContent.trim().slice(1).toLowerCase() : chapter);
+    var fl = p.querySelector('.footer .fl');
+    var pn = p.querySelector('.footer .pn');
+    if (fl) fl.textContent = label;
+    if (pn) pn.textContent = num;
+  });
+  document.querySelectorAll('.toc .pg').forEach(function (el) {
+    var target = document.getElementById(el.dataset.ref);
+    var page = target && target.closest('.page');
+    el.textContent = page ? page.dataset.num : '?';
+  });
+})();
+</script>
+</body>
+</html>
