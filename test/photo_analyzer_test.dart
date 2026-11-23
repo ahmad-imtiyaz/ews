@@ -189,4 +189,19 @@ void main() {
       expect(quality.isBlurry, blurry, reason: '$quality');
     });
   }
+
+  // Langit mendung yang putih terbakar dulu membuat foto lereng disebut
+  // terlalu terang.
+  test('foto dengan langit putih tetap jelas', () async {
+    final bytes = File('test/fixtures/foto/jelas_langit_putih.jpg')
+        .readAsBytesSync();
+    final quality = (await preparePhoto(bytes))!.quality;
+    expect(quality.issues, isEmpty, reason: '$quality');
+  });
+
+  test('foto malam sungguhan disebut gelap', () async {
+    final bytes = File('test/fixtures/foto/gelap_malam.jpg').readAsBytesSync();
+    final quality = (await preparePhoto(bytes))!.quality;
+    expect(quality.issues, [PhotoIssue.dark], reason: '$quality');
+  });
 }

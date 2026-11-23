@@ -12,3 +12,5 @@ orientasi EXIF sudah diterapkan.
 | `buram_redup_goyang.jpg` | `motion_blurred/162_IPHONE-6S_M.jpg` |
 | `buram_rumput_tidak_fokus.jpg` | `defocused_blurred/295_HONOR-7X_F.jpg` |
 | `buram_goyang.jpg` | `motion_blurred/36_HONOR-8X_M.jpg` |
+| `jelas_langit_putih.jpg` | `sharp/113_SAMSUNG-GALAXY-A5_S.jpg` |
+| `gelap_malam.jpg` | `sharp/333_HONOR-7X_S.jpg` |

@@ -4,14 +4,18 @@ Regresi logistik atas ukuran ketajaman, diuji silang per adegan supaya versi
 tajam dan buram dari adegan yang sama tidak terpisah ke data latih dan uji.
 Tanpa numpy, cukup Python 3.
 
-1. Jalankan test/photo_dataset_eval_test.dart dengan EWS_DATA_UJI dan
-   EWS_FITUR=1, lalu salin hasil.csv jadi hasil_sebelum.csv (pembanding).
+1. Jalankan test/photo_dataset_eval_test.dart dengan EWS_DATA_UJI,
+   EWS_FITUR=1, dan EWS_SEPERTI_APLIKASI=1 (foto diproses seperti di menu
+   Lapor), lalu salin hasil.csv jadi hasil_sebelum.csv (pembanding).
 2. python -I tool/fit_blur.py DATA_DIR FITUR,FITUR,... --export
    --misses mencetak foto yang masih salah.
 
 Fitur yang dipakai sekarang:
 s1_peakMax,s1_peakMin,s2_wholeMax,s2_wholeMin,s2_peakMax,s2_peakMin,s2_edge,
-s4_wholeMax,s4_wholeMin,s4_peakMax,s4_peakMin
+s4_wholeMax,s4_wholeMin,s4_peakMax,s4_peakMin,s2_coh,s4_coh,s2_cohMed,s4_cohMed
+
+Aturan searah (_streakFrom, _streakSharpBelow) disetel terpisah, di luar
+skrip ini.
 
 Bias di kode = bias hasil ekspor dikurangi cut.
 """
