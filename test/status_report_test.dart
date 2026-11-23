@@ -174,6 +174,40 @@ void main() {
     );
   });
 
+  testWidgets('perubahan di hari lain disebut tanggalnya', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatusReportSheet(
+            item: (
+              status: MonitoringStatus.waspada,
+              title: 'Waspada',
+              note: 'Intensitas hujan 56,3%',
+              time: '23.50',
+              at: DateTime(2026, 11, 23, 23, 50),
+            ),
+            next: (
+              status: MonitoringStatus.normal,
+              title: 'Aman',
+              note: 'Kembali normal',
+              time: '00.20',
+              at: DateTime(2026, 11, 24, 0, 20),
+            ),
+            load: (_) async => _readings,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Berlangsung 30 menit, lalu berubah jadi Normal pada 24 Nov, 00.20.',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('bacaan gagal diambil bisa dicoba lagi', (tester) async {
     var calls = 0;
     await tester.pumpWidget(

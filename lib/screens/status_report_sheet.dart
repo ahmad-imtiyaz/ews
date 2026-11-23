@@ -157,8 +157,10 @@ class _StatusReportSheetState extends State<StatusReportSheet> {
     final change = next.status == MonitoringStatus.noData
         ? 'lalu alat berhenti mengirim data'
         : 'lalu berubah jadi ${next.status.label}';
+    // Hari yang sama dengan kejadiannya cukup jamnya.
+    final when = timeLabel(nextAt, now: at);
     return 'Berlangsung ${durationLabel(nextAt.difference(at))}, $change '
-        'pukul ${timeLabel(nextAt)}.';
+        '${when.contains(',') ? 'pada' : 'pukul'} $when.';
   }
 
   @override
