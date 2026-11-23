@@ -163,7 +163,13 @@ void main() {
 
     await tester.tap(showAll);
     await tester.pumpAndSettle();
-    expect(find.text('12 catatan, terbaru di atas.'), findsOneWidget);
+    expect(
+      find.text(
+        '12 catatan, terbaru di atas. Ketuk '
+        'catatan untuk melihat report-nya.',
+      ),
+      findsOneWidget,
+    );
     await tester.scrollUntilVisible(find.text('Perubahan ke-12'), 300);
     expect(find.textContaining('Tampilkan'), findsNothing);
   });

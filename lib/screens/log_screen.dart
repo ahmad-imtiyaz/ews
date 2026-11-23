@@ -4,6 +4,7 @@ import '../app_theme.dart';
 import '../services/ews_feed.dart';
 import '../widgets/log_row.dart';
 import '../widgets/top_bar.dart';
+import 'status_report_sheet.dart';
 
 /// Semua catatan dari Beranda atau Sensor. Server mengirim puluhan perubahan,
 /// jadi daftar dibuka sebagian dulu. Isinya ikut diperbarui selama halaman
@@ -54,7 +55,8 @@ class _LogScreenState extends State<LogScreen> {
               Text(
                 items.isEmpty
                     ? 'Perubahan status alat EWS akan muncul di sini.'
-                    : '${items.length} catatan, terbaru di atas.',
+                    : '${items.length} catatan, terbaru di atas. Ketuk '
+                          'catatan untuk melihat report-nya.',
                 style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
               ),
               const SizedBox(height: 12),
@@ -66,7 +68,11 @@ class _LogScreenState extends State<LogScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ...logRows(items.take(_shown)),
+                      ...logRows(
+                        items.take(_shown),
+                        onTap: (index) =>
+                            showStatusReport(context, items, index),
+                      ),
                       if (left > 0) ...[
                         const Divider(height: 1),
                         LogFooterButton(

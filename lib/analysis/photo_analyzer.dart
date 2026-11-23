@@ -32,43 +32,52 @@ const _darkMedianBelow = 30.0;
 const _brightMedianFrom = 200.0;
 const _clippedFrom = 0.25;
 
-// Ubin bertekstur foto asli paling sedikit 61%, foto tertutup jari dan dinding
-// polos 0%.
-const _plainDetailBelow = 0.05;
+// Ubin bertekstur foto asli paling sedikit 61% (foto tajam blur dataset
+// Kwentar: 5% terbawah 30%), foto tertutup jari dan dinding polos 0%. Foto
+// goyang di ruang redup bisa 3–5%, dan itu harus disebut buram.
+const _plainDetailBelow = 0.02;
 
 // Titik hitam foto asli paling tinggi 61, foto berkabut 163 ke atas dengan
 // kontras 29–70. Kontras foto asli paling rendah 96.
 const _hazeBlackFrom = 120.0;
 const _hazeContrast = 80.0;
 
-// Ketajaman foto asli 76–84 di resolusi penuh. Buram sedang (gauss radius 6
-// di lebar 2048) paling tinggi 59,6, goyang 0,6% lebar foto 52–72,6. Dua foto
-// kajian yang memang lembut bernilai 46 dan 57.
-const _blurBelow = 62.0;
+// Hanya untuk membedakan foto polos (dinding, lensa tertutup jari) dari foto
+// buram: foto polos yang tidak buram bernilai 62 ke atas di ukuran lama
+// [_blurScore]. Foto asli 76–84.
+const _plainSharpFrom = 62.0;
 
-// Bagian tertajam (peakSharpness) foto asli paling rendah 77,0. Buram ringan
-// dan goyang 0,6% lebar 53–73,9. Masih terbaca, tapi perlu disebut.
-const _slightBlurBelow = 73.0;
+// Penilai buram: regresi logistik atas ukuran [_axisBlur] di tiga ukuran
+// foto, dilatih 24 November 2026 dengan blur dataset Kwentar (CC0): 277
+// adegan dari puluhan HP, masing-masing difoto tajam, tidak fokus, dan
+// goyang. Diuji silang per adegan: foto tajam yang disebut buram 3,6%, tidak
+// fokus tertangkap 96%, goyang tertangkap 91% (aturan sebelumnya 6,9%, 91%,
+// 85%). Buram ringan sengaja dibiarkan lolos sebagai jelas. Yang masih sering
+// lolos: goyang di rumput atau daun yang sangat rapat, dan permukaan polos
+// yang luas (dinding, plastik) kadang terbaca buram. Untuk melatih ulang
+// lihat tool/fit_blur.py.
+const _blurBias = -7.3868;
+const _blurWeights = {
+  's1_peakMax': 2.2476,
+  's1_peakMin': 1.6390,
+  's2_wholeMax': 5.3981,
+  's2_wholeMin': 3.0263,
+  's2_peakMax': 3.9474,
+  's2_peakMin': 2.7619,
+  's2_edge': -3.8540,
+  's4_wholeMax': 4.2621,
+  's4_wholeMin': 2.7079,
+  's4_peakMax': 5.1453,
+  's4_peakMin': 4.0945,
+};
 
-// Foto goyang di tempat redup penuh noise, dan di versi 1024 nilainya 72–85,
-// sama dengan foto tajam. Contoh nyata 19 November 2026: foto goyang di
-// dalam rumah bernilai 75,7 dan lolos sebagai jelas. Di versi 4 kali lebih
-// kecil, foto tajam (juga yang redup dan ber-noise) bernilai 78–85, foto
-// nyata tadi 59,8, dan goyang 3% lebar foto ditambah noise 58–73,5 (14 dari
-// 17 di bawah ambang). Foto dekat yang 35% tengahnya tajam dan latarnya
-// sangat kabur 68–78; yang di bawah ambang sudah buram di ukuran biasa.
-// Goyang ringan di tempat redup masih bisa lolos.
-const _coarseBlurBelow = 72.0;
+/// [PhotoQuality.sharpness] di bawah ini berarti buram.
+const _blurBelow = 50.0;
 
 /// Sisi panjang versi kecil untuk mengukur ketajaman, kira-kira ukuran foto
 /// saat dilihat petugas di layar HP. Memperkecil lebih jauh menyembunyikan
 /// buram: goyang 20 piksel di foto 4000 piksel tinggal 2 piksel di lebar 400.
 const _analysisLongSide = 1024;
-
-/// Versi yang 4 kali lebih kecil lagi. Bintik noise kamera di tempat redup
-/// terbaca sebagai garis tajam di versi 1024, sehingga foto yang goyang berat
-/// tetap lolos. Di ukuran ini noise sudah rata, goyang berat masih terlihat.
-const _coarseFactor = 4;
 
 /// Masalah foto yang disampaikan ke pelapor dan petugas. Sarannya tidak
 /// menyuruh mendekat ke lereng.
@@ -81,10 +90,6 @@ enum PhotoIssue {
   dark('Terlalu gelap', 'Nyalakan lampu kilat atau tunggu lebih terang.'),
   bright('Terlalu terang', 'Jangan menghadap matahari atau lampu.'),
   blurry('Buram', 'Pegang HP diam, lalu ketuk layar di bagian yang difoto.'),
-  slightlyBlurry(
-    'Agak buram',
-    'Pegang HP diam, lalu ketuk layar di bagian yang difoto.',
-  ),
   lowResolution(
     'Resolusi rendah',
     'Pakai foto langsung dari kamera, bukan tangkapan layar.',
@@ -102,8 +107,7 @@ class PhotoQuality {
     required this.height,
     required this.brightness,
     required this.sharpness,
-    this.peakSharpness = 100,
-    this.coarseSharpness = 100,
+    this.fineSharpness = 100,
     this.median = 128,
     this.blackLevel = 0,
     this.contrast = 255,
@@ -117,16 +121,13 @@ class PhotoQuality {
   /// Rata-rata kecerahan 0–255.
   final double brightness;
 
-  /// 0–100, makin kecil makin buram. Lihat [_blurScore].
+  /// 0–100, makin kecil makin buram, di bawah 50 disebut buram. Lihat
+  /// [_blurWeights].
   final double sharpness;
 
-  /// Seperti [sharpness], dari bagian foto yang paling tajam saja. Lihat
-  /// `peakBlur` di [_blurScore].
-  final double peakSharpness;
-
-  /// Seperti [peakSharpness], diukur di versi yang 4 kali lebih kecil supaya
-  /// noise kamera tidak terhitung tajam.
-  final double coarseSharpness;
+  /// Ketajaman cara lama ([_blurScore]), hanya untuk membedakan foto polos
+  /// dari foto buram.
+  final double fineSharpness;
 
   /// Kecerahan tengah 0–255: separuh foto lebih gelap dari ini.
   final double median;
@@ -151,7 +152,8 @@ class PhotoQuality {
 
   /// Hampir tanpa garis, tapi bukan karena buram: nilai tajamnya cuma dari
   /// noise kamera. Lensa tertutup jari, dinding, atau tanah polos.
-  bool get isPlain => detail < _plainDetailBelow && sharpness >= _blurBelow;
+  bool get isPlain =>
+      detail < _plainDetailBelow && fineSharpness >= _plainSharpFrom;
 
   /// Pudar seperti tertutup kabut atau lensa berembun.
   bool get isHazy => blackLevel >= _hazeBlackFrom && contrast < _hazeContrast;
@@ -162,18 +164,13 @@ class PhotoQuality {
 
   /// Foto gelap dan foto polos tidak dinilai buram: ukurannya terkacau noise.
   bool get _sharpnessCounts => !isDark && !isUnclear;
-  bool get isBlurry =>
-      _sharpnessCounts &&
-      (sharpness < _blurBelow || coarseSharpness < _coarseBlurBelow);
-  bool get isSlightlyBlurry =>
-      _sharpnessCounts && !isBlurry && peakSharpness < _slightBlurBelow;
+  bool get isBlurry => _sharpnessCounts && sharpness < _blurBelow;
 
   List<PhotoIssue> get issues => [
     if (isUnclear) PhotoIssue.unclear,
     if (isDark) PhotoIssue.dark,
     if (isTooBright) PhotoIssue.bright,
     if (isBlurry) PhotoIssue.blurry,
-    if (isSlightlyBlurry) PhotoIssue.slightlyBlurry,
     if (isLowResolution) PhotoIssue.lowResolution,
   ];
 
@@ -187,9 +184,8 @@ class PhotoQuality {
       'PhotoQuality(${width}x$height, median ${median.round()}, hitam '
       '${blackLevel.round()}, kontras ${contrast.round()}, terbakar '
       '${(clipped * 100).round()}%, detail ${(detail * 100).round()}%, '
-      'tajam ${sharpness.toStringAsFixed(1)}, puncak '
-      '${peakSharpness.toStringAsFixed(1)}, tajam kecil '
-      '${coarseSharpness.toStringAsFixed(1)})';
+      'tajam ${sharpness.toStringAsFixed(1)}, tajam lama '
+      '${fineSharpness.toStringAsFixed(1)})';
 }
 
 class PreparedPhoto {
@@ -232,15 +228,11 @@ PreparedPhoto? _prepare(Uint8List bytes) {
   for (var v = 250; v < 256; v++) {
     clipped += histogram[v];
   }
-  final (:blur, :peakBlur, :detail) = _blurScore(luminance, width, height);
-  final coarse = _shrink(luminance, width, height, _coarseFactor);
-  // Ubin ikut diperkecil supaya menutup bagian foto yang sama. Dengan ubin 64
-  // foto dekat yang latarnya kabur terbaca buram karena hanya ada 12 ubin.
-  final coarseBlur = _blurScore(
-    coarse.luminance,
-    coarse.width,
-    coarse.height,
-    tile: 64 ~/ _coarseFactor,
+  final (:blur, :detail) = _blurScore(luminance, width, height);
+  final features = _blurMeasures(luminance, width, height);
+  final z = _blurWeights.entries.fold(
+    _blurBias,
+    (sum, weight) => sum + weight.value * features[weight.key]!,
   );
 
   final square = img.copyResizeCropSquare(photo, size: cnnInputSize);
@@ -257,9 +249,8 @@ PreparedPhoto? _prepare(Uint8List bytes) {
       width: photo.width,
       height: photo.height,
       brightness: sum / luminance.length,
-      sharpness: (1 - blur) * 100,
-      peakSharpness: (1 - peakBlur) * 100,
-      coarseSharpness: (1 - coarseBlur.peakBlur) * 100,
+      sharpness: 100 / (1 + exp(z)),
+      fineSharpness: (1 - blur) * 100,
       median: percentile(0.5),
       blackLevel: percentile(0.05),
       contrast: percentile(0.95) - percentile(0.05),
@@ -337,13 +328,9 @@ PreparedPhoto? _prepare(Uint8List bytes) {
 /// jelas; +0,08 karena ubin tertajam foto mana pun memang lebih rendah dari
 /// nilai seluruh foto.
 ///
-/// [peakBlur] sama, dari 3% ubin tertajam. Goyang kamera mengaburkan seluruh
-/// foto, jadi bagian tertajamnya pun kabur; foto dekat tetap punya bagian
-/// yang tajam walau kecil.
-///
 /// [detail] adalah bagian ubin utuh yang bertekstur. Langit, dinding, atau
 /// lensa tertutup jari hampir tidak punya.
-({double blur, double peakBlur, double detail}) _blurScore(
+({double blur, double detail}) _blurScore(
   Float32List g,
   int w,
   int h, {
@@ -399,11 +386,161 @@ PreparedPhoto? _prepare(Uint8List bytes) {
   }
   final whole = blurOf(total[0], total[1], total[2], total[3]);
   final detail = fullTiles == 0 ? 0.0 : tiles.length / fullTiles;
-  if (tiles.isEmpty) return (blur: whole, peakBlur: whole, detail: detail);
+  if (tiles.isEmpty) return (blur: whole, detail: detail);
   tiles.sort();
-  double sharpest(double share) =>
-      min(whole, tiles[(share * (tiles.length - 1)).round()] + 0.08);
-  return (blur: sharpest(0.1), peakBlur: sharpest(0.03), detail: detail);
+  final sharpest = tiles[(0.1 * (tiles.length - 1)).round()] + 0.08;
+  return (blur: min(whole, sharpest), detail: detail);
+}
+
+/// Ukuran ketajaman mentah untuk menyetel [_blurWeights] dengan data uji
+/// berlabel (test/photo_dataset_eval_test.dart).
+Future<Map<String, double>?> blurFeatures(Uint8List bytes) => Isolate.run(() {
+  final decoded = img.decodeImage(bytes);
+  if (decoded == null) return null;
+  final full = _luminance(img.bakeOrientation(decoded), _analysisLongSide);
+  return {
+    'noise': _noiseSigma(full.luminance, full.width, full.height),
+    ..._blurMeasures(full.luminance, full.width, full.height),
+  };
+});
+
+/// [_axisBlur] di ukuran analisis (s1), setengahnya (s2), dan seperempatnya
+/// (s4). Noise kamera di tempat redup terbaca tajam di s1, di s4 sudah rata.
+/// Ubin ikut diperkecil supaya menutup bagian foto yang sama.
+Map<String, double> _blurMeasures(Float32List g, int w, int h) => {
+  for (final (name, factor) in const [('s1', 1), ('s2', 2), ('s4', 4)])
+    for (final MapEntry(:key, :value)
+        in (factor == 1
+                ? _axisBlur(g, w, h)
+                : switch (_shrink(g, w, h, factor)) {
+                    final small => _axisBlur(
+                      small.luminance,
+                      small.width,
+                      small.height,
+                      tile: 64 ~/ factor,
+                    ),
+                  })
+            .entries)
+      '${name}_$key': value,
+};
+
+/// Simpangan noise sensor (Immerkær 1996): selisih tiap piksel dengan
+/// tetangganya yang tidak dijelaskan oleh garis atau permukaan halus.
+double _noiseSigma(Float32List g, int w, int h) {
+  var sum = 0.0;
+  for (var y = 1; y < h - 1; y++) {
+    for (var x = 1; x < w - 1; x++) {
+      final i = y * w + x;
+      final v =
+          g[i - w - 1] -
+          2 * g[i - w] +
+          g[i - w + 1] -
+          2 * g[i - 1] +
+          4 * g[i] -
+          2 * g[i + 1] +
+          g[i + w - 1] -
+          2 * g[i + w] +
+          g[i + w + 1];
+      sum += v.abs();
+    }
+  }
+  return sqrt(pi / 2) * sum / (6 * (w - 2) * (h - 2));
+}
+
+/// Seperti [_blurScore], tapi dinilai di empat arah (mendatar, tegak, dan dua
+/// diagonal). Goyang mengaburkan satu arah saja, sudutnya bisa miring, dan
+/// arah lainnya tetap bergaris. Per arah: nilai seluruh foto, ubin tertajam
+/// 3% dan 10%, lalu dirangkum jadi arah terburam (Max) dan tertajam (Min).
+/// [edgeFrom]: beda antarpiksel yang dihitung sebagai garis kuat.
+Map<String, double> _axisBlur(
+  Float32List g,
+  int w,
+  int h, {
+  int tile = 64,
+  double edgeFrom = 8,
+}) {
+  const minGradient = 2.0;
+  const radius = 5;
+  const directions = [(1, 0), (0, 1), (1, 1), (1, -1)];
+  final tilesX = (w / tile).ceil(), tilesY = (h / tile).ceil();
+  final nTiles = tilesX * tilesY;
+  // Per arah per ubin: beda asli dan beda yang hilang.
+  final sums = Float64List(directions.length * nTiles * 2);
+  final counts = Int32List(nTiles);
+  final hv = Float64List(nTiles);
+  final blurred = Float32List(w * h);
+  var edges = 0.0;
+
+  for (final (d, (dx, dy)) in directions.indexed) {
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var sum = 0.0;
+        for (var k = -radius; k <= radius; k++) {
+          final xx = (x + k * dx).clamp(0, w - 1);
+          final yy = (y + k * dy).clamp(0, h - 1);
+          sum += g[yy * w + xx];
+        }
+        blurred[y * w + x] = sum / (2 * radius + 1);
+      }
+    }
+    for (var y = 1; y < h; y++) {
+      final py = y - dy;
+      if (py < 0 || py >= h) continue;
+      final tileRow = (y ~/ tile) * tilesX;
+      for (var x = 1; x < w - 1; x++) {
+        final px = x - dx;
+        final i = y * w + x, j = py * w + px;
+        final original = (g[i] - g[j]).abs();
+        final reblurred = (blurred[i] - blurred[j]).abs();
+        final t = tileRow + x ~/ tile;
+        final o = (d * nTiles + t) * 2;
+        sums[o] += original;
+        if (original > reblurred) sums[o + 1] += original - reblurred;
+        if (d < 2) {
+          hv[t] += original;
+          if (original > edgeFrom) edges++;
+        }
+        if (d == 0) counts[t]++;
+      }
+    }
+  }
+
+  final textured = <int>[
+    for (var t = 0; t < nTiles; t++)
+      if (counts[t] > tile * tile / 2 && hv[t] / (2 * counts[t]) >= minGradient)
+        t,
+  ];
+  double ratio(double sum, double lost) => sum == 0 ? 1.0 : (sum - lost) / sum;
+  double at(List<double> values, double share) =>
+      values.isEmpty ? 1.0 : values[(share * (values.length - 1)).round()];
+
+  final whole = <double>[], peak = <double>[], sharp = <double>[];
+  for (var d = 0; d < directions.length; d++) {
+    var sum = 0.0, lost = 0.0;
+    for (var t = 0; t < nTiles; t++) {
+      sum += sums[(d * nTiles + t) * 2];
+      lost += sums[(d * nTiles + t) * 2 + 1];
+    }
+    whole.add(ratio(sum, lost));
+    final tiles = [
+      for (final t in textured)
+        ratio(sums[(d * nTiles + t) * 2], sums[(d * nTiles + t) * 2 + 1]),
+    ]..sort();
+    peak.add(at(tiles, 0.03));
+    sharp.add(at(tiles, 0.1));
+  }
+  double most(List<double> v) => v.reduce(max);
+  double least(List<double> v) => v.reduce(min);
+  return {
+    'wholeMax': most(whole),
+    'wholeMin': least(whole),
+    'peakMax': most(peak),
+    'peakMin': least(peak),
+    'sharpMax': most(sharp),
+    'sharpMin': least(sharp),
+    'edge': edges / (2.0 * w * h),
+    'textured': nTiles == 0 ? 0 : textured.length / nTiles,
+  };
 }
 
 /// Rata-rata 11 piksel searah [horizontal], tepi foto diulang.

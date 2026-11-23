@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -58,16 +59,6 @@ Float32List _motion(Float32List g, int length, {bool diagonal = false}) {
   return _smear(g, List.filled(steps, 1 / steps), 1, diagonal ? 1 : 0);
 }
 
-Float32List _sharpCenter(Float32List sharp, Float32List blurred) {
-  final out = Float32List.fromList(blurred);
-  for (var y = (_h * 0.325).round(); y < (_h * 0.675).round(); y++) {
-    for (var x = (_w * 0.325).round(); x < (_w * 0.675).round(); x++) {
-      out[y * _w + x] = sharp[y * _w + x];
-    }
-  }
-  return out;
-}
-
 /// [noise] simpangan terbesar noise sensor. 4 untuk foto biasa, sekitar 22
 /// untuk foto di tempat redup.
 img.Image _image(Float32List g, {double noise = 4}) {
@@ -104,9 +95,10 @@ void main() {
     expect(quality.issues, [PhotoIssue.blurry]);
   });
 
-  test('sedikit tidak fokus disebut agak buram', () async {
+  // Buram ringan masih terbaca petugas, jadi tidak perlu diperingatkan.
+  test('sedikit tidak fokus dianggap jelas', () async {
     final quality = await _quality(_gaussian(sharp, _w * 0.0007));
-    expect(quality.issues, [PhotoIssue.slightlyBlurry], reason: '$quality');
+    expect(quality.issues, isEmpty, reason: '$quality');
   });
 
   // Seperti foto nyata yang dulu lolos: goyang berat di dalam rumah. Noise
@@ -170,17 +162,31 @@ void main() {
     expect(quality.issues, [PhotoIssue.lowResolution], reason: '$quality');
   });
 
+  // Goyang 0,6% lebar foto (sekitar 6 piksel di layar HP) termasuk buram
+  // ringan dan boleh lolos.
   test('foto goyang mendatar dan miring tertangkap', () async {
-    final length = (_w * 0.006).round();
+    final length = (_w * 0.01).round();
     final flat = await _quality(_motion(sharp, length));
     final diagonal = await _quality(_motion(sharp, length, diagonal: true));
     expect(flat.isBlurry, isTrue, reason: '${flat.sharpness}');
     expect(diagonal.isBlurry, isTrue, reason: '${diagonal.sharpness}');
   });
 
-  test('foto dekat: subjek tajam, latar kabur, tidak dianggap buram', () async {
-    final background = _gaussian(sharp, _w * 0.006);
-    final quality = await _quality(_sharpCenter(sharp, background));
-    expect(quality.isBlurry, isFalse, reason: '$quality');
-  });
+  // Foto sungguhan dari blur dataset Kwentar (CC0), diperkecil ke 1280 px.
+  // Bulatan buatan di atas tidak mewakili foto dekat: bagian tajamnya
+  // terbaca kurang tajam dibanding foto HP sungguhan.
+  for (final (file, blurry) in const [
+    ('tajam_dekat_keyboard.jpg', false),
+    ('tajam_redup.jpg', false),
+    ('tajam_rumput.jpg', false),
+    ('buram_redup_goyang.jpg', true),
+    ('buram_rumput_tidak_fokus.jpg', true),
+    ('buram_goyang.jpg', true),
+  ]) {
+    test('foto sungguhan $file', () async {
+      final bytes = File('test/fixtures/foto/$file').readAsBytesSync();
+      final quality = (await preparePhoto(bytes))!.quality;
+      expect(quality.isBlurry, blurry, reason: '$quality');
+    });
+  }
 }

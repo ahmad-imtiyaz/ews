@@ -6,6 +6,7 @@ import '../services/notification_inbox.dart';
 import '../services/notification_service.dart';
 import '../widgets/status_icon.dart';
 import '../widgets/top_bar.dart';
+import 'status_report_sheet.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({
@@ -49,6 +50,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final entries = widget.entries.reversed.toList();
+    final items = [
+      for (final entry in entries)
+        (
+          status: entry.status,
+          title: entry.title,
+          note: entry.body,
+          time: timeLabel(entry.time),
+          at: entry.time,
+        ),
+    ];
 
     return Scaffold(
       appBar: const TopBar(title: 'Notifikasi', backLabel: 'Kembali'),
@@ -65,16 +77,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 16),
           ],
           Text(
-            'Menyimpan ${NotificationInbox.maxEntries} notifikasi terakhir.',
+            'Menyimpan ${NotificationInbox.maxEntries} notifikasi terakhir. '
+            'Ketuk notifikasi untuk melihat report-nya.',
             style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
           ),
           const SizedBox(height: 12),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: widget.entries.isEmpty
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            clipBehavior: Clip.antiAlias,
+            child: entries.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.all(14),
                     child: Text(
@@ -88,10 +100,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (final (index, entry)
-                          in widget.entries.reversed.indexed) ...[
+                      for (final (index, entry) in entries.indexed) ...[
                         if (index > 0) const Divider(indent: 56, endIndent: 14),
-                        _NotificationRow(entry: entry),
+                        _NotificationRow(
+                          entry: entry,
+                          onTap: () => showStatusReport(context, items, index),
+                        ),
                       ],
                     ],
                   ),
@@ -144,14 +158,26 @@ class _PermissionCard extends StatelessWidget {
 }
 
 class _NotificationRow extends StatelessWidget {
-  const _NotificationRow({required this.entry});
+  const _NotificationRow({required this.entry, required this.onTap});
 
   final NotificationEntry entry;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
+    return InkWell(
+      onTap: onTap,
+      child: Semantics(
+        button: true,
+        onTapHint: 'lihat report',
+        child: _content(textTheme),
+      ),
+    );
+  }
+
+  Widget _content(TextTheme textTheme) {
     return Padding(
       padding: const EdgeInsets.all(14),
       child: Row(

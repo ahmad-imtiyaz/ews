@@ -3,60 +3,8 @@ import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../data/ews_data.dart';
 import '../../data/monitoring.dart';
+import '../../widgets/sheet_frame.dart';
 import '../../widgets/status_icon.dart';
-
-class _WhiteCard extends StatelessWidget {
-  const _WhiteCard({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
-      ),
-    );
-  }
-}
-
-class _SheetFrame extends StatelessWidget {
-  const _SheetFrame({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: children,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tutup'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class SensorSheet extends StatelessWidget {
   const SensorSheet({super.key, required this.sensor});
@@ -72,11 +20,11 @@ class SensorSheet extends StatelessWidget {
         ? null
         : area?.trigger;
 
-    return _SheetFrame(
+    return SheetFrame(
       children: [
         Text('${sensor.id}, ${sensor.place}', style: textTheme.titleLarge),
         const SizedBox(height: 12),
-        _WhiteCard(
+        WhiteCard(
           children: [
             Padding(
               padding: const EdgeInsets.all(14),
@@ -117,7 +65,7 @@ class SensorSheet extends StatelessWidget {
             style: textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
-          _WhiteCard(
+          WhiteCard(
             children: [
               for (final (index, reading) in area.sensors.indexed) ...[
                 if (index > 0) const Divider(indent: 14, endIndent: 14),

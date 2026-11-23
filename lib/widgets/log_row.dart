@@ -9,19 +9,25 @@ typedef LogItem = ({
   String title,
   String note,
   String time,
+
+  /// Jam kejadian, untuk report. `null` bila jam dari server tidak terbaca.
+  DateTime? at,
 });
 
 /// Satu baris catatan perubahan status. Jam di kanan judul supaya tiap baris
 /// cukup dua tingkat dan daftar panjang tetap mudah dipindai.
 class LogRow extends StatelessWidget {
-  const LogRow({super.key, required this.item});
+  const LogRow({super.key, required this.item, this.onTap});
 
   final LogItem item;
+
+  /// Membuka report kejadian ini.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final (:status, :title, :note, :time) = item;
+    final (:status, :title, :note, :time, at: _) = item;
     // Teks besar tidak muat berdampingan, jadi jam turun ke bawah.
     final timeBelow = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     final titleText = Text(
@@ -36,7 +42,7 @@ class LogRow extends StatelessWidget {
       style: textTheme.bodyMedium?.copyWith(color: AppColors.inkSoft),
     );
 
-    return Padding(
+    final row = Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,14 +81,24 @@ class LogRow extends StatelessWidget {
         ],
       ),
     );
+
+    if (onTap == null) return row;
+    return InkWell(
+      onTap: onTap,
+      child: Semantics(button: true, onTapHint: 'lihat report', child: row),
+    );
   }
 }
 
-/// Baris catatan dengan garis pemisah, untuk isi kartu putih.
-List<Widget> logRows(Iterable<LogItem> items) => [
+/// Baris catatan dengan garis pemisah, untuk isi kartu putih. [onTap]
+/// menerima urutan baris yang diketuk.
+List<Widget> logRows(
+  Iterable<LogItem> items, {
+  void Function(int index)? onTap,
+}) => [
   for (final (index, item) in items.indexed) ...[
     if (index > 0) const Divider(indent: 48, endIndent: 14),
-    LogRow(item: item),
+    LogRow(item: item, onTap: onTap == null ? null : () => onTap(index)),
   ],
 ];
 

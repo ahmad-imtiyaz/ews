@@ -10,6 +10,7 @@ import '../widgets/notification_bell.dart';
 import '../widgets/status_icon.dart';
 import '../widgets/top_bar.dart';
 import 'log_screen.dart';
+import 'status_report_sheet.dart';
 
 const _pagePadding = 16.0;
 const _sectionGap = 24.0;
@@ -570,6 +571,7 @@ List<LogItem> _logItems(EwsData data) => [
           '${entry.status ?? 'Tidak ada data'} · ${areaLabel(data, entry.area)}',
       note: entry.note,
       time: shortTime(entry.time),
+      at: parseServerTime(entry.time),
     ),
 ];
 
@@ -621,7 +623,10 @@ class _StatusLog extends StatelessWidget {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ...logRows(items.take(_logPreviewCount)),
+                    ...logRows(
+                      items.take(_logPreviewCount),
+                      onTap: (index) => showStatusReport(context, items, index),
+                    ),
                     if (items.length > _logPreviewCount) ...[
                       const Divider(height: 1),
                       LogFooterButton(
