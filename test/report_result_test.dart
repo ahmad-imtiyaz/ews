@@ -32,7 +32,6 @@ void main() {
       height: 1200,
       brightness: 120,
       sharpness: sharpness,
-      peakSharpness: sharpness,
     ),
   );
 
@@ -99,11 +98,11 @@ void main() {
   });
 
   testWidgets('Tetap kirim melanjutkan tanpa bertanya lagi', (tester) async {
-    await open(tester, [photo(sharpness: 40), photo(sharpness: 66)]);
+    await open(tester, [photo(sharpness: 40), photo(sharpness: 30)]);
 
     await tapSend(tester);
     expect(find.text('2 foto kurang jelas'), findsOneWidget);
-    expect(find.text('Foto 2: agak buram'), findsOneWidget);
+    expect(find.text('Foto 2: buram'), findsOneWidget);
 
     await tester.tap(find.text('Tetap kirim'));
     await tester.pumpAndSettle();
