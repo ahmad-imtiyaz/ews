@@ -13,6 +13,7 @@ import '../config.dart';
 import '../services/notification_inbox.dart';
 import '../services/phone_location.dart';
 import '../widgets/notification_bell.dart';
+import '../widgets/photo_viewer.dart';
 import '../widgets/section_card.dart';
 import '../widgets/top_bar.dart';
 import 'report_result_screen.dart';
@@ -514,16 +515,14 @@ class _PhotoSection extends StatelessWidget {
       );
     }
 
-    final notes = [
+    final photoNotes = [
       for (final (index, photo) in photos.indexed)
-        if (photo.prepared == null)
-          'Foto ${index + 1}: tidak bisa dibaca, tetap ikut dikirim.'
-        else if (photo.prepared!.quality case final quality
-            when !quality.isClear)
-          // Saran untuk masalah yang paling menentukan saja, supaya singkat.
-          'Foto ${index + 1}: ${quality.issueText.toLowerCase()}. '
-              '${quality.issues.first.tip}',
+        if (_noteOf(photo) case final note?)
+          'Foto ${index + 1}: $note'
+        else
+          null,
     ];
+    final notes = photoNotes.nonNulls.toList();
 
     return SectionCard(
       title: 'Foto (${photos.length} dari $maxReportPhotos)',
@@ -541,6 +540,12 @@ class _PhotoSection extends StatelessWidget {
                     size: size,
                     number: index + 1,
                     photo: photo,
+                    onOpen: () => PhotoViewer.open(
+                      context,
+                      photos: [for (final photo in photos) photo.bytes],
+                      initialIndex: index,
+                      notes: photoNotes,
+                    ),
                     onRemove: () => onRemove(index),
                   ),
                 if (preparing)
@@ -571,6 +576,15 @@ class _PhotoSection extends StatelessWidget {
       ],
     );
   }
+
+  static String? _noteOf(_PendingPhoto photo) {
+    final prepared = photo.prepared;
+    if (prepared == null) return 'tidak bisa dibaca, tetap ikut dikirim.';
+    final quality = prepared.quality;
+    if (quality.isClear) return null;
+    // Saran untuk masalah yang paling menentukan saja, supaya singkat.
+    return '${quality.issueText.toLowerCase()}. ${quality.issues.first.tip}';
+  }
 }
 
 class _PhotoTile extends StatelessWidget {
@@ -578,12 +592,14 @@ class _PhotoTile extends StatelessWidget {
     required this.size,
     required this.number,
     required this.photo,
+    required this.onOpen,
     required this.onRemove,
   });
 
   final double size;
   final int number;
   final _PendingPhoto photo;
+  final VoidCallback onOpen;
   final VoidCallback onRemove;
 
   @override
@@ -602,6 +618,21 @@ class _PhotoTile extends StatelessWidget {
               fit: BoxFit.cover,
               cacheWidth: 300,
               gaplessPlayback: true,
+            ),
+          ),
+          Positioned.fill(
+            child: Material(
+              type: MaterialType.transparency,
+              borderRadius: BorderRadius.circular(12),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onOpen,
+                child: Semantics(
+                  button: true,
+                  label: 'Lihat foto $number',
+                  child: const SizedBox.expand(),
+                ),
+              ),
             ),
           ),
           Positioned(
