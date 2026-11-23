@@ -43,10 +43,21 @@ class NotificationService {
   static const _waspadaChannel = AndroidNotificationChannel(
     'ews_waspada_v3',
     'Peringatan Waspada',
-    description: 'Titik pantau perlu diperhatikan atau tidak mengirim data.',
+    description: 'Titik pantau perlu diperhatikan.',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('ews_waspada'),
     audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+  );
+
+  // Alat yang diam tetap diberitahukan, tapi tanpa bunyi: sinyal alat yang
+  // putus-sambung bisa membunyikan HP warga berkali-kali.
+  static const _offlineChannel = AndroidNotificationChannel(
+    'ews_offline_v1',
+    'Alat tidak mengirim data',
+    description: 'Titik pantau tidak mengirim data. Tanpa suara.',
+    importance: Importance.high,
+    playSound: false,
+    enableVibration: false,
   );
 
   /// Biru tua dari logo aplikasi, sama dengan `notification_color` di Android.
@@ -83,6 +94,7 @@ class NotificationService {
       // notifikasi saat aplikasi tertutup tetap memakai suara EWS.
       await _android?.createNotificationChannel(_awasChannel);
       await _android?.createNotificationChannel(_waspadaChannel);
+      await _android?.createNotificationChannel(_offlineChannel);
       for (final id in _oldChannelIds) {
         await _android?.deleteNotificationChannel(channelId: id);
       }
@@ -161,10 +173,11 @@ class NotificationService {
     'waspada' => MonitoringStatus.waspada,
     'offline' => MonitoringStatus.noData,
     'normal' => MonitoringStatus.normal,
-    _ =>
-      channelId == _awasChannel.id
-          ? MonitoringStatus.awas
-          : MonitoringStatus.waspada,
+    _ => switch (channelId) {
+      'ews_awas_v3' => MonitoringStatus.awas,
+      'ews_offline_v1' => MonitoringStatus.noData,
+      _ => MonitoringStatus.waspada,
+    },
   };
 
   Future<void> showStatusAlert({
@@ -172,8 +185,11 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
-    final isAwas = status == MonitoringStatus.awas;
-    final channel = isAwas ? _awasChannel : _waspadaChannel;
+    final channel = switch (status) {
+      MonitoringStatus.awas => _awasChannel,
+      MonitoringStatus.noData => _offlineChannel,
+      _ => _waspadaChannel,
+    };
     try {
       await _plugin.show(
         id: _nextId++,
@@ -188,6 +204,8 @@ class NotificationService {
             priority: Priority.high,
             icon: 'ic_notification',
             color: _logoBlue,
+            playSound: channel.playSound,
+            enableVibration: channel.enableVibration,
             sound: channel.sound,
             audioAttributesUsage: channel.audioAttributesUsage,
             styleInformation: BigTextStyleInformation(body),

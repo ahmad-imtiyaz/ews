@@ -39,7 +39,7 @@ Kirim **hanya saat status satu wilayah berubah**, jangan setiap ada bacaan senso
 |---|---|---|---|
 | Awas | Ya, langsung | `awas` | `ews_awas_v3` |
 | Waspada | Ya | `waspada` | `ews_waspada_v3` |
-| Alat berhenti mengirim data (masuk `offline[]`) | Disarankan | `offline` | `ews_waspada_v3` |
+| Alat berhenti mengirim data (masuk `offline[]`) | Disarankan, tanpa suara | `offline` | `ews_offline_v1` |
 | Aman / Normal | **Tidak** | | |
 
 Aturan supaya HP warga tidak berbunyi terus:
@@ -49,7 +49,7 @@ Aturan supaya HP warga tidak berbunyi terus:
 3. Untuk Waspada dan Offline: jangan kirim status yang sama untuk wilayah yang sama lebih dari sekali dalam 10 menit. Ini menahan status yang bolak-balik Aman ↔ Waspada setiap kali sensor membaca.
 4. Untuk Awas: selalu kirim, tanpa jeda.
 
-Status Aman tidak perlu dikirim. Android memakai suara channel yang disebut di pesan, dan belum ada channel yang senyap, jadi kabar "sudah aman" akan berbunyi seperti peringatan Waspada. Aplikasi sudah mencatat kembali Normal di lonceng saat dibuka.
+Status Aman tidak perlu dikirim. Android memakai suara channel yang disebut di pesan, dan satu-satunya channel senyap (`ews_offline_v1`) khusus untuk alat yang tidak mengirim data. Aplikasi sudah mencatat kembali Normal di lonceng saat dibuka.
 
 ## 4. Isi pesan
 
@@ -85,8 +85,8 @@ Kenapa tiap kolom dibutuhkan:
 - `notification.title` / `body`: teks yang dibaca warga. Tanpa `notification`, Android tidak menampilkan apa pun saat aplikasi tertutup, jadi jangan kirim pesan yang hanya berisi `data`.
 - `data.status`: dibaca aplikasi untuk ikon dan riwayat lonceng. Nilainya `awas`, `waspada`, atau `offline`, huruf kecil.
 - `android.priority: high`: tanpa ini, Android bisa menunda pesan saat HP diam atau layar mati (mode Doze).
-- `channel_id`: menentukan suara (awas.mp3 / waspada.mp3) dan prioritas. Harus persis `ews_awas_v3` atau `ews_waspada_v3`. Kalau salah atau kosong, Android memakai channel Waspada.
-- `sound`: hanya dipakai Android 7 ke bawah. Isi `ews_awas` atau `ews_waspada`.
+- `channel_id`: menentukan suara (awas.mp3 / waspada.mp3 / tanpa suara) dan prioritas. Harus persis `ews_awas_v3`, `ews_waspada_v3`, atau `ews_offline_v1`. Kalau salah atau kosong, Android memakai channel Waspada, yang berbunyi.
+- `sound`: hanya dipakai Android 7 ke bawah. Isi `ews_awas` atau `ews_waspada`. Untuk `offline`, jangan kirim kolom ini.
 - `tag`: satu tag per wilayah, jadi peringatan baru untuk wilayah yang sama menggantikan yang lama dan tidak menumpuk.
 - `ttl` 6 jam: HP yang mati atau tanpa sinyal lebih dari 6 jam tidak menerima peringatan yang sudah basi. Karena pesan bisa terlambat sampai, cantumkan jam kejadian di `body`.
 - `visibility: PUBLIC`: isi peringatan tetap terbaca di layar kunci.
@@ -120,8 +120,16 @@ class EwsPush
      */
     public function send(int $wilayahId, string $status, string $title, string $body): void
     {
-        $channel = $status === 'awas' ? 'ews_awas_v3' : 'ews_waspada_v3';
-        $sound = $status === 'awas' ? 'ews_awas' : 'ews_waspada';
+        $channel = match ($status) {
+            'awas' => 'ews_awas_v3',
+            'offline' => 'ews_offline_v1',
+            default => 'ews_waspada_v3',
+        };
+        $sound = match ($status) {
+            'awas' => 'ews_awas',
+            'offline' => null,
+            default => 'ews_waspada',
+        };
 
         $message = CloudMessage::fromArray([
             'topic' => self::TOPIC,
@@ -136,13 +144,13 @@ class EwsPush
             'android' => [
                 'priority' => 'high',
                 'ttl' => '21600s',
-                'notification' => [
+                'notification' => array_filter([
                     'channel_id' => $channel,
                     'sound' => $sound,
                     'tag' => "ews-wilayah-{$wilayahId}",
                     'notification_priority' => 'PRIORITY_MAX',
                     'visibility' => 'PUBLIC',
-                ],
+                ]),
             ],
         ]);
 
