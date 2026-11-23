@@ -239,22 +239,28 @@ const _months = [
   'Des',
 ];
 
-/// "06-11-2026 18:44" dari server jadi "18.44" bila hari ini, selain itu
-/// "6 Nov, 18.44".
-String shortTime(String raw, {DateTime? now}) {
+/// "06-11-2026 18:44" dari server, atau `null` bila bentuknya lain.
+DateTime? parseServerTime(String raw) {
   final match = RegExp(r'^(\d{1,2})-(\d{1,2})-(\d{4}) (\d{1,2}):(\d{2})')
       .firstMatch(raw);
-  if (match == null) return raw;
-  final day = int.parse(match[1]!);
+  if (match == null) return null;
   final month = int.parse(match[2]!);
-  final year = int.parse(match[3]!);
-  if (month < 1 || month > 12) return raw;
-
-  return timeLabel(
-    DateTime(year, month, day, int.parse(match[4]!), int.parse(match[5]!)),
-    now: now,
+  if (month < 1 || month > 12) return null;
+  return DateTime(
+    int.parse(match[3]!),
+    month,
+    int.parse(match[1]!),
+    int.parse(match[4]!),
+    int.parse(match[5]!),
   );
 }
+
+/// "06-11-2026 18:44" dari server jadi "18.44" bila hari ini, selain itu
+/// "6 Nov, 18.44".
+String shortTime(String raw, {DateTime? now}) => switch (parseServerTime(raw)) {
+  final time? => timeLabel(time, now: now),
+  null => raw,
+};
 
 /// "18.44" bila hari ini, selain itu "6 Nov, 18.44".
 String timeLabel(DateTime time, {DateTime? now}) {

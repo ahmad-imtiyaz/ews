@@ -299,7 +299,13 @@ void main() {
 
       await tester.tap(find.text('Lihat semua (40)'));
       await tester.pumpAndSettle();
-      expect(find.text('40 catatan, terbaru di atas.'), findsOneWidget);
+      expect(
+        find.text(
+          '40 catatan, terbaru di atas. Ketuk '
+          'catatan untuk melihat report-nya.',
+        ),
+        findsOneWidget,
+      );
 
       // scrollUntilVisible berhenti saat tombol baru muncul di tepi layar.
       Future<void> scrollAndTap(Finder button) async {

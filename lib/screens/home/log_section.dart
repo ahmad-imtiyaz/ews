@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../data/monitoring.dart';
 import '../../widgets/log_row.dart';
+import '../status_report_sheet.dart';
 
 /// Kartu catatan di bawah peta pendek, dan judul catatan sering dua baris.
 /// Sisanya ada di halaman Lihat semua.
@@ -15,6 +16,7 @@ List<LogItem> logItemsFrom(MonitoringData data) => [
       title: entry.title,
       note: entry.note,
       time: entry.time,
+      at: entry.at,
     ),
 ];
 
@@ -91,7 +93,11 @@ class _LogSectionState extends State<LogSection> {
         : Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: logRows(logItemsFrom(data).take(logPreviewCount)),
+            children: logRows(
+              logItemsFrom(data).take(logPreviewCount),
+              onTap: (index) =>
+                  showStatusReport(context, logItemsFrom(data), index),
+            ),
           );
 
     final scrollable = widget.scrollable;

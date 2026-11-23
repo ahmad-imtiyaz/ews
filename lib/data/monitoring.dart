@@ -89,9 +89,13 @@ class LogEntry {
     required this.title,
     required this.status,
     this.note = '',
+    this.at,
   });
 
   final String time;
+
+  /// Jam kejadian, untuk mengambil bacaan sensor saat itu.
+  final DateTime? at;
   final String title;
   final String note;
   final MonitoringStatus status;
@@ -197,6 +201,7 @@ MonitoringData monitoringFrom(
       if (outdated)
         LogEntry(
           time: checkedAt == null ? '' : timeLabel(checkedAt),
+          at: checkedAt,
           title: 'Belum tersambung ke server',
           status: MonitoringStatus.noData,
           note:
@@ -208,6 +213,7 @@ MonitoringData monitoringFrom(
         if (point.area case final area? when area.offline)
           LogEntry(
             time: area.time == null ? '' : shortTime(area.time!),
+            at: area.time == null ? null : parseServerTime(area.time!),
             title: '${point.id} berhenti mengirim data',
             status: MonitoringStatus.noData,
             note: point.status == MonitoringStatus.noData
@@ -218,6 +224,7 @@ MonitoringData monitoringFrom(
       for (final entry in ews.log)
         LogEntry(
           time: shortTime(entry.time),
+          at: parseServerTime(entry.time),
           title:
               '${_deviceName(ews, entry.area)} berubah menjadi '
               '${entry.status ?? 'Tidak ada data'}',
