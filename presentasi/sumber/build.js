@@ -235,7 +235,7 @@ async function icon(Component, color = "#FFFFFF") {
       ["1944", "Longsor Gunung Bongkok", "Hampir seluruh Dukuh Sikudi tergusur. Dari sekitar 40 KK, tersisa 4 rumah. Banyak warga selamat karena mengenali tandanya, lalu mendirikan Dukuh Sumingkir."],
       ["2008–2024", "Sepuluh longsor lagi", "Paling sering di Kaliwisnu, Wanasida, dan Sikembang. Rumah, jalan, sawah, dan jaringan air rusak."],
       ["2024", "Kajian pemetaan bencana", "LPBI NU Kabupaten Pekalongan dan Ringan Tangan Indonesia memetakan daerah rawan longsor di desa."],
-      ["2026", "Alat EWS dan aplikasi", "Tim KKN memasang alat EWS di lereng dan membuat aplikasi ini. EWS-02 di Sikembang lebih dulu, EWS-01 di Jomparang menyusul."],
+      ["2026", "Alat EWS dan aplikasi", "Tim KKN memasang alat EWS di lereng Sikembang dan membuat aplikasi ini."],
     ];
     const colW = 2.72, gap = 0.26, top = 2.12;
     s.addShape(pres.shapes.LINE, {
@@ -271,7 +271,7 @@ async function icon(Component, color = "#FFFFFF") {
       [icons.tower, "Alat membaca lereng", "Alat EWS mengukur kelembapan tanah, hujan, dan kemiringan tanah."],
       [icons.server, "Server menilai status", "Bacaan dikirim ke server desa, lalu dinilai: Normal, Waspada, atau Awas."],
       [icons.map, "Aplikasi menampilkan", "Peta, bacaan sensor, dan catatan diperbarui tiap 10 detik."],
-      [icons.bell, "HP memberi tanda", "Saat status berubah, HP menampilkan notifikasi dengan suara khusus."],
+      [icons.bell, "HP memberi tanda", "Muncul notifikasi. HP berbunyi saat Awas, atau saat semua sensor Waspada."],
     ];
     const colW = 2.5, gap = 0.58, top = 2.25;
     steps.forEach(([data, head, body], i) => {
@@ -321,10 +321,10 @@ async function icon(Component, color = "#FFFFFF") {
     const s = pres.addSlide({ masterName: "Judul kanan", sectionTitle: "Menu aplikasi" });
     kicker(s, "Menu 1 dari 3", 6.55);
     s.addText("Beranda: peta desa", { placeholder: "title" });
-    phone(s, "legend", LEFT, 0.95, 5.6, { altText: "Beranda dengan keterangan warna area EWS" });
-    phone(s, "detail", 3.3, 1.6, 4.95, { altText: "Rincian bacaan alat EWS-02" });
+    phone(s, "legend", LEFT, 0.95, 5.6, { altText: "Beranda dengan menu jenis peta dan zona rawan longsor" });
+    phone(s, "detail", 3.3, 1.6, 4.95, { altText: "Rincian bacaan alat EWS Sikembang" });
     const rows = [
-      ["01", "Area tiap alat di peta", "Peta satelit menunjukkan letak EWS-01 dan EWS-02. Warna area mengikuti status alat."],
+      ["01", "Area alat di peta", "Peta satelit menunjukkan area alat EWS di Sikembang. Warna area mengikuti status alat."],
       ["02", "Catatan terbaru", "Setiap perubahan status tercatat dengan jam dan penyebabnya."],
       ["03", "Ketuk alat untuk rinciannya", "Bacaan terakhir tiap sensor muncul tanpa pindah halaman."],
     ];
@@ -334,7 +334,7 @@ async function icon(Component, color = "#FFFFFF") {
       headed(s, 7.42, y, 5.3, head, body, 0.75);
     });
     s.addNotes(
-      "Tunjukkan langsung di HP bila memungkinkan. Jelaskan tombol Keterangan di kanan atas peta: hijau Normal, kuning Waspada, merah Awas, putih bergaris berarti alat tidak mengirim data."
+      "Tunjukkan langsung di HP bila memungkinkan. Tombol kiri atas peta mengganti jenis peta dan menampilkan zona rawan longsor dari kajian 2024. Tombol Keterangan di kanan atas menjelaskan warna: hijau Normal, kuning Waspada, merah Awas, abu-abu bergaris putus berarti alat tidak mengirim data."
     );
   }
 
@@ -377,7 +377,7 @@ async function icon(Component, color = "#FFFFFF") {
     phone(s, "hasil1", 3.3, 1.6, 4.95, { altText: "Hasil analisis: cerita dibakukan ke bahasa Indonesia" });
     const rows = [
       ["01", "Foto dari tempat aman", "Boleh sampai 5 foto. Aplikasi memberi tahu bila foto buram atau gelap."],
-      ["02", "Cerita dengan bahasa sehari-hari", "Bahasa Jawa juga bisa, misalnya \"lemah e bengkah neng mburi omah pak RT\"."],
+      ["02", "Cerita dengan bahasa sehari-hari", "Bahasa Jawa juga bisa, misalnya \"ana banyu metu terus seka tebing mburi omah pak RT\"."],
       ["03", "Aplikasi merapikan laporan", "Cerita dibakukan ke bahasa Indonesia, lalu jenis tanda dan tempatnya dikenali."],
       ["04", "Kirim ke petugas", "Laporan, foto, dan lokasi HP dikirim lewat WhatsApp."],
     ];
@@ -387,7 +387,7 @@ async function icon(Component, color = "#FFFFFF") {
       headed(s, 7.42, y, 5.3, head, body, 0.6);
     });
     s.addNotes(
-      "Ini fitur unggulan. Warga cukup bercerita seperti biasa, tidak perlu bahasa resmi. Contoh di layar: 'lemah e bengkah neng mburi omah pak RT, saiki tambah amba' menjadi 'Tanahnya retak di belakang rumah Pak RT, sekarang makin lebar'. Ingatkan: jangan mendekati lereng hanya untuk mengambil foto."
+      "Ini fitur unggulan. Warga cukup bercerita seperti biasa, tidak perlu bahasa resmi. Contoh di layar: 'Ana banyu metu terus seka tebing mburi omah pak RT, saiki tambah deres lan butek' menjadi 'Ada air keluar terus dari tebing belakang rumah Pak RT, sekarang makin deras dan keruh', lalu dikenali sebagai rembesan air. Ingatkan: jangan mendekati lereng hanya untuk mengambil foto."
     );
   }
 
@@ -402,7 +402,7 @@ async function icon(Component, color = "#FFFFFF") {
       [icons.cross, C.accent5, "Awas", "Kabel alat EWS putus atau sudah disetujui admin. Segera menjauh dari lereng."],
       [icons.question, C.accent6, "Tidak ada data", "Alat berhenti mengirim. Kondisi tidak diketahui, jangan anggap sudah aman."],
     ];
-    const cw = 3.7, ch = 2.05;
+    const cw = 3.7, ch = 1.85;
     statuses.forEach(([data, color, head, body], i) => {
       const x = LEFT + (i % 2) * (cw + 0.25);
       const y = 2.2 + Math.floor(i / 2) * (ch + 0.25);
@@ -412,9 +412,12 @@ async function icon(Component, color = "#FFFFFF") {
       text(s, head, { x: x + 0.98, y: y + 0.25, w: cw - 1.15, h: 0.56, fontSize: 18, bold: true, color: WHITE, valign: "middle", objectName: `Judul: ${head}` });
       text(s, body, { x: x + 0.25, y: y + 0.93, w: cw - 0.5, h: 1.05, fontSize: 14, color: MUTED, objectName: `Isi: ${head}` });
     });
+    text(s, "HP berbunyi saat Awas dan saat semua sensor Waspada. Waspada dari sebagian sensor dan alat yang diam muncul tanpa bunyi.", {
+      x: LEFT, y: 6.3, w: 2 * cw + 0.25, h: 0.6, fontSize: 14, color: WHITE, objectName: "Catatan bunyi",
+    });
     phone(s, "notif", 9.55, 0.95, 5.6, { altText: "Halaman Notifikasi dengan riwayat peringatan" });
     s.addNotes(
-      "Yang paling penting: 'Tidak ada data' bukan berarti aman. Alat bisa mati justru saat tanah bergerak. Riwayat peringatan bisa dilihat lewat ikon lonceng di kanan atas pada semua menu."
+      "Yang paling penting: 'Tidak ada data' bukan berarti aman. Alat bisa mati justru saat tanah bergerak. Soal bunyi: atas masukan warga, HP hanya berbunyi untuk Awas dan untuk Waspada dari semua sensor (kelembapan tanah, hujan, dan kemiringan). Waspada dari satu atau dua sensor tetap muncul sebagai notifikasi, tapi tanpa bunyi. Riwayat peringatan bisa dilihat lewat ikon lonceng di kanan atas pada semua menu."
     );
   }
 
@@ -427,8 +430,8 @@ async function icon(Component, color = "#FFFFFF") {
     const stats = [
       ["10 detik", "jarak pembaruan data dari server"],
       ["15 menit", "alat diam, langsung ditandai"],
-      ["95", "pemeriksaan otomatis lolos"],
-      ["1 dari 2", "alat sudah mengirim data"],
+      ["171", "pemeriksaan otomatis lolos"],
+      ["1 alat", "EWS Sikembang, terhubung ke server"],
     ];
     const sw = 2.72, gap = 0.26;
     stats.forEach(([value, label], i) => {
@@ -444,7 +447,7 @@ async function icon(Component, color = "#FFFFFF") {
         "Foto buram atau gelap dikenali sebelum dikirim",
       ]],
       [icons.clock, "Masih disiapkan", [
-        "EWS-01 di Jomparang belum mengirim data",
+        "Server desa disesuaikan supaya HP tidak terlalu sering berbunyi",
         "Pengenalan isi foto otomatis menunggu contoh foto lapangan",
         "Kamus bahasa Jawa perlu diperiksa penutur setempat",
       ]],
@@ -459,7 +462,7 @@ async function icon(Component, color = "#FFFFFF") {
       });
     });
     s.addNotes(
-      "Sampaikan apa adanya. Yang sudah berjalan: data asli dari alat EWS-02, peta, bacaan sensor, dan laporan warga. Yang masih disiapkan: alat kedua, pengenalan isi foto, dan kamus bahasa Jawa yang perlu bantuan warga untuk diperiksa. Ajak warga ikut memberi contoh kata dan foto."
+      "Sampaikan apa adanya. Yang sudah berjalan: data asli dari alat EWS di Sikembang, peta, bacaan sensor, dan laporan warga. Yang masih disiapkan: penyesuaian server desa supaya notifikasi Waspada saat aplikasi tertutup juga tidak terlalu sering berbunyi, pengenalan isi foto, dan kamus bahasa Jawa yang perlu bantuan warga untuk diperiksa. Ajak warga ikut memberi contoh kata dan foto."
     );
   }
 

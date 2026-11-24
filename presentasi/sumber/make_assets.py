@@ -47,7 +47,9 @@ def phone(name, crop=None):
     shot = Image.open(SHOTS / f"{name}.png").convert("RGB")
     if crop:
         shot = shot.crop(crop)
-    scale = 0.55
+    # Lebar layar di bingkai tetap 594 px, berapa pun ukuran screenshot-nya
+    # (1080 px langsung dari HP, 760 px dari gambar manual book).
+    scale = 594 / shot.width
     w, h = round(shot.width * scale), round(shot.height * scale)
     shot = shot.resize((w, h), Image.LANCZOS)
     bezel, radius = 16, 62
