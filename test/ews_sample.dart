@@ -194,3 +194,38 @@ const ewsLiveJson = r'''
   }
 }
 ''';
+
+const _ratedSensors = ['kelembapan_tanah', 'intensitas_hujan', 'kemiringan'];
+
+/// Satu wilayah (EWS) berstatus [status] dengan [levels] untuk tiga sensor
+/// berambang, urut seperti [_ratedSensors]: 0 Normal, 1 Waspada, 2 Lewat
+/// batas, `null` tidak ada data. Kelembapan udara selalu tanpa ambang.
+Map<String, dynamic> ewsJsonWith(
+  List<int?> levels, {
+  String status = 'Waspada',
+  bool offline = false,
+}) => {
+  'utama': {'status': status, 'saran': ''},
+  'wilayah': [
+    {
+      'id': 1,
+      'nama': 'Titik Area 2',
+      'status': status,
+      'pemicu': 'Kemiringan 9,9°',
+      'waktu': '12-11-2026 20:33',
+      'offline': offline,
+      'sensor': {
+        for (final (i, key) in _ratedSensors.indexed)
+          key: {'nama': key, 'nilai': 60, 'level': levels[i]},
+        'kelembapan_udara': {
+          'nama': 'Kelembapan udara',
+          'nilai': 97.9,
+          'level': null,
+        },
+      },
+    },
+  ],
+  'ambang': {
+    for (final key in _ratedSensors) key: {'waspada': 50, 'validasi': 80},
+  },
+};

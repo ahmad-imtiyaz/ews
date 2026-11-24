@@ -35,6 +35,8 @@ berikut sengaja dijaga dan dites:
 | Dibuka tanpa sinyal | Data server terakhir dibaca dari HP (`EwsCache`), splash tidak menunggu. |
 | Data lebih dari 15 menit (`ewsStaleAfter`) | Normal tidak lagi tampil aman (abu-abu, garis putus), ada catatan "Belum tersambung ke server". Waspada dan Awas tetap tampil. |
 | Sinyal HP putus | Tidak membunyikan peringatan. Begitu tersambung lagi, status dicatat di lonceng tanpa bunyi. |
+| Waspada dari sebagian sensor | Notifikasi muncul tanpa bunyi. HP baru berbunyi bila semua sensor yang punya ambang sudah Waspada (`MonitoringData.ringsPhone`), atau saat Awas. |
+| Alat EWS berhenti mengirim | Notifikasi muncul tanpa bunyi dan getar, juga bila bacaan terakhirnya Waspada. |
 | Server mengubah bentuk JSON | Data lama tetap tampil, galat dikirim ke Crashlytics. |
 | Aplikasi ditutup | Riwayat lonceng (50 terakhir) tetap tersimpan. |
 | Galat yang tidak tertangkap | Dicatat ke Firebase Crashlytics (hanya build release). |

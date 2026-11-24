@@ -311,6 +311,7 @@ class _FakeNotifications extends NotificationService {
     required MonitoringStatus status,
     required String title,
     required String body,
+    required bool sound,
   }) async {
     alerts.add(status);
   }

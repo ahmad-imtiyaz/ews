@@ -562,15 +562,22 @@ void main() {
           'AWAS: EWS Sikembang',
           'Segera menjauh dari lereng.',
           live: live,
+          sound: true,
         );
         await tester.pumpAndSettle();
       }
 
-      Future<void> appFetchesAwas(WidgetTester tester) async {
-        current = awas;
+      Future<void> appFetches(WidgetTester tester, EwsData data) async {
+        current = data;
         await feed.refresh();
         await tester.pumpAndSettle();
       }
+
+      Future<void> appFetchesAwas(WidgetTester tester) =>
+          appFetches(tester, awas);
+
+      EwsData waspada(List<int?> levels) =>
+          EwsData.fromJson(ewsJsonWith(levels));
 
       testWidgets('kiriman server lebih dulu, data aplikasi tidak berbunyi '
           'lagi', (tester) async {
@@ -580,7 +587,7 @@ void main() {
         await serverSends(tester);
         await appFetchesAwas(tester);
 
-        expect(service.alerts, [MonitoringStatus.awas]);
+        expect(service.alerts, [(MonitoringStatus.awas, sound: true)]);
         expect(inbox.entries.map((e) => e.title), ['AWAS: EWS Sikembang']);
       });
 
@@ -592,8 +599,53 @@ void main() {
         await appFetchesAwas(tester);
         await serverSends(tester);
 
-        expect(service.alerts, [MonitoringStatus.awas]);
+        expect(service.alerts, [(MonitoringStatus.awas, sound: true)]);
         expect(inbox.entries, hasLength(1));
+      });
+
+      testWidgets('Waspada sebagian sensor tanpa bunyi, semua sensor '
+          'berbunyi sekali', (tester) async {
+        usePhoneSize(tester);
+        await open(tester);
+
+        await appFetches(tester, waspada([1, 0, 0]));
+        await appFetches(tester, waspada([1, 1, 0]));
+        expect(service.alerts, [(MonitoringStatus.waspada, sound: false)]);
+
+        await appFetches(tester, waspada([1, 1, 1]));
+        expect(service.alerts.last, (MonitoringStatus.waspada, sound: true));
+
+        // Naik-turun antara sebagian dan semua sensor tidak berbunyi lagi.
+        await appFetches(tester, waspada([1, 1, 0]));
+        await appFetches(tester, waspada([1, 2, 1]));
+        expect(service.alerts, hasLength(2));
+        expect(inbox.entries, hasLength(2));
+      });
+
+      testWidgets('kiriman server Waspada senyap tidak berbunyi, yang '
+          'berbunyi tetap muncul sesudahnya', (tester) async {
+        usePhoneSize(tester);
+        await open(tester);
+
+        void send({required bool sound}) => service.push!(
+          MonitoringStatus.waspada,
+          'Waspada: EWS Sikembang',
+          'Kemiringan 9,9°.',
+          live: true,
+          sound: sound,
+        );
+        send(sound: false);
+        send(sound: false);
+        send(sound: true);
+        await tester.pumpAndSettle();
+
+        expect(service.alerts, [
+          (MonitoringStatus.waspada, sound: false),
+          (MonitoringStatus.waspada, sound: true),
+        ]);
+        // Data aplikasi yang menyusul tidak berbunyi lagi.
+        await appFetches(tester, waspada([1, 1, 1]));
+        expect(service.alerts, hasLength(2));
       });
 
       testWidgets('notifikasi yang diketuk hanya dicatat, tidak berbunyi', (
@@ -628,10 +680,8 @@ void main() {
         expect(inbox.entries.single.status, MonitoringStatus.awas);
 
         // Perubahan berikutnya terlihat langsung, jadi berbunyi lagi.
-        current = areaWith('Waspada', note: 'Kemiringan 9,9°');
-        await feed.refresh();
-        await tester.pumpAndSettle();
-        expect(service.alerts, [MonitoringStatus.waspada]);
+        await appFetches(tester, waspada([1, 1, 1]));
+        expect(service.alerts, [(MonitoringStatus.waspada, sound: true)]);
       });
     });
 
@@ -646,6 +696,18 @@ void main() {
       expect(of(null, 'ews_awas_v3'), MonitoringStatus.awas);
       expect(of(null, 'ews_offline_v1'), MonitoringStatus.noData);
       expect(of(null), MonitoringStatus.waspada);
+    });
+
+    test('bunyi kiriman server mengikuti channel-nya', () {
+      bool sound(MonitoringStatus status, [String? channel]) =>
+          NotificationService.soundOf(status, channel);
+
+      expect(sound(MonitoringStatus.awas, 'ews_awas_v3'), isTrue);
+      expect(sound(MonitoringStatus.waspada, 'ews_waspada_v3'), isTrue);
+      expect(sound(MonitoringStatus.waspada, 'ews_waspada_senyap_v1'), isFalse);
+      // Tanpa channel, Android memakai channel bawaan yang berbunyi.
+      expect(sound(MonitoringStatus.waspada), isTrue);
+      expect(sound(MonitoringStatus.noData, 'ews_offline_v1'), isFalse);
     });
 
     for (final (name, data) in [
@@ -879,7 +941,7 @@ void main() {
 /// Mencatat notifikasi HP yang dibunyikan dan memberi tes jalan untuk
 /// mengirim kiriman server.
 class _FakeNotifications extends NotificationService {
-  final alerts = <MonitoringStatus>[];
+  final alerts = <(MonitoringStatus, {bool sound})>[];
   PushMessageCallback? push;
 
   @override
@@ -898,7 +960,8 @@ class _FakeNotifications extends NotificationService {
     required MonitoringStatus status,
     required String title,
     required String body,
+    required bool sound,
   }) async {
-    alerts.add(status);
+    alerts.add((status, sound: sound));
   }
 }

@@ -63,8 +63,8 @@
   <dl class="meta">
     <dt>Judul</dt><dd>Manual Book Aplikasi EWS Lumeneng</dd>
     <dt>Isi</dt><dd>Panduan memasang dan memakai aplikasi peringatan dini tanah longsor EWS Lumeneng</dd>
-    <dt>Untuk aplikasi</dt><dd>EWS Lumeneng versi 1.0.1, HP Android</dd>
-    <dt>Edisi</dt><dd>Kedua, November 2026</dd>
+    <dt>Untuk aplikasi</dt><dd>EWS Lumeneng versi 1.0.2, HP Android</dd>
+    <dt>Edisi</dt><dd>Ketiga, November 2026</dd>
     <dt>Disusun oleh</dt><dd>Tim Aksara Desa Lumeneng 2026<br>Program Mahasiswa Berdampak, Universitas IVET</dd>
     <dt>Untuk</dt><dd>Warga dan Pemerintah Desa Lumeneng, Kecamatan Paninggaran, Kabupaten Pekalongan, Jawa Tengah</dd>
     <dt>Data alat EWS</dt><dd>Server EWS desa, desalumeneng.id</dd>
@@ -254,7 +254,7 @@
     <div class="arrow"><i class="mi">&#xe216;</i></div>
     <div class="node"><i class="mi">&#xf3a9;</i><b>Aplikasi di HP</b>Mengambil data tiap 10 detik selama dibuka, lalu menampilkannya di Beranda dan Sensor.</div>
     <div class="arrow"><i class="mi">&#xe216;</i></div>
-    <div class="node"><i class="mi">&#xe451;</i><b>Peringatan</b>Saat status berubah menjadi Waspada atau Awas, HP berbunyi dan muncul notifikasi.</div>
+    <div class="node"><i class="mi">&#xe451;</i><b>Peringatan</b>Saat status berubah menjadi Waspada atau Awas, muncul notifikasi. HP berbunyi saat Awas, atau saat semua sensor Waspada.</div>
   </div>
   <div class="flow-title">Laporan warga</div>
   <div class="flow">
@@ -1123,7 +1123,7 @@ Hasil otomatis belum diverifikasi. Mohon diperiksa petugas.<span class="meta">18
   <div class="chapter-head">
     <div class="bab">Bab 7</div>
     <h1>Notifikasi dan Peringatan</h1>
-    <div class="lead mb0">Saat status alat berubah menjadi Waspada atau Awas, HP berbunyi dan muncul notifikasi. Semua peringatan tercatat di lonceng dan bisa dibuka report-nya.</div>
+    <div class="lead mb0">Saat status alat berubah menjadi Waspada atau Awas, muncul notifikasi. HP hanya berbunyi untuk Awas dan untuk Waspada dari semua sensor. Semua peringatan tercatat di lonceng dan bisa dibuka report-nya.</div>
   </div>
 
   <h2><span class="n">7.1</span>Peringatan di HP</h2>
@@ -1133,14 +1133,15 @@ Hasil otomatis belum diverifikasi. Mohon diperiksa petugas.<span class="meta">18
   </div>
   <table class="tbl mt4">
     <tr><th style="width:56mm">Keadaan</th><th>Yang terjadi di HP</th></tr>
-    <tr><td><i class="mi c-waspada">&#xf02a0;</i> Status berubah menjadi <b>Waspada</b></td><td>HP berbunyi dengan suara peringatan Waspada dan muncul notifikasi.</td></tr>
+    <tr><td><i class="mi c-waspada">&#xf02a0;</i> <b>Waspada</b> dari sebagian sensor</td><td>Muncul notifikasi Waspada <b>tanpa bunyi dan tanpa getar</b>.</td></tr>
+    <tr><td><i class="mi c-waspada">&#xf02a0;</i> <b>Waspada</b> dari semua sensor</td><td>HP berbunyi dengan suara peringatan Waspada dan muncul notifikasi. Hanya sekali selama status masih Waspada.</td></tr>
     <tr><td><i class="mi c-awas">&#xef9e;</i> Status berubah menjadi <b>Awas</b></td><td>HP berbunyi dengan suara peringatan Awas yang berbeda, dan muncul notifikasi.</td></tr>
-    <tr><td><i class="mi c-stale">&#xf359;</i> Alat <b>berhenti mengirim data</b></td><td>Muncul notifikasi <i>Tidak ada data</i> <b>tanpa bunyi dan tanpa getar</b>, supaya HP tidak berbunyi berulang kali saat sinyal alat putus-sambung.</td></tr>
+    <tr><td><i class="mi c-stale">&#xf359;</i> Alat <b>berhenti mengirim data</b></td><td>Muncul notifikasi <i>Tidak ada data</i> <b>tanpa bunyi dan tanpa getar</b>, juga bila bacaan terakhirnya Waspada.</td></tr>
     <tr><td><i class="mi c-normal">&#xf634;</i> Kembali <b>Normal</b></td><td>Tidak berbunyi. Cukup dicatat di lonceng.</td></tr>
     <tr><td>Aplikasi baru dibuka</td><td>Tidak berbunyi. Kondisi saat itu dicatat di lonceng bila bukan Normal.</td></tr>
     <tr><td>Sinyal HP putus</td><td>Tidak berbunyi. Sinyal yang putus bukan perubahan kondisi lereng.</td></tr>
   </table>
-  <p>Suara peringatan mengikuti <b>volume nada dering</b>, bukan volume notifikasi, supaya terdengar lebih keras.</p>
+  <p><b>Semua sensor</b> berarti kelembapan tanah, intensitas hujan, dan kemiringan. Kelembapan udara hanya informasi, jadi tidak ikut dihitung. Suara peringatan mengikuti <b>volume nada dering</b>, bukan volume notifikasi, supaya terdengar lebih keras.</p>
   <div class="note important">
     <i class="mi">&#xe238;</i>
     <div><span class="nt">Saat aplikasi ditutup</span><p>Aplikasi hanya mengecek data selama dibuka. Saat aplikasi ditutup, peringatan hanya masuk bila dikirim server desa lewat internet. Karena itu, saat hujan deras, buka aplikasi EWS Lumeneng untuk melihat kondisi terbaru.</p></div>
@@ -1169,7 +1170,7 @@ Hasil otomatis belum diverifikasi. Mohon diperiksa petugas.<span class="meta">18
 
   <h2 id="s7-3"><span class="n">7.3</span>Bila HP tidak berbunyi</h2>
   <div class="step"><div class="sn">1</div><div class="sb"><h3>Periksa izin notifikasi</h3><p>Buka lonceng. Bila muncul kartu <b>Notifikasi HP belum diizinkan</b>, ketuk <b>Izinkan notifikasi</b>. Bila jendela izin tidak muncul, buka <b>Pengaturan HP &gt; Aplikasi &gt; EWS Lumeneng &gt; Notifikasi</b> lalu nyalakan.</p></div></div>
-  <div class="step"><div class="sn">2</div><div class="sb"><h3>Periksa kategori peringatan</h3><p>Di pengaturan notifikasi EWS Lumeneng, pastikan <b>Peringatan Awas</b> dan <b>Peringatan Waspada</b> menyala. Kategori <b>Alat tidak mengirim data</b> memang dibuat tanpa suara.</p></div></div>
+  <div class="step"><div class="sn">2</div><div class="sb"><h3>Periksa kategori peringatan</h3><p>Di pengaturan notifikasi EWS Lumeneng, pastikan <b>Peringatan Awas</b> dan <b>Peringatan Waspada</b> menyala. Kategori <b>Waspada sebagian sensor</b> dan <b>Alat tidak mengirim data</b> memang dibuat tanpa suara.</p></div></div>
   <div class="step"><div class="sn">3</div><div class="sb"><h3>Naikkan volume nada dering</h3><p>Matikan mode senyap atau jangan ganggu bila ingin peringatan tetap terdengar.</p></div></div>
   <div class="step"><div class="sn">4</div><div class="sb"><h3>Periksa internet dan penghemat baterai</h3><p>Pastikan HP tersambung internet. Pada HP yang memakai penghemat baterai ketat, keluarkan EWS Lumeneng dari daftar aplikasi yang dibatasi.</p></div></div>
   <div class="footer"><span class="fl"></span><span class="pn"></span></div>
@@ -1245,7 +1246,7 @@ Hasil otomatis belum diverifikasi. Mohon diperiksa petugas.<span class="meta">18
     <div class="grow">
       <h3 class="mt0">Isi halaman</h3>
       <ul class="dots">
-        <li><b>Versi aplikasi</b>, misalnya <i>Versi 1.0.1 (2)</i>. Bandingkan dengan versi terbaru dari tim untuk tahu apakah aplikasi perlu diperbarui.</li>
+        <li><b>Versi aplikasi</b>, misalnya <i>Versi 1.0.2 (3)</i>. Bandingkan dengan versi terbaru dari tim untuk tahu apakah aplikasi perlu diperbarui.</li>
         <li><b>Keadaan darurat</b>: telepon <b>112</b>, layanan darurat nasional yang gratis.</li>
         <li><b>Sumber data</b>: server EWS desa, kajian 2024, dan peta dasar.</li>
         <li><b>Data dan privasi</b>.</li>
@@ -1278,7 +1279,7 @@ Hasil otomatis belum diverifikasi. Mohon diperiksa petugas.<span class="meta">18
     <tr><td><b>Muncul <i>Belum tersambung ke server</i></b></td><td>Sinyal lemah, kuota habis, atau server sedang gangguan.</td><td>Periksa data seluler atau WiFi. Aplikasi mencoba lagi tiap 10 detik. Di menu Sensor, tarik layar ke bawah.</td></tr>
     <tr><td><b>Area EWS abu-abu dengan garis putus-putus</b></td><td>Alat tidak mengirim data, atau data di HP sudah lebih dari 15 menit.</td><td>Jangan anggap aman. Periksa sinyal dan ikuti kabar dari perangkat desa (BAB 8).</td></tr>
     <tr><td><b>Gambar peta kosong atau abu-abu</b></td><td>Sinyal lemah saat memuat gambar peta.</td><td>Ketuk <b>Coba lagi</b> di pojok peta, atau tunggu sinyal membaik.</td></tr>
-    <tr><td><b>HP tidak berbunyi saat status berubah</b></td><td>Izin notifikasi belum diberikan, volume nada dering kecil, atau mode senyap aktif.</td><td>Ikuti langkah di BAB 7.3.</td></tr>
+    <tr><td><b>HP tidak berbunyi saat status berubah</b></td><td>Waspada baru dari sebagian sensor (memang tanpa bunyi), izin notifikasi belum diberikan, volume nada dering kecil, atau mode senyap aktif.</td><td>Ikuti langkah di BAB 7.3.</td></tr>
     <tr><td><b>Report tidak menampilkan bacaan sensor</b></td><td>Kejadian lebih dari 7 hari lalu, atau sinyal lemah.</td><td>Untuk kejadian baru, periksa sinyal lalu ketuk <b>Coba lagi</b> (4.8).</td></tr>
     <tr><td><b>Lupa versi aplikasi yang terpasang</b></td><td>—</td><td>Buka <b>Tentang aplikasi</b>. Versi tertulis di bawah logo.</td></tr>
   </table>

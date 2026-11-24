@@ -8,13 +8,15 @@ import '../data/monitoring.dart';
 import 'crash_reports.dart';
 
 /// [live] true bila kiriman datang saat aplikasi sedang dibuka. Firebase tidak
-/// menampilkannya sendiri, jadi penerima yang memutuskan perlu bunyi atau
-/// tidak. false bila warga membuka aplikasi dari notifikasi yang sudah tampil.
+/// menampilkannya sendiri, jadi penerima yang menampilkannya. false bila warga
+/// membuka aplikasi dari notifikasi yang sudah tampil. [sound] mengikuti
+/// channel yang dipilih server, lihat [NotificationService.soundOf].
 typedef PushMessageCallback = void Function(
   MonitoringStatus status,
   String title,
   String body, {
   required bool live,
+  required bool sound,
 });
 
 /// Notifikasi bawaan HP. Saat aplikasi tertutup, Android sendiri yang menampilkan
@@ -40,13 +42,25 @@ class NotificationService {
     audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
   );
 
+  // Nama dan keterangan channel boleh diganti tanpa menaikkan id.
   static const _waspadaChannel = AndroidNotificationChannel(
     'ews_waspada_v3',
     'Peringatan Waspada',
-    description: 'Titik pantau perlu diperhatikan.',
+    description: 'Semua sensor menyentuh batas Waspada.',
     importance: Importance.max,
     sound: RawResourceAndroidNotificationSound('ews_waspada'),
     audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+  );
+
+  static const _waspadaQuietChannel = AndroidNotificationChannel(
+    'ews_waspada_senyap_v1',
+    'Waspada sebagian sensor',
+    description:
+        'Sebagian sensor menyentuh batas Waspada. Tanpa suara, HP baru '
+        'berbunyi bila semua sensor Waspada.',
+    importance: Importance.high,
+    playSound: false,
+    enableVibration: false,
   );
 
   // Alat yang diam tetap diberitahukan, tapi tanpa bunyi: sinyal alat yang
@@ -94,6 +108,7 @@ class NotificationService {
       // notifikasi saat aplikasi tertutup tetap memakai suara EWS.
       await _android?.createNotificationChannel(_awasChannel);
       await _android?.createNotificationChannel(_waspadaChannel);
+      await _android?.createNotificationChannel(_waspadaQuietChannel);
       await _android?.createNotificationChannel(_offlineChannel);
       for (final id in _oldChannelIds) {
         await _android?.deleteNotificationChannel(channelId: id);
@@ -124,11 +139,14 @@ class NotificationService {
     void forward(RemoteMessage message, {required bool live}) {
       final notification = message.notification;
       if (notification == null) return;
+      final channelId = notification.android?.channelId;
+      final status = statusOf(message.data, channelId);
       onMessage(
-        statusOf(message.data, message.notification?.android?.channelId),
+        status,
         notification.title ?? 'Peringatan EWS',
         notification.body ?? '',
         live: live,
+        sound: soundOf(status, channelId),
       );
     }
 
@@ -180,15 +198,31 @@ class NotificationService {
     },
   };
 
+  /// Server yang menilai apakah semua sensor sudah Waspada, lalu memilih
+  /// channel Waspada yang berbunyi atau yang senyap. Saat aplikasi dibuka,
+  /// bunyinya disamakan dengan yang dipakai Android saat aplikasi tertutup.
+  /// Tanpa channel, Android memakai channel bawaan di AndroidManifest, yaitu
+  /// Waspada yang berbunyi.
+  static bool soundOf(MonitoringStatus status, String? channelId) =>
+      switch (status) {
+        MonitoringStatus.awas => true,
+        MonitoringStatus.waspada => channelId != _waspadaQuietChannel.id,
+        _ => false,
+      };
+
+  /// [sound] hanya berlaku untuk Waspada. Awas selalu berbunyi, Tidak ada
+  /// data tidak pernah.
   Future<void> showStatusAlert({
     required MonitoringStatus status,
     required String title,
     required String body,
+    required bool sound,
   }) async {
     final channel = switch (status) {
       MonitoringStatus.awas => _awasChannel,
-      MonitoringStatus.noData => _offlineChannel,
-      _ => _waspadaChannel,
+      MonitoringStatus.waspada when sound => _waspadaChannel,
+      MonitoringStatus.waspada => _waspadaQuietChannel,
+      _ => _offlineChannel,
     };
     try {
       await _plugin.show(
