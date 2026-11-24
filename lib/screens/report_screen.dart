@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -17,6 +17,11 @@ import '../widgets/photo_viewer.dart';
 import '../widgets/section_card.dart';
 import '../widgets/top_bar.dart';
 import 'report_result_screen.dart';
+
+/// Paling lama menunggu lokasi akurat setelah Periksa laporan ditekan. Laporan
+/// tanda longsor tidak boleh tertahan oleh GPS yang tidak kunjung masuk,
+/// misalnya di dalam rumah.
+const _locationWaitLimit = Duration(seconds: 30);
 
 const _storyHint =
     'Contoh: lemah e bengkah neng mburi omah pak RT, '
@@ -36,6 +41,7 @@ class ReportScreen extends StatefulWidget {
   const ReportScreen({
     super.key,
     this.locateOnStart = true,
+    this.locate = watchPhoneLocation,
     this.loadText = TextAnalyzer.load,
     this.loadCnn = CnnClassifier.load,
     this.inbox,
@@ -43,6 +49,7 @@ class ReportScreen extends StatefulWidget {
 
   /// Dimatikan di tes karena GPS tidak tersedia.
   final bool locateOnStart;
+  final Stream<PhoneFix> Function() locate;
   final Future<TextAnalyzer> Function() loadText;
   final Future<CnnClassifier?> Function() loadCnn;
 
@@ -65,12 +72,18 @@ class _ReportScreenState extends State<ReportScreen> {
   SignCategory? _choice;
 
   ReportLocation? _location;
+
+  /// Sama dengan [_location], untuk jendela tunggu lokasi.
+  final _liveLocation = ValueNotifier<ReportLocation?>(null);
   String? _locationError;
   StreamSubscription<PhoneFix>? _locationUpdates;
   bool _locating = false;
 
   /// Sudah ada posisi dari pencarian ini, tapi GPS belum masuk.
   bool _sharpening = false;
+
+  /// Jendela tunggu lokasi sedang terbuka.
+  bool _waitingForLocation = false;
 
   /// Izin lokasi hanya "Perkiraan", posisinya bisa meleset sampai ±2 km.
   bool _approximate = false;
@@ -102,6 +115,7 @@ class _ReportScreenState extends State<ReportScreen> {
   void dispose() {
     _lifecycle.dispose();
     _locationUpdates?.cancel();
+    _liveLocation.dispose();
     _story.dispose();
     _cnn.then((cnn) => cnn?.close());
     super.dispose();
@@ -168,12 +182,13 @@ class _ReportScreenState extends State<ReportScreen> {
       _sharpening = false;
       _locationError = null;
     });
-    _locationUpdates = watchPhoneLocation().listen(
+    _locationUpdates = widget.locate().listen(
       (fix) {
         setState(() {
           _location = ReportLocation(fix.latitude, fix.longitude, fix.accuracy);
           _sharpening = true;
         });
+        _liveLocation.value = _location;
         _checkPrecision();
       },
       onError: (Object e) => setState(() {
@@ -185,10 +200,17 @@ class _ReportScreenState extends State<ReportScreen> {
           _ => 'Lokasi belum didapat. Coba lagi di tempat terbuka.',
         };
       }),
-      onDone: () => setState(() {
-        _locating = false;
-        _sharpening = false;
-      }),
+      onDone: () {
+        setState(() {
+          _locating = false;
+          _sharpening = false;
+        });
+        // Pencarian berhenti setelah 45 detik sejak Lapor dibuka, bisa di
+        // tengah jendela tunggu. Tanpa ini sisa waktunya terbuang.
+        if (_waitingForLocation && _locationError == null && mounted) {
+          _locate();
+        }
+      },
     );
   }
 
@@ -220,11 +242,35 @@ class _ReportScreenState extends State<ReportScreen> {
     if (mounted && !_approximate) _locate();
   }
 
+  /// Lokasi masih kasar padahal bisa jadi akurat. Lokasi yang mati, izin yang
+  /// ditolak, atau izin "Perkiraan" tidak ditunggu: menunggu tidak membantu.
+  bool get _locationWorthWaiting {
+    if (_locationError != null || _approximate) return false;
+    final location = _location;
+    if (location == null) return _locating;
+    return location.accuracy > gpsAccuracy;
+  }
+
   Future<void> _submit() async {
     // Melepas fokus dari kolomnya, bukan dari halaman. Dengan
     // FocusScope.of(context).unfocus() halaman masih mengingat kolom cerita,
     // lalu keyboard muncul lagi saat kembali dari hasil analisis.
     FocusManager.instance.primaryFocus?.unfocus();
+
+    if (_locationWorthWaiting) {
+      // Pencarian berhenti setelah 45 detik; warga yang lama mengetik
+      // dicarikan lagi.
+      if (!_locating) _locate();
+      _waitingForLocation = true;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _LocationWait(location: _liveLocation),
+      );
+      _waitingForLocation = false;
+      if (!mounted) return;
+    }
+
     setState(() => _analyzing = true);
 
     final story = _story.text.trim();
@@ -426,6 +472,97 @@ class _SafetyNote extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Menunggu GPS sebentar sebelum laporan diperiksa, dengan angka akurasi yang
+/// terus turun. Tutup sendiri begitu lokasi cukup akurat atau waktunya habis.
+class _LocationWait extends StatefulWidget {
+  const _LocationWait({required this.location});
+
+  final ValueListenable<ReportLocation?> location;
+
+  @override
+  State<_LocationWait> createState() => _LocationWaitState();
+}
+
+class _LocationWaitState extends State<_LocationWait> {
+  late final Timer _limit;
+  bool _closed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _limit = Timer(_locationWaitLimit, _close);
+    widget.location.addListener(_onLocation);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onLocation());
+  }
+
+  @override
+  void dispose() {
+    _limit.cancel();
+    widget.location.removeListener(_onLocation);
+    super.dispose();
+  }
+
+  void _onLocation() {
+    final location = widget.location.value;
+    if (location != null && location.accuracy <= gpsAccuracy) _close();
+  }
+
+  void _close() {
+    if (_closed || !mounted) return;
+    _closed = true;
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return AlertDialog(
+      title: const Text('Menunggu lokasi akurat'),
+      content: ValueListenableBuilder(
+        valueListenable: widget.location,
+        builder: (context, location, _) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    location == null
+                        ? 'Mencari lokasi...'
+                        : 'Sekarang ±${location.accuracy.round()} m',
+                    style: textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Supaya petugas bisa menemukan tempatnya. Lanjut sendiri begitu '
+              'lokasi ±${gpsAccuracy.round()} m, paling lama '
+              '${_locationWaitLimit.inSeconds} detik. Tetap di tempat yang '
+              'aman, jangan mendekati lereng.',
+              style: textTheme.bodyLarge?.copyWith(color: AppColors.inkSoft),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _close,
+          child: const Text('Lanjut tanpa menunggu'),
+        ),
+      ],
     );
   }
 }
