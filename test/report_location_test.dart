@@ -186,6 +186,88 @@ void main() {
     expect(find.byType(ReportResultScreen), findsOneWidget);
   });
 
+  testWidgets('izin Perkiraan diberi tahu walau posisi tidak pernah masuk', (
+    tester,
+  ) async {
+    // Di CPH2159 izin Perkiraan tidak menghasilkan posisi sama sekali, jadi
+    // pemberitahuannya tidak boleh menunggu posisi pertama.
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: ReportScreen(
+          locate: () =>
+              Stream.error(const LocationUnavailable(LocationProblem.notFound)),
+          isApproximate: () async => true,
+          loadText: () async => analyzer,
+          loadCnn: () async => null,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('Periksa laporan'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ReportScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+
+    expect(find.text('Lokasi belum didapat.'), findsOneWidget);
+    expect(find.textContaining('Coba lagi di tempat terbuka'), findsNothing);
+    expect(find.textContaining('Lokasi masih perkiraan'), findsOneWidget);
+    expect(find.text('Izinkan lokasi tepat'), findsOneWidget);
+
+    // Android tidak bertanya lagi dan izinnya tetap Perkiraan: tombolnya
+    // langsung menunjuk ke pengaturan.
+    await tester.tap(find.text('Izinkan lokasi tepat'));
+    await tester.pump();
+    expect(find.text('Buka pengaturan izin'), findsOneWidget);
+    expect(find.textContaining('Gunakan lokasi presisi'), findsOneWidget);
+  });
+
+  testWidgets('izin Perkiraan tidak menahan laporan', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final gps = StreamController<PhoneFix>();
+    addTearDown(() => unawaited(gps.close()));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildAppTheme(),
+        home: ReportScreen(
+          locate: () => gps.stream,
+          isApproximate: () async => true,
+          loadText: () async => analyzer,
+          loadCnn: () async => null,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'lemah bengkah');
+    await tester.pump();
+    final submit = find.text('Periksa laporan');
+    await tester.scrollUntilVisible(
+      submit,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ReportScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+    expect(find.text('Menunggu lokasi akurat'), findsNothing);
+    expect(find.byType(ReportResultScreen), findsOneWidget);
+  });
+
   testWidgets('izin lokasi ditolak tidak menahan laporan', (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
