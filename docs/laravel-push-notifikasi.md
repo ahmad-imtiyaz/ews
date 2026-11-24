@@ -1,8 +1,31 @@
 # Push notifikasi EWS ke HP warga (untuk server Laravel)
 
-Aplikasi EWS Lumeneng sudah siap menerima peringatan dari server lewat Firebase Cloud Messaging (FCM). Yang belum ada hanya pengirimnya di server. Selama server belum mengirim, notifikasi baru muncul saat warga membuka aplikasi, karena hanya aplikasi yang mengecek `GET /api/ews/data`, dan Android menghentikan aplikasi yang tidak dibuka.
+## Tugas untuk server, 25 November 2026
 
-Kalau server yang mengirim, Android sendiri yang menampilkan notifikasi. Notifikasi tetap muncul walaupun aplikasi tertutup, selama HP tersambung internet (data atau WiFi).
+Untuk developer Laravel, atau Claude Code yang diberi file ini.
+
+Server sudah mengirim push FCM ke topik `warga-lumeneng`. Tugasnya **menyesuaikan pengirim yang sudah ada** dengan aturan bunyi baru di bagian "Perubahan 25 November 2026" di bawah, bukan membuat pengirim kedua.
+
+Langkah:
+
+1. Cari kode yang sekarang mengirim push dan tempat status wilayah dihitung.
+2. Periksa channel yang selama ini dipakai untuk push "alat tidak mengirim data". Seharusnya `ews_offline_v1`. Laporkan bila selama ini lain.
+3. Sebelum mengubah apa pun, jelaskan rencananya ke pemilik server: file mana yang diubah, dan apakah perlu migrasi kolom `tingkat_terakhir`.
+4. Ubah pengirimnya sesuai bagian 3 (kapan mengirim) dan bagian 5 (contoh kode). Level sensor diambil dari penilaian yang sama dengan `level` di `/api/ews/data`, jangan dihitung ulang dengan cara lain.
+5. Perbarui perintah `ews:test-push` (bagian 6), lalu uji seperti bagian 7.
+
+Batasan:
+
+- Bentuk JSON `/api/ews/data` jangan diubah, aplikasi HP membacanya.
+- Nama channel harus persis seperti di file ini. Channel yang salah atau kosong membuat HP berbunyi.
+- `ews:test-push` sampai ke **semua** HP warga. Jalankan hanya setelah pemilik server mengizinkan.
+- File service account Firebase jangan disentuh dan jangan masuk git.
+
+## Gambaran
+
+Aplikasi EWS Lumeneng menerima peringatan dari server lewat Firebase Cloud Messaging (FCM). Tanpa push dari server, notifikasi baru muncul saat warga membuka aplikasi, karena hanya aplikasi yang mengecek `GET /api/ews/data`, dan Android menghentikan aplikasi yang tidak dibuka.
+
+Push dari server ditampilkan Android sendiri, dengan suara dari channel yang disebut di pesan. Notifikasi tetap muncul walaupun aplikasi tertutup, selama HP tersambung internet (data atau WiFi).
 
 ```text
 ESP → Laravel (status wilayah berubah) → FCM (topik warga-lumeneng) → semua HP warga
@@ -10,7 +33,7 @@ ESP → Laravel (status wilayah berubah) → FCM (topik warga-lumeneng) → semu
 
 ### Perubahan 25 November 2026: Waspada sebagian sensor tanpa suara
 
-Warga terganggu karena HP berbunyi setiap kali satu sensor saja menyentuh batas Waspada. Mulai aplikasi versi berikutnya:
+Warga terganggu karena HP berbunyi setiap kali satu sensor saja menyentuh batas Waspada. Mulai aplikasi versi 1.0.2:
 
 - Waspada **berbunyi** hanya bila **semua sensor yang punya ambang** (kelembapan tanah, intensitas hujan, kemiringan) sudah level 1 atau 2, dan alatnya masih mengirim. Kelembapan udara tidak punya ambang, jadi tidak ikut dihitung.
 - Waspada dari sebagian sensor tetap dikirim, tapi lewat channel senyap baru **`ews_waspada_senyap_v1`**.
