@@ -42,6 +42,7 @@ class ReportScreen extends StatefulWidget {
     super.key,
     this.locateOnStart = true,
     this.locate = watchPhoneLocation,
+    this.isApproximate = isLocationApproximate,
     this.loadText = TextAnalyzer.load,
     this.loadCnn = CnnClassifier.load,
     this.inbox,
@@ -50,6 +51,7 @@ class ReportScreen extends StatefulWidget {
   /// Dimatikan di tes karena GPS tidak tersedia.
   final bool locateOnStart;
   final Stream<PhoneFix> Function() locate;
+  final Future<bool> Function() isApproximate;
   final Future<TextAnalyzer> Function() loadText;
   final Future<CnnClassifier?> Function() loadCnn;
 
@@ -75,7 +77,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   /// Sama dengan [_location], untuk jendela tunggu lokasi.
   final _liveLocation = ValueNotifier<ReportLocation?>(null);
-  String? _locationError;
+  LocationProblem? _locationProblem;
   StreamSubscription<PhoneFix>? _locationUpdates;
   bool _locating = false;
 
@@ -180,7 +182,7 @@ class _ReportScreenState extends State<ReportScreen> {
     setState(() {
       _locating = true;
       _sharpening = false;
-      _locationError = null;
+      _locationProblem = null;
     });
     _locationUpdates = widget.locate().listen(
       (fix) {
@@ -189,16 +191,11 @@ class _ReportScreenState extends State<ReportScreen> {
           _sharpening = true;
         });
         _liveLocation.value = _location;
-        _checkPrecision();
       },
       onError: (Object e) => setState(() {
-        _locationError = switch (e) {
-          LocationUnavailable(problem: LocationProblem.serviceOff) =>
-            'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
-          LocationUnavailable(problem: LocationProblem.denied) =>
-            'Izin lokasi ditolak. Laporan tetap bisa dikirim.',
-          _ => 'Lokasi belum didapat. Coba lagi di tempat terbuka.',
-        };
+        _locationProblem = e is LocationUnavailable
+            ? e.problem
+            : LocationProblem.notFound;
       }),
       onDone: () {
         setState(() {
@@ -207,15 +204,19 @@ class _ReportScreenState extends State<ReportScreen> {
         });
         // Pencarian berhenti setelah 45 detik sejak Lapor dibuka, bisa di
         // tengah jendela tunggu. Tanpa ini sisa waktunya terbuang.
-        if (_waitingForLocation && _locationError == null && mounted) {
+        if (_waitingForLocation && _locationProblem == null && mounted) {
           _locate();
         }
       },
     );
+    // Dicek sekarang, bukan menunggu posisi pertama: dengan izin "Perkiraan"
+    // sebagian HP tidak mendapat posisi sama sekali, dan warga perlu tahu
+    // penyebabnya izin, bukan tempatnya.
+    _checkPrecision();
   }
 
   Future<void> _checkPrecision() async {
-    final approximate = await isLocationApproximate();
+    final approximate = await widget.isApproximate();
     if (mounted && approximate != _approximate) {
       setState(() => _approximate = approximate);
     }
@@ -228,24 +229,27 @@ class _ReportScreenState extends State<ReportScreen> {
       await openLocationSettings();
       return;
     }
+    // Android memunculkan dialognya paling banyak sekali lagi. Bila izinnya
+    // tetap perkiraan, tombol dan petunjuknya sudah menunjuk ke pengaturan.
+    setState(() => _preciseAsked = true);
     await askPreciseLocation();
-    _preciseAsked = true;
     await _checkPrecision();
     if (mounted && !_approximate) _locate();
   }
 
-  /// Kembali dari pengaturan izin: bila sekarang sudah lokasi tepat, ambil
-  /// ulang posisinya.
+  /// Kembali dari jendela izin atau pengaturan HP: izinnya bisa berubah ke
+  /// "Perkiraan" atau sebaliknya. Bila sekarang lokasi tepat, posisinya
+  /// diambil ulang.
   Future<void> _onReturn() async {
-    if (!_approximate) return;
+    final wasApproximate = _approximate;
     await _checkPrecision();
-    if (mounted && !_approximate) _locate();
+    if (mounted && wasApproximate && !_approximate) _locate();
   }
 
   /// Lokasi masih kasar padahal bisa jadi akurat. Lokasi yang mati, izin yang
   /// ditolak, atau izin "Perkiraan" tidak ditunggu: menunggu tidak membantu.
   bool get _locationWorthWaiting {
-    if (_locationError != null || _approximate) return false;
+    if (_locationProblem != null || _approximate) return false;
     final location = _location;
     if (location == null) return _locating;
     return location.accuracy > gpsAccuracy;
@@ -417,7 +421,7 @@ class _ReportScreenState extends State<ReportScreen> {
           const SizedBox(height: 16),
           _LocationSection(
             location: _location,
-            error: _locationError,
+            problem: _locationProblem,
             locating: _locating && !_sharpening,
             sharpening: _sharpening,
             onRetry: _locate,
@@ -865,7 +869,7 @@ class _SignChoices extends StatelessWidget {
 class _LocationSection extends StatelessWidget {
   const _LocationSection({
     required this.location,
-    required this.error,
+    required this.problem,
     required this.locating,
     required this.sharpening,
     required this.onRetry,
@@ -875,7 +879,7 @@ class _LocationSection extends StatelessWidget {
   });
 
   final ReportLocation? location;
-  final String? error;
+  final LocationProblem? problem;
   final bool locating;
   final bool sharpening;
   final VoidCallback onRetry;
@@ -894,7 +898,19 @@ class _LocationSection extends StatelessWidget {
         ? 'Mencari lokasi...'
         : found != null
         ? found.coordinates
-        : error ?? 'Lokasi belum diambil.';
+        : switch (problem) {
+            LocationProblem.serviceOff =>
+              'Lokasi HP mati. Nyalakan lokasi, lalu coba lagi.',
+            LocationProblem.denied =>
+              'Izin lokasi ditolak. Laporan tetap bisa dikirim.',
+            // Penyebabnya izin, yang dijelaskan di bawah. Pindah ke tempat
+            // terbuka tidak membantu.
+            LocationProblem.notFound when approximate =>
+              'Lokasi belum didapat.',
+            LocationProblem.notFound =>
+              'Lokasi belum didapat. Coba lagi di tempat terbuka.',
+            null => 'Lokasi belum diambil.',
+          };
 
     return SectionCard(
       title: 'Lokasi',
@@ -939,7 +955,8 @@ class _LocationSection extends StatelessWidget {
                   openSettings
                       ? 'Lokasi masih perkiraan, bisa meleset sampai 2 km. '
                             'Di pengaturan, buka Izin > Lokasi, lalu nyalakan '
-                            '"Gunakan lokasi tepat".'
+                            '"Gunakan lokasi tepat" (di sebagian HP "Gunakan '
+                            'lokasi presisi").'
                       : 'Lokasi masih perkiraan, bisa meleset sampai 2 km. '
                             'Izinkan lokasi tepat agar petugas menemukan '
                             'tempatnya.',
