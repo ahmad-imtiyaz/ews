@@ -53,7 +53,35 @@ Future<void> openLocationSettings() async {
 
 bool _askedPrecise = false;
 
-/// Posisi HP yang makin tajam, akurasinya dalam meter. Tiap posisi yang
+/// Posisi GPS selama ini masih dianggap posisi sekarang: berjalan semenit
+/// paling jauh puluhan meter.
+const recentFixAge = Duration(minutes: 1);
+
+/// Posisi terbaik terakhir dari [watchPhoneLocation], mis. dari peta Beranda.
+({PhoneFix fix, DateTime at})? _recent;
+
+/// Posisi GPS yang masih baru, dari aplikasi ini atau aplikasi lain (mis.
+/// Google Maps), supaya Lapor tidak mulai dari posisi kasar ±80 m.
+Future<PhoneFix?> _recentGpsFix() async {
+  final now = DateTime.now();
+  if (_recent case (:final fix, :final at)
+      when now.difference(at) <= recentFixAge && fix.accuracy <= gpsAccuracy) {
+    return fix;
+  }
+  try {
+    final last = await Geolocator.getLastKnownPosition();
+    if (last != null &&
+        now.difference(last.timestamp) <= recentFixAge &&
+        last.accuracy <= gpsAccuracy) {
+      return _toFix(last);
+    }
+  } catch (_) {}
+  return null;
+}
+
+/// Posisi HP yang makin tajam, akurasinya dalam meter. Bila HP baru saja
+/// punya posisi GPS (lihat [recentFixAge]), posisi itu dikirim duluan, lalu
+/// diganti posisi baru dari GPS begitu ada. Selain itu tiap posisi yang
 /// dikirim lebih akurat dari sebelumnya. Selesai begitu akurasi sampai
 /// [targetAccuracy] atau [timeLimit] habis. Bila sampai waktunya habis belum ada
 /// posisi sama sekali, misalnya di dalam rumah, dipakai lokasi terakhir yang
@@ -92,7 +120,12 @@ Stream<PhoneFix> watchPhoneLocation({
     Geolocator.getPositionStream(locationSettings: settings),
   );
   final stopwatch = Stopwatch()..start();
-  PhoneFix? best;
+  // Posisi lama yang masih baru hanya sementara: posisi baru dari GPS
+  // menggantikannya walau angka akurasinya sedikit lebih besar, karena
+  // pelapor mungkin sudah pindah.
+  var provisional = await _recentGpsFix();
+  PhoneFix? best = provisional;
+  if (provisional != null) yield provisional;
   try {
     while (true) {
       final left = timeLimit - stopwatch.elapsed;
@@ -100,8 +133,17 @@ Stream<PhoneFix> watchPhoneLocation({
         break;
       }
       final fix = _toFix(positions.current);
-      if (best != null && fix.accuracy >= best.accuracy) continue;
+      if (provisional != null) {
+        if (fix.accuracy > gpsAccuracy &&
+            fix.accuracy >= provisional.accuracy) {
+          continue;
+        }
+        provisional = null;
+      } else if (best != null && fix.accuracy >= best.accuracy) {
+        continue;
+      }
       best = fix;
+      _recent = (fix: fix, at: DateTime.now());
       yield fix;
       if (fix.accuracy <= targetAccuracy) break;
     }
