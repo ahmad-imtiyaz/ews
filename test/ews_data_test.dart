@@ -199,6 +199,46 @@ void main() {
       expect(data.status, MonitoringStatus.waspada);
       expect(data.updated, 'Belum tersambung');
     });
+
+    group('HP berbunyi', () {
+      bool rings(List<int?> levels, {String? status, bool offline = false}) =>
+          monitoringFrom(
+            EwsData.fromJson(
+              ewsJsonWith(
+                levels,
+                status: status ?? 'Waspada',
+                offline: offline,
+              ),
+            ),
+          ).ringsPhone;
+
+      test('Waspada dari sebagian sensor tanpa bunyi', () {
+        expect(rings([1, 0, 0]), isFalse);
+        expect(rings([1, 1, 0]), isFalse);
+        // Sensor yang tidak mengirim belum tentu Waspada.
+        expect(rings([1, 1, null]), isFalse);
+      });
+
+      test('Waspada dari semua sensor berambang berbunyi', () {
+        // Kelembapan udara tidak punya ambang, jadi tidak ikut dihitung.
+        expect(rings([1, 1, 1]), isTrue);
+        expect(rings([1, 2, 1]), isTrue);
+      });
+
+      test('alat yang diam tidak berbunyi, kecuali Awas', () {
+        expect(rings([1, 1, 1], offline: true), isFalse);
+        final live = EwsData.fromJson(
+          jsonDecode(ewsLiveJson) as Map<String, dynamic>,
+        );
+        expect(monitoringFrom(live).ringsPhone, isFalse);
+        expect(rings([0, 0, 0], status: 'Awas', offline: true), isTrue);
+      });
+
+      test('Normal dan gagal memuat tidak berbunyi', () {
+        expect(rings([0, 0, 0], status: 'Aman'), isFalse);
+        expect(monitoringFrom(null).ringsPhone, isFalse);
+      });
+    });
   });
 
   test('shortTime menyingkat waktu server', () {

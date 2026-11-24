@@ -110,6 +110,7 @@ class MonitoringData {
     this.log = const [],
     this.loadFailed = false,
     this.outdated = false,
+    this.ringsPhone = false,
   });
 
   final MonitoringStatus status;
@@ -121,6 +122,10 @@ class MonitoringData {
 
   /// Data yang tampil lebih lama dari `ewsStaleAfter`, lihat [SensorPoint.outdated].
   final bool outdated;
+
+  /// Peringatan ini dibunyikan di HP, lihat [_ringsPhone]. Yang lain tampil
+  /// tanpa suara.
+  final bool ringsPhone;
 
   String get title => loadFailed ? 'Belum bisa memuat' : status.label;
 }
@@ -197,6 +202,7 @@ MonitoringData monitoringFrom(
         : 'Bacaan ${shortTime(readTime)}',
     sensors: points,
     outdated: outdated,
+    ringsPhone: connected.any((point) => _ringsPhone(point, ews.thresholds)),
     log: [
       if (outdated)
         LogEntry(
@@ -233,6 +239,31 @@ MonitoringData monitoringFrom(
         ),
     ],
   );
+}
+
+/// Warga merasa terganggu bila HP berbunyi tiap satu sensor menyentuh ambang,
+/// jadi Waspada baru berbunyi bila semua sensor yang punya ambang di server
+/// sudah Waspada atau lewat batas. Kelembapan udara tidak punya ambang, jadi
+/// tidak ikut dihitung. Bacaan alat yang diam bukan kondisi sekarang, jadi
+/// tidak berbunyi. Awas selalu berbunyi: kabel putus bisa justru membuat
+/// alatnya diam.
+bool _ringsPhone(SensorPoint point, Map<String, EwsThreshold> thresholds) {
+  switch (point.status) {
+    case MonitoringStatus.awas:
+      return true;
+    case MonitoringStatus.waspada when !point.isStale:
+      final rated = [
+        for (final sensor in point.area!.sensors)
+          if (thresholds.containsKey(sensor.key)) sensor.level,
+      ];
+      return rated.isNotEmpty &&
+          rated.every(
+            (level) =>
+                level == SensorLevel.waspada || level == SensorLevel.lewatBatas,
+          );
+    default:
+      return false;
+  }
 }
 
 String _deviceName(EwsData ews, String serverName) {

@@ -53,6 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
   /// sama dalam beberapa detik, jadi yang datang kedua tidak dicatat lagi.
   MonitoringStatus? _announced;
 
+  /// [_announced] sudah diberitahukan sebagai peringatan yang berbunyi.
+  bool _announcedSound = false;
+
   /// Selama aplikasi di latar, perubahan status sudah dibunyikan Android dari
   /// kiriman server. Data pertama setelah kembali cukup dicatat di lonceng.
   bool _quietNextFetch = false;
@@ -111,9 +114,20 @@ class _HomeScreenState extends State<HomeScreen> {
       // Data pertama setelah gagal memuat, setelah data simpanan, atau setelah
       // lama tidak tersambung, sama seperti aplikasi baru dibuka.
       _announce(next, isChange: false);
-    } else if (next.status != previous.status) {
+    } else if (next.status != previous.status ||
+        next.ringsPhone && !previous.ringsPhone) {
       _announce(next, isChange: true, ring: ring);
     }
+  }
+
+  /// false bila peringatan ini sudah diberitahukan. Waspada yang naik dari
+  /// sebagian ke semua sensor diberitahukan sekali lagi dengan bunyi, tapi
+  /// tidak tiap kali jumlah sensornya naik-turun selama masih Waspada.
+  bool _claim(MonitoringStatus status, {required bool sound}) {
+    if (status == _announced && (_announcedSound || !sound)) return false;
+    _announced = status;
+    _announcedSound = sound;
+    return true;
   }
 
   void _recordPush(
@@ -121,9 +135,9 @@ class _HomeScreenState extends State<HomeScreen> {
     String title,
     String body, {
     required bool live,
+    required bool sound,
   }) {
-    if (!mounted || status == _announced) return;
-    _announced = status;
+    if (!mounted || !_claim(status, sound: sound)) return;
     widget.inbox.add(
       NotificationEntry(
         status: status,
@@ -137,20 +151,23 @@ class _HomeScreenState extends State<HomeScreen> {
         status: status,
         title: title,
         body: body,
+        sound: sound,
       );
     }
   }
 
   /// Normal saat aplikasi dibuka tidak perlu dicatat. Kembali Normal dicatat
-  /// di lonceng tanpa membunyikan HP, begitu juga semua perubahan bila [ring]
-  /// false.
+  /// di lonceng tanpa notifikasi HP, begitu juga semua perubahan bila [ring]
+  /// false. Selain itu muncul notifikasi HP, berbunyi atau tidak menurut
+  /// [MonitoringData.ringsPhone].
   void _announce(
     MonitoringData data, {
     required bool isChange,
     bool ring = true,
   }) {
-    if (data.loadFailed || data.status == _announced) return;
-    _announced = data.status;
+    if (data.loadFailed || !_claim(data.status, sound: data.ringsPhone)) {
+      return;
+    }
     final isNormal = data.status == MonitoringStatus.normal;
     if (isNormal && !isChange) return;
     // Riwayat tersimpan di HP, jadi membuka aplikasi berkali-kali saat Awas
@@ -176,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
         status: data.status,
         title: data.title,
         body: data.summary,
+        sound: data.ringsPhone,
       );
     }
   }
