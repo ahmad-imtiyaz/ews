@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class WhiteCard extends StatelessWidget {
   const WhiteCard({super.key, required this.children});

@@ -5,7 +5,7 @@ import 'package:ews/data/ews_data.dart';
 import 'package:ews/data/monitoring.dart';
 import 'package:ews/screens/status_report_sheet.dart';
 import 'package:ews/services/ews_history.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

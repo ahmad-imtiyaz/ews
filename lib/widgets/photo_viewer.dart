@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Foto layar penuh. Geser untuk pindah foto, cubit untuk memperbesar.
 class PhotoViewer extends StatefulWidget {

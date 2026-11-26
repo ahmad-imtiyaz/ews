@@ -17,7 +17,7 @@ import 'package:ews/services/notification_service.dart';
 import 'package:ews/services/phone_location.dart';
 import 'package:ews/widgets/brand_logo.dart';
 import 'package:ews/widgets/status_icon.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

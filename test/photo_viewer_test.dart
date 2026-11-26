@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:ews/widgets/photo_viewer.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // PNG 1x1 transparan.

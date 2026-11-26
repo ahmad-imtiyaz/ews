@@ -6,7 +6,7 @@ import 'package:ews/app_theme.dart';
 import 'package:ews/screens/report_result_screen.dart';
 import 'package:ews/screens/report_screen.dart';
 import 'package:ews/services/phone_location.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Tiap akurasi punya titik sendiri, supaya terlihat posisi mana yang dipakai.
