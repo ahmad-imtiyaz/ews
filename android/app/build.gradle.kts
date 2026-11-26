@@ -8,7 +8,8 @@ plugins {
 
 android {
     namespace = "id.kkn.ewslumeneng"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_local_notifications 23 butuh compileSdk 37; Flutter 3.50 masih 36.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
